@@ -1,3 +1,4 @@
+import { getAuth } from '@react-native-firebase/auth';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -10,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import api from '../../services/api';
-import auth from '../../services/firebaseConfig';
+
 
 export default function Notification() {
   type Notification = {
@@ -35,7 +36,7 @@ export default function Notification() {
 
   const fetchNotifications = async () => {
     try {
-      const uid = auth?.currentUser?.uid;
+      const uid = getAuth().currentUser?.uid;
       if (!uid) return;
 
       const res = await api.get(`/notifications/${uid}`);
@@ -56,7 +57,7 @@ export default function Notification() {
 
   const handleNotificationPress = async (notification: Notification) => {
     try {
-      const uid = auth?.currentUser?.uid;
+      const uid = getAuth().currentUser?.uid;
       if (!uid) return;
 
       await api.post(`/notifications/${uid}/read`, { notificationId: notification.id });

@@ -1,27 +1,19 @@
+import { getAuth, signInWithEmailAndPassword } from '@react-native-firebase/auth';
 import { router } from 'expo-router';
-import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useState } from 'react';
 import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
-import auth from '../services/firebaseConfig';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const loginHandler = async() => {
-     try{
-        if (auth) {
-          await signInWithEmailAndPassword(auth, email, password);
-          console.log("User logged in successfully.");
-        } else {
-          console.error("Firebase auth instance is null.");
-          alert("Authentication service is unavailable. Please try again later.");
-        }
-        router.replace('/(tabs)/Home');
-        }catch (error){
-            console.error("Error signing up:", error);
-            alert("Error signing up. Please try again.");
-        }
+    signInWithEmailAndPassword(getAuth(), email, password)
+      .then(() => {
+        router.replace('/(tabs)/Home'); // Redirect to Profile page after successful login
+      }).catch((error) => {
+        console.error("Error logging in:", error);
+      });
   };
 
   return (
@@ -29,8 +21,8 @@ export default function Login() {
       <Text style={styles.title}>Login</Text>
       <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />
       <TextInput placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} style={styles.input} />
-      <Button title="Login" onPress={loginHandler} />
-      <Text style={styles.link} onPress={() => router.push('/Signup')}>Don&apos;t have an account? Sign up</Text>
+      <Button title="Login" onPress={loginHandler} testID = "LoginButton"/>
+      <Text style={styles.link} onPress={() => router.replace('/Signup')}>Don&apos;t have an account? Sign up</Text>
     </View>
   );
 }

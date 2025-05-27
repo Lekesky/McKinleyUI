@@ -1,10 +1,10 @@
-import { View, Text, StyleSheet, Image, Button } from "react-native";
 import { router } from "expo-router";
+import { Button, Image, StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
-      <Image
+      <Image testID = "logo-image"
         source={{ uri: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092" }}
         style={styles.heroImage}
         resizeMode="cover"

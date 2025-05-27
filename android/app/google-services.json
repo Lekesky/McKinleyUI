@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1011866958643",
+    "project_id": "mckinleysgrill",
+    "storage_bucket": "mckinleysgrill.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1011866958643:android:ee5f0d939e8f43d30a9c46",
+        "android_client_info": {
+          "package_name": "com.company.mckinley"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDN-cYk1mQbyJvzVFMo1EAgbOSW2ODyp74"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

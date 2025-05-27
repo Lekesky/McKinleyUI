@@ -1,8 +1,8 @@
+import { getAuth } from '@react-native-firebase/auth';
 import { initPaymentSheet, presentPaymentSheet } from '@stripe/stripe-react-native';
 import { Alert, Button, FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
 import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
-import auth from '../../services/firebaseConfig';
 
 
 export default function Cart() {
@@ -10,7 +10,7 @@ export default function Cart() {
     // const { confirmPayment } = useStripe();
 
     const total = cart.reduce((sum, item) => sum + item.price, 0);
-    const userUID = auth?.currentUser?.uid;
+    const userUID = getAuth()?.currentUser?.uid;
     let orderId : string = "";
 
     const placeOrder = async () => {
@@ -40,9 +40,10 @@ export default function Cart() {
     const initializePaymentSheet = async () => {
         try {
           const amount = Math.round(total * 100);
-          
+          console.log("Customer UID: ", userUID);
           const res = await api.post('/payments/create-intent', {
              customerId: userUID,
+             orderId: orderId,
              amount 
         });
       
@@ -146,8 +147,8 @@ const styles = StyleSheet.create({
     marginBottom: 90,
     gap: 10,
   },
-    orderList: {
-        marginLeft: 13,
-        marginRight: 13,
-    },
+  orderList: {
+      marginLeft: 13,
+      marginRight: 13,
+  },
 });

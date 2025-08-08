@@ -29,7 +29,7 @@ export default function TabLayout() {
         console.log("User role: ", res.data);
       })
       .catch(err => {
-        console.error('Error fetching user role:', err);
+        console.error(`Error fetching user role for: ${userUID}`, err);
         setRole('');
       });
   }, [userUID]);

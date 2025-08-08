@@ -3,12 +3,12 @@ import { router } from 'expo-router';
 import React from 'react';
 import {
     Alert,
-    StyleSheet,
     Text,
     TouchableOpacity,
     View
 } from 'react-native';
 import { useTable } from '../../context/TableContext';
+import styles from '../../styles/Waitress.styles';
 
 
 
@@ -38,6 +38,7 @@ export default function WaitressScreen() {
             <View style={styles.tableBox}>
                 <Text style = {styles.tableNum} >Table Number:</Text>
                 <Picker
+                        testID="table-picker"
                         selectedValue={tableNum}
                         style={styles.picker}
                         onValueChange={(itemValue) => setTableNum(itemValue)}>
@@ -66,58 +67,3 @@ export default function WaitressScreen() {
 }
 
 
-const styles = StyleSheet.create({
-    enterBoxStyle: {
-        backgroundColor: "#53c851",
-        color: "white",
-        textAlign: "center",
-        textAlignVertical: "center",
-        fontSize: 20,
-        height: 35,
-        width: "auto",
-        borderRadius: 20,
-    },
-    picker: {
-        borderWidth: 2,
-        height: 50,
-        width: 150,
-        marginLeft: 10,
-    },
-    textBox: {
-        marginLeft: 15,
-        borderWidth: 2,
-        width: 50,
-        height: 50,
-        alignSelf: "center",
-    },
-    tableNum: {
-        fontSize: 30,
-    },
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    tableBox: {
-        flexDirection: 'row',
-    },
-    enterBox: {
-        marginTop: 30,
-        width: 350,
-    },
-    box: {
-        padding: 20,
-        borderRadius: 8,
-    },
-    title: {
-        textAlign: "center",
-        fontSize: 60,
-        fontWeight: 'bold',
-        alignItems: "center"
-    },
-    center: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-});

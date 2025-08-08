@@ -51,6 +51,12 @@
           "backgroundColor": "#ffffff"
         }
       ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow McKinley's Grill to access your photos?"
+        }
+      ],
       "expo-build-properties"
     ],
     "experiments": {

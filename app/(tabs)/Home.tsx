@@ -1,5 +1,6 @@
 import { router } from "expo-router";
-import { Button, Image, StyleSheet, Text, View } from "react-native";
+import { Button, Image, Text, View } from "react-native";
+import styles from "../../styles/Home.styles";
 
 export default function HomeScreen() {
   return (
@@ -23,33 +24,4 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-  },
-  heroImage: {
-    width: "100%",
-    height: 200,
-    borderRadius: 12,
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginVertical: 10,
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  buttonGroup: {
-    width: "100%",
-    gap: 10,
-  },
-});
+

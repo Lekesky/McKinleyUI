@@ -1,8 +1,9 @@
 import { deleteUser, EmailAuthProvider, getAuth, reauthenticateWithCredential, signOut } from "@react-native-firebase/auth";
 import { router } from "expo-router";
 import { useState } from 'react';
-import { Alert, Button, StyleSheet, View } from "react-native";
+import { Alert, Button, View } from "react-native";
 import Dialog from "react-native-dialog";
+import styles from "../../styles/Profile.styles";
 
 export default function Profile() {
     const [password, setPassword] = useState('');
@@ -14,8 +15,8 @@ export default function Profile() {
 
     const handleLogout = async() => {
         signOut(getAuth()).then(() => {
-            Alert.alert("Sucessfully logged out.");
-            console.log("Sucessfully logged user out.");  
+            Alert.alert("Successfully logged out.");
+            console.log("Successfully logged user out.");  
         }).catch((error) => {
             Alert.alert("Error logging out account.")
             console.log("Error logging out user's account");
@@ -79,9 +80,3 @@ export default function Profile() {
 }
 
 
-const styles = StyleSheet.create({
-    actions: {
-        marginTop: 500,
-        gap: 10,
-      }
-});

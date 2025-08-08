@@ -5,12 +5,12 @@ import {
   FlatList,
   RefreshControl,
   SafeAreaView,
-  StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import api from '../../services/api';
+import styles from '../../styles/Notification.styles';
 
 
 export default function Notification() {
@@ -95,23 +95,10 @@ export default function Notification() {
             </View>
           </TouchableOpacity>
         )}
+        testID="notification-list"
       />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    elevation: 2,
-  },
-  title: { fontSize: 16, fontWeight: 'bold' },
-  message: { fontSize: 14, marginTop: 4 },
-  timestamp: { fontSize: 12, color: '#666', marginTop: 6 },
-});
+

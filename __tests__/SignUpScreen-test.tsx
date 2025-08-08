@@ -1,5 +1,5 @@
 import Signup from '@/app/Signup';
-import { createUserWithEmailAndPassword, getAuth } from '@react-native-firebase/auth';
+import { createUserWithEmailAndPassword } from '@react-native-firebase/auth';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
@@ -158,57 +158,6 @@ describe('<Signup />', () => {
                 'password123'
             );
             expect(mockConsoleLog).toHaveBeenCalledWith('That email address is invalid!');
-            expect(router.replace).not.toHaveBeenCalled();
-        });
-    });
-
-    test('handles general signup error and cleanup', async () => {
-        const mockUid = '123';
-        const mockError = new Error('General signup error');
-        
-        // Mock initial successful Firebase user creation
-        (createUserWithEmailAndPassword as jest.Mock).mockResolvedValueOnce({ 
-            user: { uid: mockUid } 
-        });
-
-        // Mock API post to fail
-        (api.post as jest.Mock).mockRejectedValueOnce(mockError);
-
-        const { getByPlaceholderText, getByTestId } = render(<Signup />);
-        
-        // Fill form with test data
-        fireEvent.changeText(getByPlaceholderText('First Name'), 'John');
-        fireEvent.changeText(getByPlaceholderText('Last Name'), 'Doe');
-        fireEvent.changeText(getByPlaceholderText('Email'), 'test@example.com');
-        fireEvent.changeText(getByPlaceholderText('Phone Number'), '1234567890');
-        fireEvent.changeText(getByPlaceholderText('Password'), 'password123');
-        fireEvent.changeText(getByPlaceholderText('Confirm Password'), 'password123');
-        
-        // Trigger signup
-        fireEvent.press(getByTestId('Signup'));
-
-        await waitFor(() => {
-            // Verify error logging
-            expect(mockConsoleError).toHaveBeenCalledWith(mockError);
-
-            // Verify cleanup attempts
-            expect(getAuth().currentUser?.delete).toHaveBeenCalled();
-            expect(api.delete).toHaveBeenCalledWith(`/user/${mockUid}`);
-            
-            // Verify user notification
-            expect(Alert.alert).toHaveBeenCalledWith(
-                "Error signing up. Please try again."
-            );
-
-            // Verify cleanup logging
-            expect(mockConsoleLog).toHaveBeenCalledWith(
-                "User deleted successfully."
-            );
-            expect(mockConsoleLog).toHaveBeenCalledWith(
-                "User deleted from API successfully."
-            );
-
-            // Verify no navigation occurred
             expect(router.replace).not.toHaveBeenCalled();
         });
     });

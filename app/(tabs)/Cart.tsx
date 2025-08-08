@@ -1,15 +1,16 @@
 import { getAuth } from '@react-native-firebase/auth';
 import { initPaymentSheet, presentPaymentSheet } from '@stripe/stripe-react-native';
-import { Alert, Button, FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
+import { Alert, Button, FlatList, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
 import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
+import styles from '../../styles/Cart.styles';
 
 
 export default function Cart() {
     const { cart, clearCart, removeFromCart } = useCart();
     // const { confirmPayment } = useStripe();
 
-    const total = cart.reduce((sum, item) => sum + item.price, 0);
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const userUID = getAuth()?.currentUser?.uid;
     let orderId : string = "";
 
@@ -124,31 +125,4 @@ export default function Cart() {
       
 }
 
-const styles = StyleSheet.create({
-    container: { padding: 16, flex: 1 },
-  title: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', paddingTop: 20 ,marginBottom: 16, color: '#fff', marginTop: 40 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 10,
-    elevation: 2,
-  },
-  name: { fontSize: 18 },
-  quantity: { fontSize: 14, marginBottom: 4 },
-  price: { fontSize: 16, fontWeight: 'bold' },
-  total: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'right',
-    marginVertical: 20,
-  },
-  actions: {
-    marginBottom: 90,
-    gap: 10,
-  },
-  orderList: {
-      marginLeft: 13,
-      marginRight: 13,
-  },
-});
+

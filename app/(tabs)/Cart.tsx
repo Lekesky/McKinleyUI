@@ -1,8 +1,5 @@
-import { getAuth } from '@react-native-firebase/auth';
-import { initPaymentSheet, presentPaymentSheet } from '@stripe/stripe-react-native';
-import { Alert, Button, FlatList, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
+import { Button, FlatList, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
 import { useCart } from '../../context/CartContext';
-import api from '../../services/api';
 import styles from '../../styles/Cart.styles';
 
 
@@ -11,83 +8,82 @@ export default function Cart() {
     // const { confirmPayment } = useStripe();
 
     const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const userUID = getAuth()?.currentUser?.uid;
     let orderId : string = "";
 
     const placeOrder = async () => {
-        try {
+        // try {
         
-        if (!userUID) {
-            Alert.alert("Not Logged In", "Please log in to place an order.");
-            return;
-        }
+        // if (!userUID) {
+        //     Alert.alert("Not Logged In", "Please log in to place an order.");
+        //     return;
+        // }
 
-        const menuItemIds: string[] = cart.flatMap(item =>
-            Array(item.quantity).fill(item.id)
-        );
+        // const menuItemIds: string[] = cart.flatMap(item =>
+        //     Array(item.quantity).fill(item.id)
+        // );
 
-        const orderData = await api.post(`/orders/${userUID}/create`, {menuItemIds});
-        const { id } = orderData.data;
-        orderId = id;
+        // const orderData = await api.post(`/orders/${userUID}/create`, {menuItemIds});
+        // const { id } = orderData.data;
+        // orderId = id;
 
-        clearCart();
-        Alert.alert("Order Placed", "Your order has been placed successfully!");
-        } catch (error: any) {
-        console.error("Order failed:", error);
-        Alert.alert("Error", "Failed to place order. Try again later.");
-        }
+        // clearCart();
+        // Alert.alert("Order Placed", "Your order has been placed successfully!");
+        // } catch (error: any) {
+        // console.error("Order failed:", error);
+        // Alert.alert("Error", "Failed to place order. Try again later.");
+        // }
     };
 
     const initializePaymentSheet = async () => {
-        try {
-          const amount = Math.round(total * 100);
-          console.log("Customer UID: ", userUID);
-          const res = await api.post('/payments/create-intent', {
-             customerId: userUID,
-             orderId: orderId,
-             amount 
-        });
+        // try {
+        //   const amount = Math.round(total * 100);
+        //   console.log("Customer UID: ", userUID);
+        //   const res = await api.post('/payments/create-intent', {
+        //      customerId: userUID,
+        //      orderId: orderId,
+        //      amount 
+        // });
       
-          const { paymentIntent, ephemeralKey, customer} = res.data;
-          const { error } = await initPaymentSheet({
-            merchantDisplayName: 'Mckinley Grill',
-            customerId: customer,
-            customerEphemeralKeySecret: ephemeralKey,
-            paymentIntentClientSecret: paymentIntent,
-            allowsDelayedPaymentMethods: false,
-          });
+        //   const { paymentIntent, ephemeralKey, customer} = res.data;
+        //   const { error } = await initPaymentSheet({
+        //     merchantDisplayName: 'Mckinley Grill',
+        //     customerId: customer,
+        //     customerEphemeralKeySecret: ephemeralKey,
+        //     paymentIntentClientSecret: paymentIntent,
+        //     allowsDelayedPaymentMethods: false,
+        //   });
       
-          if (!error) {
-            return true;
-          } else {
-            console.log('PaymentSheet init error:', error.message);
-            return false;
-          }
-        } catch (err) {
-          console.error('Error initializing PaymentSheet:', err);
-          return false;
-        }
+        //   if (!error) {
+        //     return true;
+        //   } else {
+        //     console.log('PaymentSheet init error:', error.message);
+        //     return false;
+        //   }
+        // } catch (err) {
+        //   console.error('Error initializing PaymentSheet:', err);
+        //   return false;
+        // }
     };
       
 
     const handleCheckout = async () => {
-        const ready = await initializePaymentSheet();
-        if (!ready) {
-            Alert.alert('Error', 'Could not initialize payment.');
-            return;
-        }
+        // const ready = await initializePaymentSheet();
+        // if (!ready) {
+        //     Alert.alert('Error', 'Could not initialize payment.');
+        //     return;
+        // }
 
-        const { error } = await presentPaymentSheet();
+        // const { error } = await presentPaymentSheet();
 
-        if (error) {
-            Alert.alert('Payment failed', error.message);
-        } else {
-            await placeOrder();
-            api.put(`/orders/${orderId}/pay`);
-            clearCart();
-            Alert.alert('Success', 'Your order has been paid and placed!');
-        }
-      };
+        // if (error) {
+        //     Alert.alert('Payment failed', error.message);
+        // } else {
+        //     await placeOrder();
+        //     api.put(`/orders/${orderId}/pay`);
+        //     clearCart();
+        //     Alert.alert('Success', 'Your order has been paid and placed!');
+        // }
+    };
 
       return (
         <KeyboardAvoidingView

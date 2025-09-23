@@ -1,38 +1,34 @@
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { getAuth } from '@react-native-firebase/auth';
+import { useAuth } from '@/context/AuthContext';
 import { Tabs } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import api from '../../services/api';
 
+
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
   const [role, setRole] = useState<string | null>(null);
-  const [userUID, setUserUID] = useState('');
+  const { uid, accessToken, refreshToken } = useAuth();
 
   useEffect(() => {
-    const unsubscribe = getAuth().onAuthStateChanged(user => {
-      setUserUID(getAuth().currentUser?.uid!);
-    });
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    if (!userUID) return;
-    api.get(`user/role/${userUID}`)
+    if (!uid) return;
+    console.log("Fetching role for UID: ", uid);
+    console.log(`Bearer ${accessToken}`);
+    console.log(`Refresh token: ${refreshToken}`);
+    console.log(`/user/role/${uid}`);
+    api.get(`/user/role/${uid}`, 
+      { headers: { Authorization: `Bearer ${accessToken}` }, 
+    })
       .then(res => {
         setRole(res.data);
         console.log("User role: ", res.data);
       })
-      .catch(err => {
-        console.error(`Error fetching user role for: ${userUID}`, err);
+      .catch((error) => {
+        console.error(`Error fetching user role for: `, error.message);
         setRole('');
       });
-  }, [userUID]);
+  }, [uid, accessToken, refreshToken]);
 
   if (role === null) {
     return null; // Or a loading spinner if desired
@@ -41,17 +37,39 @@ export default function TabLayout() {
   return (
     <Tabs
     screenOptions={{
-      tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+      tabBarActiveTintColor: "#fcfcfcff", // Active tab icon color
+      tabBarInactiveTintColor: '#ffffff', // Inactive tab icon color (customize this)
+      tabBarShowLabel: false,
       headerShown: false,
       tabBarButton: HapticTab,
-      tabBarBackground: TabBarBackground,
-      tabBarStyle: Platform.select({
-        ios: {
-          // Use a transparent background on iOS to show the blur effect
-          position: 'absolute',
-        },
-        default: {},
-      }),
+      tabBarStyle: {
+        position: 'absolute',
+        bottom: 25,
+        left: 20,
+        right: 20,
+        elevation: 0,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#871919ff',
+        marginHorizontal: 10,
+        ...Platform.select({
+          ios: {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 5 },
+            shadowOpacity: 0.15,
+            shadowRadius: 10,
+          },
+          android: {
+            elevation: 10,
+          },
+        }),
+      },
+       tabBarItemStyle: {
+          height: 60,
+          justifyContent: 'center',
+          paddingTop: 0,
+          marginTop: 8,
+      },
     }}
   >
     <Tabs.Screen
@@ -132,3 +150,11 @@ export default function TabLayout() {
   </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBarContainer: {
+    height: 60,
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+});

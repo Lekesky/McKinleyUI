@@ -12,7 +12,12 @@
           "package_name": "com.company.mckinley"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1011866958643-vtl5rvrlcm0981gp21u5t43a557ion4k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDN-cYk1mQbyJvzVFMo1EAgbOSW2ODyp74"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1011866958643-vtl5rvrlcm0981gp21u5t43a557ion4k.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1011866958643-frrs3jcg09jpmbpp3j1bf3mmpkgd33us.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.company.mckinley"
+              }
+            }
+          ]
         }
       }
     }

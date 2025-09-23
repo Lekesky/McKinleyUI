@@ -1,18 +1,15 @@
-import { getAuth } from '@react-native-firebase/auth';
 import React from 'react';
 import {
-    Alert,
-    Button,
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    View
+  Button,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
 import { useCart } from '../context/CartContext';
 import { useTable } from '../context/TableContext';
-import api from '../services/api';
 
 
 
@@ -20,35 +17,34 @@ export default function WaitressCart() {
     const { cart, clearCart, removeFromCart } = useCart();
     const { tableNum } = useTable();
     const total = cart.reduce((sum, item) => sum + item.price, 0);
-    const userUID = getAuth()?.currentUser?.uid;
     let orderId : string = "";
 
     const placeOrder = async () => {
-        try {
+        // try {
         
-            if (!userUID) {
-                Alert.alert("Not Logged In", "Please log in to place an order.");
-                return;
-            }
+        //     if (!userUID) {
+        //         Alert.alert("Not Logged In", "Please log in to place an order.");
+        //         return;
+        //     }
 
-            const menuItemIds: string[] = cart.flatMap(item =>
-                Array(item.quantity).fill(item.id)
-            );
+        //     const menuItemIds: string[] = cart.flatMap(item =>
+        //         Array(item.quantity).fill(item.id)
+        //     );
             
-            const orderData = await api.post(`/orders/${userUID}/create-table`, {
-                menuItemIds,
-                tableNumber: parseInt(tableNum),
-            });
+        //     const orderData = await api.post(`/orders/${userUID}/create-table`, {
+        //         menuItemIds,
+        //         tableNumber: parseInt(tableNum),
+        //     });
             
-            const { id } = orderData.data;
-            orderId = id;
+        //     const { id } = orderData.data;
+        //     orderId = id;
 
-            clearCart();
-            Alert.alert("Order Placed", "Order has been placed successfully!");
-        } catch (error: any) {
-            console.error("Order failed:", error);
-            Alert.alert("Error", "Failed to place order. Try again later.");
-        }
+        //     clearCart();
+        //     Alert.alert("Order Placed", "Order has been placed successfully!");
+        // } catch (error: any) {
+        //     console.error("Order failed:", error);
+        //     Alert.alert("Error", "Failed to place order. Try again later.");
+        // }
     };
       
 

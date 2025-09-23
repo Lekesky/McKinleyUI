@@ -1,4 +1,3 @@
-import { getAuth } from '@react-native-firebase/auth';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -35,17 +34,17 @@ export default function Notification() {
   };
 
   const fetchNotifications = async () => {
-    try {
-      const uid = getAuth().currentUser?.uid;
-      if (!uid) return;
+    // try {
+    //   const uid = getAuth().currentUser?.uid;
+    //   if (!uid) return;
 
-      const res = await api.get(`/notifications/${uid}`);
-      setNotifications(res.data);
-    } catch (err) {
-      console.error('Failed to load notifications:', err);
-    } finally {
-      setLoading(false);
-    }
+    //   const res = await api.get(`/notifications/${uid}`);
+    //   setNotifications(res.data);
+    // } catch (err) {
+    //   console.error('Failed to load notifications:', err);
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   useEffect(() => {fetchNotifications();}, []);

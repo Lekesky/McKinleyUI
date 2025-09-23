@@ -1,7 +1,6 @@
-import { deleteUser, EmailAuthProvider, getAuth, reauthenticateWithCredential, signOut } from "@react-native-firebase/auth";
 import { router } from "expo-router";
 import { useState } from 'react';
-import { Alert, Button, View } from "react-native";
+import { Button, View } from "react-native";
 import Dialog from "react-native-dialog";
 import styles from "../../styles/Profile.styles";
 
@@ -14,13 +13,13 @@ export default function Profile() {
 
 
     const handleLogout = async() => {
-        signOut(getAuth()).then(() => {
-            Alert.alert("Successfully logged out.");
-            console.log("Successfully logged user out.");  
-        }).catch((error) => {
-            Alert.alert("Error logging out account.")
-            console.log("Error logging out user's account");
-        });
+        // signOut(getAuth()).then(() => {
+        //     Alert.alert("Successfully logged out.");
+        //     console.log("Successfully logged user out.");  
+        // }).catch((error) => {
+        //     Alert.alert("Error logging out account.")
+        //     console.log("Error logging out user's account");
+        // });
     }
 
     const handleUpdatePassword = async() => {
@@ -28,21 +27,21 @@ export default function Profile() {
     }
 
     const handleDeleteAccount = async() =>{
-        let user = await getAuth().currentUser;
-        if(user){
-            const credentials = EmailAuthProvider.credential(user.email, password)
-            reauthenticateWithCredential(user, credentials).then(() =>{
-                deleteUser(user).then(() => {
-                    Alert.alert("Sucessfully delete account.");
-                    console.log("Sucessfully delete user account: ", user);  
-                }).catch((error) => {
-                    Alert.alert("Error delete account.")
-                    console.log("Error delete user account: ", user, "\nError: ", error);
-                });
-            }).catch((error: any) => {
-                console.log("An error has occurred: ", error);
-            })
-        }
+        // let user = await getAuth().currentUser;
+        // if(user){
+        //     const credentials = EmailAuthProvider.credential(user.email, password)
+        //     reauthenticateWithCredential(user, credentials).then(() =>{
+        //         deleteUser(user).then(() => {
+        //             Alert.alert("Sucessfully delete account.");
+        //             console.log("Sucessfully delete user account: ", user);  
+        //         }).catch((error) => {
+        //             Alert.alert("Error delete account.")
+        //             console.log("Error delete user account: ", user, "\nError: ", error);
+        //         });
+        //     }).catch((error: any) => {
+        //         console.log("An error has occurred: ", error);
+        //     })
+        // }
     }
 
     const handleDialogCancel = () => {

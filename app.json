@@ -57,7 +57,9 @@
           "photosPermission": "Allow McKinley's Grill to access your photos?"
         }
       ],
-      "expo-build-properties"
+      "expo-build-properties",
+      "expo-notifications",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

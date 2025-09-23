@@ -298,6 +298,7 @@ export default function Admin(){
                                     (order.waitressFirstName + " " + order.waitressLastName).toLowerCase().includes(productSearch.toLowerCase()) ||
                                     order.id.toLowerCase().includes(productSearch.toLowerCase())
                                 )
+                                .sort((a, b) => new Date(b.orderStartTime).getTime() - new Date(a.orderStartTime).getTime())
                                 .map((order: OrderHistory) => (
                                     <View
                                         key={order.id}

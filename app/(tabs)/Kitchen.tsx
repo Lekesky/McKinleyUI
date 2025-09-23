@@ -1,4 +1,3 @@
-import { getAuth } from '@react-native-firebase/auth';
 import { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
@@ -35,16 +34,16 @@ export default function Kitchen(){
     };
 
     const fetchOrders = async () => {
-        try {
-        const uid = getAuth().currentUser?.uid;
-        if (!uid) return;
-        const res = await api.get(`/orders/recieveOrders`);
-        setOrders(res.data);
-        } catch (err) {
-        console.error('Failed to load orders:', err);
-        } finally {
-        setLoading(false);
-        }
+        // try {
+        // const uid = getAuth().currentUser?.uid;
+        // if (!uid) return;
+        // const res = await api.get(`/orders/recieveOrders`);
+        // setOrders(res.data);
+        // } catch (err) {
+        // console.error('Failed to load orders:', err);
+        // } finally {
+        // setLoading(false);
+        // }
     };
 
     useEffect(() => {fetchOrders();}, []);

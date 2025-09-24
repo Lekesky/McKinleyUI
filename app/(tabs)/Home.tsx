@@ -125,11 +125,9 @@ export default function HomeScreen() {
 
   const fetchUserData = useCallback(() => {
     api.get(`/user/${uid}`, 
-      { headers: { Authorization: `Bearer ${accessToken}` }, 
-    })
-      .then(res => {
-        setFirstName(res.data.firstName);
-      })
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    )
+      .then((res) => setFirstName(res.data.firstName))
       .catch((error) => {
         console.error(`Error fetching user details for: `, error.message);
       });
@@ -149,8 +147,7 @@ export default function HomeScreen() {
       // Refresh both user data and menu items
       await Promise.all([
         fetchUserData(),
-        fetchMenuItems(),
-        console.log("Data refreshed successfully: ", menuItems)
+        fetchMenuItems()
       ]);
     } catch (error) {
       console.error("Error refreshing data:", error);

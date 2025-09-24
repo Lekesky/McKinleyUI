@@ -29,7 +29,7 @@ export default function Login() {
         router.replace('/(tabs)/Home'); 
       })
       .catch((error) => {
-        console.error('Error creating user:', error.message);
+        console.error('Error loggging in user:', error.response.data);
       });
   }
 

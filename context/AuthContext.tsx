@@ -30,7 +30,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             .then(async (response) => {
                 await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, response.data.accessToken);
                 await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, response.data.refreshToken);
-
                 setAccessToken(response.data.accessToken);
                 setRefreshToken(response.data.refreshToken);
             })

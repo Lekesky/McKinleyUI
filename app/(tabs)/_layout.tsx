@@ -16,14 +16,10 @@ export default function TabLayout() {
     console.log("Fetching role for UID: ", uid);
     console.log(`Bearer ${accessToken}`);
     console.log(`Refresh token: ${refreshToken}`);
-    console.log(`/user/role/${uid}`);
     api.get(`/user/role/${uid}`, 
       { headers: { Authorization: `Bearer ${accessToken}` }, 
     })
-      .then(res => {
-        setRole(res.data);
-        console.log("User role: ", res.data);
-      })
+      .then(res => {setRole(res.data)})
       .catch((error) => {
         console.error(`Error fetching user role for: `, error.message);
         setRole('');

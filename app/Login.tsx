@@ -1,18 +1,34 @@
-import api from '@/services/api';
+import createAPIClient from '@/services/api';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Icon, Text, TextInput } from 'react-native-paper';
 import AppleSignInButton from '../components/AppleSignInButton';
 import GoogleSignInButton from '../components/GoogleSignInButton';
 import { useAuth } from '../context/AuthContext';
 
-
-
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const {loginTokens} = useAuth();
+  const api = useMemo(() => createAPIClient(), []);
+
+  // Initialize Google Sign-In when component mounts
+  useEffect(() => {
+    configureGoogleSignIn();
+    // Try silent sign-in when component mounts (One Tap functionality)
+    trySilentSignIn();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // ignore missing dependency warning for trySilentSignIn
+
+  const configureGoogleSignIn = () => {
+    GoogleSignin.configure({
+      webClientId: '1011866958643-vtl5rvrlcm0981gp21u5t43a557ion4k.apps.googleusercontent.com',
+      offlineAccess: true,
+      forceCodeForRefreshToken: true,
+    });
+  };
 
   const goBackHandler = () => {router.back()}
 
@@ -33,8 +49,61 @@ export default function Login() {
       });
   }
 
+  // This implements the Google One Tap functionality
+  const trySilentSignIn = async () => {
+    try {
+      // signInSilently will throw if not signed in, so just try it
+      const userInfo = await GoogleSignin.signInSilently();
+      const idToken = (userInfo as any)?.idToken;
+      if (idToken) {
+        handleGoogleSignInSuccess(idToken);
+      }
+    } catch (error: unknown) {
+      // It's normal for silent sign-in to fail if user hasn't signed in before
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as any).code !== statusCodes.SIGN_IN_REQUIRED
+      ) {
+        console.error("Silent sign-in error:", error);
+      }
+    }
+  };
+
   const googleSignInHandler = async() => {
-    console.log("Google Sign-In pressed");
+    try {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const userInfo = await GoogleSignin.signIn();
+      const idToken = (userInfo as any)?.data.idToken;
+      if (idToken) {
+        handleGoogleSignInSuccess(idToken);
+      } else {
+        console.error("No ID token received from Google");
+      }
+    } catch (error) {
+      console.error("Google Sign-In error:", error);
+    }
+  }
+
+  const handleGoogleSignInSuccess = async (idToken: string) => {
+    if (!idToken) {
+      console.error("No ID token received from Google");
+      return;
+    }
+    const user = {
+      loginToken: idToken,
+      signInMethod: 'google'
+    };
+    api.post('/user/login', user )
+      .then(async (response) => {
+        await loginTokens(response.data.accessToken, response.data.refreshToken, response.data.uid);
+        console.log('Response data:', response.data);
+        router.replace('/(tabs)/Home'); 
+      })
+      .catch((error) => {
+        console.error('Error logging in user:', error.response?.data || error);
+      });
   }
 
   const appleSignInHandler = async() => {
@@ -58,7 +127,7 @@ export default function Login() {
         <TextInput mode="outlined" placeholder="Password" secureTextEntry={true} value={password} onChangeText={setPassword} style={styles.textInput} right={<TextInput.Icon icon="eye-off" />} outlineStyle={styles.textInputOutline}/>
       </View>
       <View>
-        <TouchableOpacity onPress={loginHandler} style={styles.signupButton}>
+        <TouchableOpacity onPress={loginHandler} style={styles.loginButton}>
           <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>Login</Text>
         </TouchableOpacity>
       </View>
@@ -83,7 +152,7 @@ const styles = StyleSheet.create({
   form: { marginTop: 10},
   textInput : { marginBottom: 15, backgroundColor: '#e8e8e8ff', height: 58 },
   textInputOutline: { borderRadius: 30, borderWidth: 0 },
-  signupButton: { backgroundColor: '#871919ff', marginTop: 20, height: 58, borderRadius: 30, justifyContent: 'center', alignItems: 'center' },
+  loginButton: { backgroundColor: '#871919ff', marginTop: 20, height: 58, borderRadius: 30, justifyContent: 'center', alignItems: 'center' },
   continueWith: { marginTop: 20, marginBottom: 5, textAlign: 'center', color: '#3c3c3cff', fontWeight: 'bold', fontFamily: 'Helvetica', fontSize: 16 },
   socialButton: { backgroundColor: '#e8e8e8ff', marginTop: 15, height: 58, borderRadius: 30, justifyContent: 'center', alignItems: 'center' },
   accountText: { marginTop: 30, alignItems: 'center', justifyContent: 'center' }

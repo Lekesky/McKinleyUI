@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
+    "@gorhom/bottom-sheet": "^5.2.6",
     "@ocean28799/react-native-animated-searchbox": "^1.0.2",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-firebase/app": "^22.1.0",

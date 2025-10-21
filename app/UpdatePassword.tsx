@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Icon, TextInput } from 'react-native-paper';
-
 import { useAuth } from '@/context/AuthContext';
-import api from '@/services/api';
+import createAPIClient from '@/services/api';
 import { router } from 'expo-router';
 export default function UpdatePassword() {
-    const { uid, accessToken } = useAuth();
+    const { uid } = useAuth();
+    const api = useMemo(() => createAPIClient(), []);
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -15,8 +15,7 @@ export default function UpdatePassword() {
 
     const handleUpdatePassword = async() =>{
         const updateData = { userId: uid, currentPassword: oldPassword, newPassword };
-        api.patch('/user/update-password', updateData,
-            { headers: { Authorization: `Bearer ${accessToken}` } })
+        api.patch('/user/update-password', updateData)
         .then((response) => {
             Alert.alert("Password updated successfully");
             router.replace('/(tabs)/Profile');

@@ -1,56 +1,154 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 
 type MenuItem = {
   id: string;
   name: string;
   description: string;
-  price: number;
-  imageUrl?: string;
+  price: string;
+  imageURL: string;
 };
 
 type CartItem = MenuItem & { quantity: number };
 
+type CartType = 'CUSTOMER' | 'WAITRESS';
+
 type CartContextType = {
-  cart: CartItem[];
-  addToCart: (item: MenuItem) => void;
-  removeFromCart: (itemId: string) => void;
-  clearCart: () => void;
+  cart: Record<CartType, CartItem[]>;
+  addToCart: (item: MenuItem, quantity: number, type?: CartType) => void;
+  removeFromCart: (itemId: string, type?: CartType) => void;
+  clearCart: (type?: CartType) => void;
+  getActiveCart: (type?: CartType) => CartItem[];
+  getTotal: (type?: CartType) => string;
+  getTotalItemCount: (type?: CartType) => number;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<Record<CartType, CartItem[]>>({
+    CUSTOMER: [],
+    WAITRESS: []
+  });
 
-  const addToCart = (item: MenuItem) => {
-    setCart((prev) => {
-        const existingItem = prev.find((cartItem) => cartItem.id === item.id);
-        if (existingItem) {
-            return prev.map((cartItem) =>
-                cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem
-            );
-        } else {
-            return [...prev, { ...item, quantity: 1 }];
-        }
+  const loadCart = useCallback(async () => {
+    const customerCartData = await AsyncStorage.getItem('cart_CUSTOMER').catch((error) => console.error("Error loading customer cart data: ", error));
+    const waitressCartData = await AsyncStorage.getItem('cart_WAITRESS').catch((error) => console.error("Error loading waitress cart data: ", error));
+
+    const newCart: Record<CartType, CartItem[]> = {
+      CUSTOMER: customerCartData ? JSON.parse(customerCartData) : [],
+      WAITRESS: waitressCartData ? JSON.parse(waitressCartData) : []
+    };
+
+    setCart(newCart);
+  }, []);
+
+  useEffect(() => {
+    loadCart();
+  }, [loadCart]);
+
+  // Get the active cart based on type (defaults to customer)
+  const getActiveCart = (type: CartType = 'CUSTOMER') => {
+    return cart[type];
+  };
+
+
+  const addToCart = async (item: MenuItem, quantity: number, type: CartType = 'CUSTOMER') => {
+    setCart(prevCart => {
+      const currentCart = [...prevCart[type]];
+      const existingItemIndex = currentCart.findIndex(cartItem => cartItem.id === item.id);
+
+      if (existingItemIndex !== -1) {
+        currentCart[existingItemIndex].quantity += quantity;
+      } else {
+        currentCart.push({ ...item, quantity });
+      }
+
+      const newCart = {
+        ...prevCart,
+        [type]: currentCart
+      };
+
+      // Save to AsyncStorage immediately after updating state
+      (async () => {
+        await AsyncStorage.setItem('cart_' + type, JSON.stringify(currentCart)).catch((error) => console.error("Error saving cart data: ", error));
+      })();
+
+      return newCart;
     });
   };
 
-    const removeFromCart = (itemId: string) => {
-        setCart((prev) => prev.map((item) => {
-            if (item.id === itemId) {
-                return { ...item, quantity: item.quantity - 1 };
-            }
-            return item;
-        })
-        .filter((item) => item.id !== itemId));
-    };
-
-  const clearCart = () => {
-    setCart([]);
+  const removeFromCart = (itemId: string, type: CartType = 'CUSTOMER') => {
+    setCart(prevCart => {
+      const currentCart = [...prevCart[type]];
+      const itemIndex = currentCart.findIndex(item => item.id === itemId);
+      
+      if (itemIndex === -1) {
+        return prevCart; // Item not found, return unchanged cart
+      }
+      
+      let updatedCart;
+      
+      // If quantity is greater than 1, just decrement
+      if (currentCart[itemIndex].quantity > 1) {
+        currentCart[itemIndex].quantity -= 1;
+        updatedCart = currentCart;
+      } else {
+        // Otherwise remove the item entirely
+        updatedCart = currentCart.filter(item => item.id !== itemId);
+      }
+      // Save to AsyncStorage immediately after updating state
+      (async () => { 
+        await AsyncStorage.setItem('cart_' + type, JSON.stringify(updatedCart))
+          .catch((error) => console.error("Error saving cart data: ", error)); 
+      })();
+      
+      return {
+        ...prevCart,
+        [type]: updatedCart
+      };
+    });
   };
 
+  const clearCart = async (type?: CartType) => {
+    if (type) {
+      setCart(prevCart => ({
+        ...prevCart,
+        [type]: []
+      }));
+      await AsyncStorage.removeItem('cart_' + type).catch((error) => console.error("Error clearing cart data: ", error));
+    } else {
+      setCart({
+        CUSTOMER: [],
+        WAITRESS: []
+      });
+      await AsyncStorage.removeItem('cart_CUSTOMER').catch((error) => console.error("Error clearing customer cart data: ", error));
+      await AsyncStorage.removeItem('cart_WAITRESS').catch((error) => console.error("Error clearing waitress cart data: ", error));
+    }
+    
+  };
+
+  const getTotal = (type: CartType = 'CUSTOMER') => {
+    return cart[type].reduce((total, item) => {
+      return total + (parseFloat(item.price) * item.quantity);
+    }, 0).toFixed(2);
+  }
+
+  const getTotalItemCount = (type: CartType = 'CUSTOMER') => {
+    return cart[type].reduce((sum, item) => sum + item.quantity, 0);
+  };
+
+
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart }}>
+    <CartContext.Provider value={{ 
+      cart, 
+      addToCart, 
+      removeFromCart,
+      clearCart, 
+      getActiveCart,
+      getTotal, 
+      getTotalItemCount 
+    }}>
       {children}
     </CartContext.Provider>
   );

@@ -1,0 +1,285 @@
+
+import React from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Icon, Text } from 'react-native-paper';
+
+interface OrderedItem {
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+}
+
+interface OrderHistoryCardProps {
+    id: string;
+    customerFirstName: string;
+    customerLastName: string;
+    waitressFirstName?: string | null;
+    waitressLastName?: string | null;
+    tableNumber: number;
+    orderedItems: OrderedItem[];
+    status: string;
+    paymentStatus: string;
+    totalPrice: number;
+    orderStartTime: string;
+    orderEndTime: string | null;
+    onPress?: () => void;
+}
+
+
+
+const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
+    id,
+    customerFirstName,
+    customerLastName,
+    waitressFirstName,
+    waitressLastName,
+    tableNumber,
+    orderedItems,
+    status,
+    paymentStatus,
+    totalPrice,
+    orderStartTime,
+    orderEndTime,
+    onPress
+}) => {
+    return (
+        <TouchableOpacity 
+            style={styles.orderCard}
+            onPress={onPress}
+            disabled={!onPress}
+        >
+            <View style={styles.orderHeader}>
+                <View>
+                    <Text style={styles.orderTitle}>Order #{id.slice(-6)}</Text>
+                    <Text style={styles.orderDate}>{new Date(orderStartTime).toLocaleDateString()}</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                    {/* Show status badge */}
+                    <Text style={[
+                        styles.orderStatus, 
+                        status === 'COMPLETED' ? styles.statusCompleted : 
+                        status === 'IN-PROGRESS' ? styles.statusInProgress : 
+                        status === 'PENDING' ? styles.statusPending : 
+                        styles.statusCanceled
+                    ]}>
+                        {status}
+                    </Text>
+                    {/* Show payment badge below */}
+                    <Text style={[
+                        styles.paymentStatus, 
+                        paymentStatus === 'PAID' ? styles.statusCompleted : 
+                        styles.statusPending
+                    ]}>
+                        {paymentStatus}
+                    </Text>
+                </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            {customerFirstName && customerLastName && (
+                <View style={styles.userInfoRow}>
+                    <View style={styles.infoIconContainer}>
+                        <Icon source="account" size={18} color="#666" />
+                    </View>
+                    <Text style={styles.infoText}>
+                        {customerFirstName} {customerLastName}
+                    </Text>
+                </View>
+            )}
+            
+            {waitressFirstName && waitressLastName && (
+                <View style={styles.userInfoRow}>
+                    <View style={styles.infoIconContainer}>
+                        <Icon source="account-tie" size={18} color="#666" />
+                    </View>
+                    <Text style={styles.infoText}>
+                        Served by: {waitressFirstName} {waitressLastName}
+                    </Text>
+                </View>
+            )}
+
+            <View style={styles.userInfoRow}>
+                <View style={styles.infoIconContainer}>
+                    <Icon source="table-chair" size={18} color="#666" />
+                </View>
+                <Text style={styles.infoText}>
+                    {tableNumber !== 0 ? `Table ${tableNumber}` : 'No table'}
+                </Text>
+            </View>
+
+            <View style={styles.divider} />
+            
+            <Text style={styles.sectionTitle}>Items:</Text>
+            {Array.isArray(orderedItems) && orderedItems.length > 0 ? (
+                <View style={styles.itemsList}>
+                    {orderedItems.map((item) => (
+                        <View key={item.id} style={styles.orderItem}>
+                            <Text style={styles.itemName}>{item.name}</Text>
+                            <Text style={styles.itemCount}>×{item.quantity}</Text>
+                        </View>
+                    ))}
+                </View>
+            ) : (
+                <Text style={styles.emptyMessage}>No items</Text>
+            )}
+            
+            <View style={styles.orderTotal}>
+                <Text style={styles.totalLabel}>Total:</Text>
+                <Text style={styles.totalPrice}>${totalPrice.toFixed(2)}</Text>
+            </View>
+            
+            <View style={styles.orderTimes}>
+                <Text style={styles.timeInfo}>
+                    Ordered: {orderStartTime ? new Date(orderStartTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "N/A"}
+                </Text>
+                {orderEndTime && (
+                    <Text style={styles.timeInfo}>
+                        Completed: {new Date(orderEndTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                )}
+            </View>
+        </TouchableOpacity>
+    );
+};
+
+const styles = StyleSheet.create({
+    orderCard: {
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        padding: 15,
+        marginBottom: 15,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+    },
+    orderHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 10,
+    },
+    orderTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    orderDate: {
+        fontSize: 13,
+        color: '#666',
+        marginTop: 2,
+    },
+    orderStatus: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 12,
+        textAlign: 'center',
+        marginBottom: 4,
+    },
+    paymentStatus: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 12,
+        textAlign: 'center',
+    },
+    statusCompleted: {
+        backgroundColor: '#d4f8d4',
+        color: '#0a8f0a',
+    },
+    statusInProgress: {
+        backgroundColor: '#fff8c2',
+        color: '#8f7c0a',
+    },
+    statusCanceled: {
+        backgroundColor: '#f8d4d4',
+        color: '#8f0a0a',
+    },
+    statusPending: {
+        backgroundColor: '#d4e6f8',
+        color: '#0a5e8f',
+    },
+    divider: {
+        height: 1,
+        backgroundColor: '#eee',
+        marginVertical: 10,
+    },
+    userInfoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 5,
+    },
+    infoIconContainer: {
+        marginRight: 8,
+    },
+    infoText: {
+        fontSize: 14,
+        color: '#555',
+    },
+    sectionTitle: {
+        fontSize: 15,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 8,
+    },
+    itemsList: {
+        marginBottom: 15,
+        marginLeft: 5,
+    },
+    orderItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 4,
+    },
+    itemName: {
+        fontSize: 14,
+        color: '#444',
+    },
+    itemCount: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#871919ff',
+        marginLeft: 5,
+    },
+    orderTotal: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        backgroundColor: '#f9f9f9',
+        padding: 10,
+        borderRadius: 8,
+        marginVertical: 10,
+    },
+    totalLabel: {
+        fontSize: 15,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    totalPrice: {
+        fontSize: 15,
+        fontWeight: 'bold',
+        color: '#871919ff',
+    },
+    orderTimes: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 5,
+    },
+    timeInfo: {
+        fontSize: 12,
+        color: '#777',
+    },
+    emptyMessage: {
+        padding: 15,
+        textAlign: 'center',
+        color: '#7e7d7dff',
+        fontFamily: 'Helvetica',
+    },
+});
+
+export default OrderHistoryCard;

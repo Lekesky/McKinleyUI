@@ -1,6 +1,8 @@
-import api from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
+import createAPIClient from '@/services/api';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Icon, Text, TextInput } from 'react-native-paper';
 import AppleSignInButton from '../components/AppleSignInButton';
@@ -14,6 +16,81 @@ export default function Signup() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const {loginTokens} = useAuth();
+  const api = useMemo(() => createAPIClient(), []);
+
+  // Initialize Google Sign-In when component mounts
+  useEffect(() => {
+    configureGoogleSignIn();
+    // Try silent sign-in when component mounts (One Tap functionality)
+    trySilentSignIn();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // ignore missing dependency warning for trySilentSignIn
+
+  const configureGoogleSignIn = () => {
+    GoogleSignin.configure({
+      webClientId: '1011866958643-vtl5rvrlcm0981gp21u5t43a557ion4k.apps.googleusercontent.com',
+      offlineAccess: true,
+      forceCodeForRefreshToken: true,
+    });
+  };
+
+  // This implements the Google One Tap functionality
+  const trySilentSignIn = async () => {
+    try {
+      // signInSilently will throw if not signed in, so just try it
+      const userInfo = await GoogleSignin.signInSilently();
+      const idToken = (userInfo as any)?.idToken;
+      if (idToken) {
+        handleGoogleSignInSuccess(idToken);
+      }
+    } catch (error: unknown) {
+      // It's normal for silent sign-in to fail if user hasn't signed in before
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as any).code !== statusCodes.SIGN_IN_REQUIRED
+      ) {
+        console.error("Silent sign-in error:", error);
+      }
+    }
+  };
+
+  const googleSignInHandler = async() => {
+    try {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const userInfo = await GoogleSignin.signIn();
+      const idToken = (userInfo as any)?.data.idToken;
+      if (idToken) {
+        handleGoogleSignInSuccess(idToken);
+      } else {
+        console.error("No ID token received from Google");
+      }
+    } catch (error) {
+      console.error("Google Sign-In error:", error);
+    }
+  }
+
+  const handleGoogleSignInSuccess = async (idToken: string) => {
+    if (!idToken) {
+      console.error("No ID token received from Google");
+      return;
+    }
+    const user = {
+      loginToken: idToken,
+      signInMethod: 'google'
+    };
+    api.post('/user/login', user )
+      .then(async (response) => {
+        await loginTokens(response.data.accessToken, response.data.refreshToken, response.data.uid);
+        console.log('Response data:', response.data);
+        router.replace('/(tabs)/Home'); 
+      })
+      .catch((error) => {
+        console.error('Error logging in user:', error.response?.data || error);
+      });
+  }
 
   const goBackHandler = () => {router.back()}
 
@@ -35,10 +112,6 @@ export default function Signup() {
       .catch((error) => {
         console.error('Error creating user:', error.message);
       });
-  }
-
-  const googleSignInHandler = async() => {
-    console.log("Google Sign-In pressed");
   }
 
   const appleSignInHandler = async() => {

@@ -14,9 +14,10 @@ import { useTable } from '../context/TableContext';
 
 
 export default function WaitressCart() {
-    const { cart, clearCart, removeFromCart } = useCart();
+    const { clearCart, removeFromCart, getTotal, getActiveCart } = useCart();
     const { tableNum } = useTable();
-    const total = cart.reduce((sum, item) => sum + item.price, 0);
+    const cart = getActiveCart("WAITRESS");
+    const total = getTotal("WAITRESS");
     let orderId : string = "";
 
     const placeOrder = async () => {
@@ -69,7 +70,7 @@ export default function WaitressCart() {
                   <Text style={styles.name}>{item.name}</Text>
                   <Text style={styles.quantity}>Qty: {item.quantity}</Text>
                   <Text style={styles.price}>
-                    ${(item.price * item.quantity).toFixed(2)}
+                    ${(Number(item.price) * Number(item.quantity)).toFixed(2)}
                   </Text>
                   <Button title="Remove" onPress={() => removeFromCart(item.id)} />
                 </View>
@@ -77,11 +78,11 @@ export default function WaitressCart() {
               scrollEnabled={true}
             />
       
-            <Text style={styles.total}>Total: ${total.toFixed(2)}</Text>
+            <Text style={styles.total}>Total: ${total}</Text>
       
             <View style={styles.actions}>
               <Button title="Place Order & Pay" onPress={handleCheckout} />
-              <Button title="Clear Cart" color="red" onPress={clearCart} />
+              <Button title="Clear Cart" color="red" onPress={() => clearCart("WAITRESS")} />
             </View>
         </KeyboardAvoidingView>
       );
@@ -89,7 +90,10 @@ export default function WaitressCart() {
 }
 
 const styles = StyleSheet.create({
-    container: { padding: 16, flex: 1 },
+  container: { 
+    padding: 16, 
+    flex: 1 
+  },
   title: { 
     fontSize: 24, 
     fontWeight: 'bold', 

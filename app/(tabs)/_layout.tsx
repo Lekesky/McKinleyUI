@@ -1,32 +1,24 @@
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useAuth } from '@/context/AuthContext';
+import { useTabBar } from '@/context/TabBarContext';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Tabs } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Platform, StyleSheet } from 'react-native';
-import api from '../../services/api';
 
 
 export default function TabLayout() {
-  const [role, setRole] = useState<string | null>(null);
-  const { uid, accessToken, refreshToken } = useAuth();
-
+  // const [role, setRole] = useState<string | null>(null);
+  const { userRole } = useAuth();
+  const { isTabBarVisible, showTabBar } = useTabBar();
+  
+  // Ensure tab bar is visible on initial load
   useEffect(() => {
-    if (!uid) return;
-    console.log("Fetching role for UID: ", uid);
-    console.log(`Bearer ${accessToken}`);
-    console.log(`Refresh token: ${refreshToken}`);
-    api.get(`/user/role/${uid}`, 
-      { headers: { Authorization: `Bearer ${accessToken}` }, 
-    })
-      .then(res => {setRole(res.data)})
-      .catch((error) => {
-        console.error(`Error fetching user role for: `, error.message);
-        setRole('');
-      });
-  }, [uid, accessToken, refreshToken]);
+    showTabBar();
+  }, [showTabBar]);
 
-  if (role === null) {
+  if (userRole === null) {
     return null; // Or a loading spinner if desired
   }
 
@@ -48,6 +40,7 @@ export default function TabLayout() {
         borderRadius: 30,
         backgroundColor: '#871919ff',
         marginHorizontal: 10,
+        display: isTabBarVisible ? 'flex' : 'none', // Hide tab bar based on context
         ...Platform.select({
           ios: {
             shadowColor: '#000',
@@ -78,11 +71,11 @@ export default function TabLayout() {
       }}
     />
     <Tabs.Screen
-      name="Menu"
+      name="Order"
       options={{
-        title: 'Menu',
+        title: 'Order',
         tabBarIcon: ({ color }: { color: string }) => (
-          <IconSymbol size={28} name="book.fill" color={color} />
+          <MaterialCommunityIcons size={28} name="progress-clock" color={color} />
         ),
       }}
     />
@@ -101,36 +94,6 @@ export default function TabLayout() {
         title: 'Notification',
         tabBarIcon: ({ color }: { color: string }) => (
           <IconSymbol size={28} name="bell.fill" color={color} />
-        ),
-      }}
-    />
-    <Tabs.Screen
-      name="Kitchen"
-      options={{
-        href: role === 'CHEF' || role === 'ADMIN' ? undefined : null,
-        title: 'Kitchen',
-        tabBarIcon: ({ color }: { color: string }) => (
-          <IconSymbol size={28} name="kitchen.icon" color={color} />
-        ),
-      }}
-    />
-    <Tabs.Screen
-      name="Waitress"
-      options={{
-        href: role === 'WAITRESS' || role === 'ADMIN' ? undefined : null,
-        title: 'Waitress',
-        tabBarIcon: ({ color }: { color: string }) => (
-          <IconSymbol size={28} name="kitchen.icon" color={color} />
-        ),
-      }}
-    />
-    <Tabs.Screen
-      name="Admin"
-      options={{
-        href: role === 'ADMIN' ? undefined : null,
-        title: 'Admin',
-        tabBarIcon: ({ color }: { color: string }) => (
-          <IconSymbol size={28} name="admin-panel.settings" color={color} />
         ),
       }}
     />

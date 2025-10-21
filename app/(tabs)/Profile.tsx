@@ -1,14 +1,17 @@
 import { useAuth } from "@/context/AuthContext";
-import api from "@/services/api";
+import { useTabBar } from "@/context/TabBarContext";
+import createAPIClient from "@/services/api";
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Button, Dialog, Icon, PaperProvider, Portal, Text } from "react-native-paper";
 
 export default function Profile() {
     const { accessToken, refreshToken, logout, uid } = useAuth();
+    const { hideTabBar, showTabBar } = useTabBar();
+    const api = useMemo(() => createAPIClient(), []);
     const [logoutDialogVisible, setLogoutDialogVisible] = useState(false);
     const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
     const [firstName, setFirstName] = useState("");
@@ -18,7 +21,7 @@ export default function Profile() {
 
 
     useEffect(() => {
-        api.get(`/user/${uid}`, { headers: { Authorization: `Bearer ${accessToken}` } })
+        api.get(`/user/${uid}`)
             .then((res) => {
                 setFirstName(res.data.firstName)
                 setLastName(res.data.lastName)
@@ -26,17 +29,37 @@ export default function Profile() {
                 setTimeCreated(new Date(res.data.timeCreated));
             })
             .catch((error) => console.error(`Error fetching user details for: `, error.message));
-    },[]);
+    },[api, uid, accessToken]);
+    
+    // Ensure tab bar is shown when component unmounts
+    useEffect(() => {
+        return () => {
+            showTabBar();
+        };
+    }, [showTabBar]);
 
-    const showLogoutDialog = () => setLogoutDialogVisible(true);
-    const hideLogoutDialog = () => setLogoutDialogVisible(false);
-    const showDeleteDialog = () => setDeleteDialogVisible(true);
-    const hideDeleteDialog = () => setDeleteDialogVisible(false);
+    const showLogoutDialog = () => {
+        setLogoutDialogVisible(true);
+        hideTabBar();
+    };
+    const hideLogoutDialog = () => {
+        setLogoutDialogVisible(false);
+        showTabBar();
+    };
+    const showDeleteDialog = () => {
+        setDeleteDialogVisible(true);
+        hideTabBar();
+    };
+    const hideDeleteDialog = () => {
+        setDeleteDialogVisible(false);
+        showTabBar();
+    };
 
     const goBackHandler = () => { router.back() }
     const handleEditProfile = () => { router.push('/EditProfile') }
     const handleUpdatePassword = () => { router.push('/UpdatePassword') }
     const handleOrderHistory = () => { router.push('/OrderHistory')}
+    const handleAdminView = () => { router.push('/Admin')}
 
     const handlePaymentMethods = () => {
         console.log("Payment methods logic here");
@@ -45,7 +68,7 @@ export default function Profile() {
     const handleDeleteAccount = () => {
         //Need to add password confirmation before allowing deletion
         hideDeleteDialog();
-        api.delete(`/user/${uid}`, { headers: { Authorization: `Bearer ${accessToken}` } })
+        api.delete(`/user/${uid}`)
             .then(async (res) => {
                 if (res.status === 200) {
                     await logout();
@@ -61,10 +84,8 @@ export default function Profile() {
 
     const handleLogout = () => {
         hideLogoutDialog();
-        api.post('/user/logout', 
-            { refreshToken: refreshToken },
-            { headers: { Authorization: `Bearer ${accessToken}` }}
-        ).then(async (res) => {
+        api.post('/user/logout', { refreshToken: refreshToken })
+        .then(async (res) => {
             if(res.status === 200){
                 await logout(); // Clear tokens from context and secure storage
                 console.log("Logged out successfully");
@@ -112,6 +133,21 @@ export default function Profile() {
                     <Text style={styles.firstLastName}>{firstName} {lastName}</Text>
                     <Text style={styles.email}>{email}</Text>
                     <Text style={styles.timeJoined}>Joined: {timeCreated.toLocaleDateString()}</Text>
+                </View>
+
+                <View style={[styles.buttonContainer, { marginBottom: "5%" }]}>
+                    {/* Admin Button */}
+                    <TouchableOpacity style={styles.adminButton} onPress={handleAdminView}>
+                        <View style ={styles.edgeIcons}>
+                            <MaterialIcons name="admin-panel-settings" size={20} color="black"/>
+                        </View>
+                        <View style={styles.buttonContent}>
+                            <Text variant="bodyLarge" style={styles.buttonText}>Admin</Text>
+                        </View>
+                        <View style ={styles.edgeIcons}>
+                            <MaterialIcons name="arrow-forward-ios" size={20} color="black"/>
+                        </View>
+                    </TouchableOpacity>
                 </View>
                 
                 
@@ -247,6 +283,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'flex-start',
         backgroundColor: "#F0F0F0",
+        color: "#000000ff",
+        borderRadius: 8,
+        width: "90%",
+    },
+    adminButton: {
+        height: 50,
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        backgroundColor: "#ed8080ff",
         color: "#000000ff",
         borderRadius: 8,
         width: "90%",

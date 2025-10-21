@@ -1,12 +1,13 @@
-import api from "@/services/api";
+import createAPIClient from "@/services/api";
 import * as SecureStore from "expo-secure-store";
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 
 type AuthContextType = {
     uid: string | null;
+    userRole: string | null;
     accessToken: string | null;
     refreshToken: string | null;
-    loginTokens: (accessToken: string, refreshToken: string, uid: string) => Promise<void>;
+    loginTokens: (accessToken: string, refreshToken: string, uid: string, userRole?: string) => Promise<void>;
     logout: () => Promise<void>;
     refreshAccessToken: () => Promise<void>;
 };
@@ -18,7 +19,9 @@ const ACCESS_TOKEN_KEY = "access_token";
 const UID_KEY = "uid";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+    const api = createAPIClient();
     const [uid, setUid] = useState<string | null>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null);
     const [refreshToken, setRefreshToken] = useState<string | null>(null);
 
@@ -36,7 +39,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             .catch((error) => {
                 console.error("Error refreshing token HERE: ", error);
             });
-    }, [refreshToken]);
+    }, [api, refreshToken]);
+
+    const fetchUserRole = useCallback(async (uid: string) => {
+        api.get(`/user/role/${uid}`)
+            .then((response) => {
+                setUserRole(response.data);
+            })
+            .catch((error) => {
+                console.error("Error fetching user role:", error);
+            });
+    }, [api]);
 
     const deleteRefreshToken = async () => {
         setUid(null);
@@ -67,6 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const refreshTokenStore = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
             if (refreshTokenStore) {
                 setRefreshToken(refreshTokenStore);
+            }else{
                 await refreshAccessToken();
             }
 
@@ -79,11 +93,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (uidStore) {
                 setUid(uidStore);
             }
+            if(uid) fetchUserRole(uid);
+
         })();
-    }, [refreshAccessToken]);
+    }, [refreshAccessToken, fetchUserRole, uid]);
 
     return(
-        <AuthContext.Provider value={{ uid, accessToken, refreshToken, loginTokens, logout, refreshAccessToken }}>
+        <AuthContext.Provider value={{ uid, accessToken, refreshToken, loginTokens, logout, refreshAccessToken, userRole }}>
             {children}
         </AuthContext.Provider>
     );

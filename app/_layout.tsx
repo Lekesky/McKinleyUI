@@ -1,13 +1,15 @@
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { TabBarProvider } from '@/context/TabBarContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import createAPIClient from '@/services/api';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { useFonts } from 'expo-font';
 import * as Notifications from "expo-notifications";
 import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, AppState, AppStateStatus, Platform, View } from 'react-native';
 import 'react-native-reanimated';
 import { CartProvider } from '../context/CartContext';
 import { TableProvider } from '../context/TableContext';
@@ -23,10 +25,36 @@ Notifications.setNotificationHandler({
   }),
 });
 
+let publishableKey : string | null = null;
 // Create a component to handle authenticated routing
 function AuthenticatedLayout() {
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [initializing, setInitializing] = useState(true);
-  const { refreshToken, refreshAccessToken } = useAuth(); // This is now safely inside AuthProvider
+  const { refreshToken, refreshAccessToken, accessToken } = useAuth(); // This is now safely inside AuthProvider
+  const api = useMemo(() => createAPIClient(), []);
+
+  const fetchPublishableKey = useCallback(async() => {
+    if(!accessToken) return;
+
+    api.get('/payments/config').then((res) => {
+      publishableKey = res.data.publishableKey;
+    }).catch((error) => {
+      console.error("Error fetching Stripe publishable key:", error);
+    });
+
+  }, [api, accessToken]);
+
+  const handleAppStateChange = useCallback(async (nextAppState: AppStateStatus) => {
+    if (!initializing && nextAppState === 'active' && refreshToken) {
+      console.log('App returned to foreground, refreshing token');
+      refreshAccessToken();
+    }
+  }, [refreshToken, refreshAccessToken, initializing]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => { subscription.remove() };
+  }, [handleAppStateChange]);
 
   useEffect(() => {
     // Short delay to allow auth state to be determined
@@ -37,13 +65,15 @@ function AuthenticatedLayout() {
   }, []);
 
   useEffect(() => {
-    if (initializing) return;
+    if (initializing || isRedirecting) return;
+    
+    setIsRedirecting(true);
     if(refreshToken){
       router.replace('/(tabs)/Home');
     } else {
-      router.replace('/Intro'); // Changed to start with Intro
+      router.replace('/Intro');
     }
-  }, [initializing, refreshToken]);
+  }, [initializing, refreshToken, isRedirecting]);
 
 
   useEffect(() => {
@@ -55,6 +85,12 @@ function AuthenticatedLayout() {
     }, 1000 * 60 * 4.99);
     return () => clearInterval(interval);
   }, [refreshToken, refreshAccessToken]);
+
+   useEffect(() => {
+    if (accessToken) {
+      fetchPublishableKey();
+    }
+  }, [accessToken, fetchPublishableKey]);
 
 
   if (initializing) {
@@ -111,24 +147,27 @@ export default function RootLayout() {
     return null;
   }
 
-  const publishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  
+
 
   return (
     <AuthProvider>
       <StripeProvider publishableKey={publishableKey || ''}>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <TableProvider>
-            <CartProvider>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="+not-found" />
-                <Stack.Screen name="Intro" />
-                <Stack.Screen name="Login" />
-                <Stack.Screen name="Signup" />
-              </Stack>
-              {Platform.OS !== 'web' && <AuthenticatedLayout />}
-            </CartProvider>
-          </TableProvider>
+          <TabBarProvider>
+            <TableProvider>
+              <CartProvider>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="+not-found" />
+                  <Stack.Screen name="Intro" />
+                  <Stack.Screen name="Login" />
+                  <Stack.Screen name="Signup" />
+                </Stack>
+                {Platform.OS !== 'web' && <AuthenticatedLayout />}
+              </CartProvider>
+            </TableProvider>
+          </TabBarProvider>
           <StatusBar style="auto" />
         </ThemeProvider>
       </StripeProvider>

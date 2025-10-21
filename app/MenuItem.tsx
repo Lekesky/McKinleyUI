@@ -1,7 +1,7 @@
-import { useAuth } from "@/context/AuthContext";
-import api from "@/services/api";
+import { useCart } from "@/context/CartContext";
+import createAPIClient from "@/services/api";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Dimensions, Image, SafeAreaView, StyleSheet, View } from "react-native";
 import { Button, Divider, IconButton, Text } from "react-native-paper";
 
@@ -16,17 +16,16 @@ interface MenuItem {
 
 export default function MenuItemScreen() {
     const { id } = useLocalSearchParams();
-    const { accessToken } = useAuth();
+    const api = useMemo(() => createAPIClient(), []);
     const [menuItem, setMenuItem] = useState<MenuItem | null>(null);
     const [quantity, setQuantity] = useState(1);
+    const { addToCart } = useCart();
 
     useEffect(() => {
-        api.get(`/menu/${id}`, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-        })
+        api.get(`/menu/${id}`)
             .then((res) => setMenuItem(res.data))
             .catch((error) => console.error("Error fetching menu item:", error));
-    }, [id, accessToken]);
+    }, [api, id]);
 
     const handleDecrement = () => {
         if (quantity > 1) setQuantity(quantity - 1);
@@ -39,6 +38,10 @@ export default function MenuItemScreen() {
     const handleAddToCart = () => {
         // Add to cart logic will go here
         console.log(`Added ${quantity} ${menuItem?.name} to cart`);
+        if (menuItem) {
+            addToCart(menuItem, quantity);
+            router.back();
+        }
     };
 
     const goBack = () => {

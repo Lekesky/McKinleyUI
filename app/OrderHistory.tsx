@@ -1,10 +1,11 @@
 import { useAuth } from '@/context/AuthContext';
 import createAPIClient from '@/services/api';
 import { router } from 'expo-router';
-import { useCallback, useEffect, useState, useMemo } from 'react';
-import { FlatList, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FlatList, RefreshControl, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
 import OrderDetailsCard from '../components/OrderDetailsCard';
+import styles from '../styles/OrderHistory.styles';
 
 interface OrderedItem {
     id: string;
@@ -108,41 +109,3 @@ export default function OrderHistory() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        backgroundColor: '#ffffffff',
-    },
-    header: {
-        marginTop: 30,
-        marginBottom: "10%",
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 20,
-    },
-    headerTitle: {
-        fontSize: 24,
-        color: '#871919ff',
-        fontWeight: 'bold',
-        fontFamily: 'Helvetica',
-    },
-    backButton: { 
-        backgroundColor: '#e8e8e8ff', 
-        width: 50, 
-        height: 50, 
-        borderRadius: 25, 
-        justifyContent: 'center', 
-        alignItems: 'center' 
-    },
-    orderList: {
-        paddingBottom: 20,
-    },
-    emptyMessage: {
-        textAlign: 'center',
-        fontSize: 16,
-        color: '#7e7d7dff',
-        fontWeight: 'bold',
-        fontFamily: 'Helvetica',
-    },
-});

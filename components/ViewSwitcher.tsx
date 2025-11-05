@@ -1,15 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    Animated,
-    Easing,
-    StyleProp,
-    StyleSheet,
-    Text,
-    TextStyle,
-    TouchableOpacity,
-    View,
-    ViewStyle,
+  Animated,
+  Easing,
+  StyleProp,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from 'react-native';
+import styles from '../styles/Components/ViewSwitcher.styles';
 
 interface ViewSwitchProps {
   values: string[];
@@ -119,26 +119,5 @@ const ViewControl: React.FC<ViewSwitchProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  segmentContainer: {
-    flexDirection: 'row',
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  segment: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
-  },
-  slider: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-  },
-  segmentText: {
-    fontSize: 14,
-  },
-});
 
 export default ViewControl;

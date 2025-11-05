@@ -4,10 +4,38 @@ import axios, { AxiosInstance } from "axios";
 import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 
-const API_URL = "https://reception-hoped-fell-zoo.trycloudflare.com/api";
+const API_URL = "https://confirmed-receptor-inkjet-pee.trycloudflare.com/api";
 const ACCESS_TOKEN_KEY = "access_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
 
+export interface PageableResponse<T> {
+  content: T[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+    offset: number;
+    paged: boolean;
+    unpaged: boolean;
+    sort: {
+      unsorted: boolean;
+      sorted: boolean;
+      empty: boolean;
+    };
+  };
+  totalPages: number;
+  totalElements: number;
+  last: boolean;
+  numberOfElements: number;
+  size: number;
+  number: number;
+  sort: {
+    unsorted: boolean;
+    sorted: boolean;
+    empty: boolean;
+  };
+  first: boolean;
+  empty: boolean;
+}
 
 export default function createAPIClient(): AxiosInstance {
   const apiClient = axios.create({
@@ -22,6 +50,7 @@ export default function createAPIClient(): AxiosInstance {
     
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
+        
       }
       return config;
     }, 

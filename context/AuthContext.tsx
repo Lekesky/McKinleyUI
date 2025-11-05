@@ -1,6 +1,6 @@
 import createAPIClient from "@/services/api";
 import * as SecureStore from "expo-secure-store";
-import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 type AuthContextType = {
     uid: string | null;
@@ -19,7 +19,7 @@ const ACCESS_TOKEN_KEY = "access_token";
 const UID_KEY = "uid";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const api = createAPIClient();
+    const api = useMemo(() => createAPIClient(), []);
     const [uid, setUid] = useState<string | null>(null);
     const [userRole, setUserRole] = useState<string | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null);

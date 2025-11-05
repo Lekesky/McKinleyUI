@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import styles from '../styles/Components/GoogleSignInButton.styles';
 
 interface GoogleSignInButtonProps {
   onPress: () => void;
@@ -29,27 +30,6 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onPress, style 
   );
 };
 
-const styles = StyleSheet.create({
-  contentWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100%',
-    paddingHorizontal: 12,
-  },
-  iconContainer: {
-    marginRight: 12,
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#3c4043',
-    fontSize: 16,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-});
+
 
 export default GoogleSignInButton;

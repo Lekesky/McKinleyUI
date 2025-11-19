@@ -9,8 +9,7 @@ export default function WaitressHome() {
     
     const handleEnter = (num : number) => {
         if(num !== 0){
-            console.log("Table Number: ", num);
-            setTableNum(num);
+            setTableNumber(num);
             router.push("/WaitressMenu");
         } else {
             Alert.alert("Please select a table number.");

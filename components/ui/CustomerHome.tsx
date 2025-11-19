@@ -51,7 +51,7 @@ export default function CustomerHome() {
         return "Good Evening";
     };
 
-    const toggleSearch = () => {
+    const toggleSearch = useCallback(() => {
         if (isSearchExpanded) {
           // Collapse search bar and show greeting
           Keyboard.dismiss(); // Dismiss keyboard explicitly
@@ -114,28 +114,35 @@ export default function CustomerHome() {
         
         // Update state to track expanded/collapsed state
         setIsSearchExpanded(!isSearchExpanded);
-      };
+    }, [isSearchExpanded, animatedWidth, animatedOpacity, animatedGreetingOpacity]);
 
-    const handleSearch = (text: string) => {
+    const handleSearch = useCallback((text: string) => {
         setSearchQuery(text);
-    };
+    }, []);
 
-    const handleItemPress = (id: string) => {
+    const handleItemPress = useCallback((id: string) => {
         router.push({ pathname: '/MenuItem', params: { id } });
-    };
+    }, [router]);
 
     const fetchUserData = useCallback(() => {
-        api.get(`/user/${uid}`, 
-        )
-        .then((res) => setFirstName(res.data.firstName))
-        .catch((error) => {
-            console.error(`Error fetching user details for: `, error.message);
-        });
+        return api.get(`/user/${uid}`)
+            .then((res) => setFirstName(res.data.firstName))
+            .catch((error) => {
+                const errorMessage = error.response?.data || error.message || 'Failed to fetch user data';
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch user data',
+                    position: 'top',
+                    backgroundColor: '#871919ff',
+                    textColor: '#FFFFFF',
+                });
+            });
     }, [api, uid]);
 
     const fetchMenuItems = useCallback(() => {
         const params: any = { page: 0, size: 15 };
-        api.get('/menu', params)
+        return api.get('/menu', params)
             .then((res) => {
                 // If paginated, use res.data.content; else fallback
                 if (Array.isArray(res.data)) {
@@ -146,23 +153,30 @@ export default function CustomerHome() {
                     setMenuItems([]);
                 }
             })
-            .catch((error) => console.error("Error fetching menu item:", error));
+            .catch((error) => {
+                const errorMessage = error.response?.data || error.message || 'Failed to fetch menu';
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch menu',
+                    position: 'top',
+                    backgroundColor: '#871919ff',
+                    textColor: '#FFFFFF',
+                });
+                setMenuItems([]);
+            });
     }, [api]);
 
-    const onRefresh = async () => {
+    const onRefresh = useCallback(() => {
         setRefreshing(true);
-        try {
-            // Refresh both user data and menu items
-            await Promise.all([
-                fetchUserData(),
-                fetchMenuItems()
-            ]);
-        } catch (error) {
-            console.error("Error refreshing data:", error);
-        } finally {
-            setRefreshing(false);
-        }
-    };
+        return Promise.all([
+            fetchUserData(),
+            fetchMenuItems()
+        ])
+            .finally(() => {
+                setRefreshing(false);
+            });
+    }, [fetchUserData, fetchMenuItems]);
 
     useEffect(() => {
         fetchUserData();
@@ -233,7 +247,7 @@ export default function CustomerHome() {
                     placeholder={isSearchExpanded ? "Search menu..." : ""}
                     value={isSearchExpanded ? searchQuery : ""}
                     onChangeText={isSearchExpanded ? handleSearch : () => {}}
-                    onSubmitEditing={isSearchExpanded ? () => console.log("Search submitted:", searchQuery) : () => {}}
+                    onSubmitEditing={isSearchExpanded ? () => {} : () => {}}
                     editable={isSearchExpanded}
                     pointerEvents={isSearchExpanded ? 'auto' : 'none'}
                     keyboardType={isSearchExpanded ? 'default' : 'default'}
@@ -256,11 +270,13 @@ export default function CustomerHome() {
             </View>
 
             {/* Category Pills */}
-            <HorizontalPills 
-              categories={CATEGORIES}
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-            />
+            <View style={styles.pillContainer}>
+              <HorizontalPills 
+                categories={CATEGORIES}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+              />
+            </View>
 
             <ScrollView
             refreshControl={

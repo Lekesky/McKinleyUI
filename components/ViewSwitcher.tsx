@@ -9,7 +9,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import styles from '../styles/Components/ViewSwitcher.styles';
+import styles from '../styles/components/ViewSwitcher.styles';
 
 interface ViewSwitchProps {
   values: string[];
@@ -44,10 +44,11 @@ const ViewControl: React.FC<ViewSwitchProps> = ({
   const translateX = useRef(new Animated.Value(selectedIndex * (width / values.length))).current;
 
   const segmentWidth = width / values.length;
+  const indicatorPadding = 4;
 
   useEffect(() => {
     Animated.timing(translateX, {
-      toValue: selected * segmentWidth,
+      toValue: selected * segmentWidth + indicatorPadding,
       duration: 250,
       easing: Easing.out(Easing.ease),
       useNativeDriver: true,
@@ -79,10 +80,10 @@ const ViewControl: React.FC<ViewSwitchProps> = ({
         style={[
           styles.slider,
           {
-            width: segmentWidth,
-            height,
+            width: segmentWidth - (indicatorPadding * 2),
+            height: height - (indicatorPadding * 2),
             backgroundColor: activeColor,
-            borderRadius,
+            borderRadius: borderRadius - indicatorPadding,
             transform: [{ translateX }],
           },
         ]}

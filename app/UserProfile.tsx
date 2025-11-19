@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Button, Icon, PaperProvider } from 'react-native-paper';
+import { Toast } from 'toastify-react-native';
 import styles from "../styles/UserProfile.styles";
 
 type OrderedItem = {
@@ -72,10 +73,26 @@ export default function UserProfile() {
                     
                     setUserOrder(sortedOrders);
                 } catch (ordersError: any) {
-                    console.error("Error fetching orders:", ordersError.message);
+                    const errorMessage = ordersError.response?.data || ordersError.message || 'Failed to fetch orders';
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Error',
+                        text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch orders',
+                        position: 'top',
+                        backgroundColor: '#871919ff',
+                        textColor: '#FFFFFF',
+                    });
                 }
             } catch (userError: any) {
-                console.error("Error fetching user data:", userError.message);
+                const errorMessage = userError.response?.data || userError.message || 'Failed to fetch user data';
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch user data',
+                    position: 'top',
+                    backgroundColor: '#871919ff',
+                    textColor: '#FFFFFF',
+                });
                 setUser(null);
             } finally {
                 setLoading(false);
@@ -120,8 +137,16 @@ export default function UserProfile() {
                 
                 setUserOrder(sortedOrders);
             }
-        } catch (error) {
-            console.error("Error refreshing data:", error);
+        } catch (error: any) {
+            const errorMessage = error.response?.data || error.message || 'Failed to refresh data';
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to refresh data',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
         } finally {
             setRefreshing(false);
         }
@@ -137,13 +162,30 @@ export default function UserProfile() {
         
         api.patch(`/user/role/${uid}`, editRole, { headers: { "Content-Type": "text/plain" } })
             .then((response) => { 
-                alert("Role updated successfully: " + response.data);
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'Role updated successfully: ' + response.data,
+                    position: 'top',
+                    backgroundColor: '#4CAF50',
+                    textColor: '#FFFFFF',
+                });
                 // Update the user object to reflect the new role
                 if (user) {
                     setUser({...user, userRole: editRole});
                 }
             })
-            .catch(() => { alert("Failed to update role") });
+            .catch((error) => {
+                const errorMessage = error.response?.data || error.message || 'Failed to update role';
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to update role',
+                    position: 'top',
+                    backgroundColor: '#871919ff',
+                    textColor: '#FFFFFF',
+                });
+            });
     };
     
 

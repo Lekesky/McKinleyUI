@@ -1,7 +1,7 @@
 import React from "react";
 import { Image, TouchableOpacity, View } from "react-native";
 import { Card, Text } from "react-native-paper";
-import styles from "../styles/Components/MenuItemCard.styles";
+import styles from "../styles/components/MenuItemCard.styles";
 
 interface MenuItemCardProps {
     id: string;
@@ -13,7 +13,7 @@ interface MenuItemCardProps {
     onPress: (id: string) => void;
 }
 
-export const MenuItemCard = ({ id, name, price, imageURL, description, tags, onPress } : MenuItemCardProps) => {
+export const MenuItemCard = React.memo(({ id, name, price, imageURL, description, tags, onPress } : MenuItemCardProps) => {
     return (
         <TouchableOpacity onPress={() => onPress(id)} style={styles.cardContainer}>
             <Card style={styles.card}>
@@ -33,4 +33,4 @@ export const MenuItemCard = ({ id, name, price, imageURL, description, tags, onP
             </Card>
         </TouchableOpacity>
     );
-}
+});

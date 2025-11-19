@@ -1,17 +1,30 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create({
     card: {
         backgroundColor: 'white',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 16,
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 24,
+        marginHorizontal: isWeb ? 8 : 4,
+        marginTop: isWeb ? 8 : 12,
+        borderWidth: 1,
+        borderColor: '#f0f0f0',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 8,
         position: 'relative',
+        minWidth: isWeb ? 1200 : '100%',
+        width: isWeb ? undefined : '100%',
+        alignSelf: 'center',
+        // Add a subtle background gradient effect for more depth
+        ...(isWeb && {
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)',
+        }),
     },
     header: {
         flexDirection: 'row',

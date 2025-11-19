@@ -14,7 +14,9 @@ const styles = StyleSheet.create({
   slider: {
     position: 'absolute',
     left: 0,
-    top: 0,
+    top: 4,
+    right: 4,
+    bottom: 0,
   },
   segmentText: {
     fontSize: 14,

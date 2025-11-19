@@ -39,6 +39,9 @@ const styles = StyleSheet.create({
     filterContainer: {
         flexDirection: 'row',
         marginBottom: 20,
+        marginTop: 20,
+        gap: 20,
+        alignSelf: 'center',
         justifyContent: 'space-between',
     },
     filterTab: {
@@ -78,6 +81,13 @@ const styles = StyleSheet.create({
     loadMoreButtonText: {
         color: '#fff',
         fontWeight: '600',
+    },
+    flatListContainer: {
+        paddingHorizontal: 8,
+        paddingTop: 16,
+        paddingBottom: 80,
+        alignSelf: 'center',
+        width: '100%',
     },
 });
 

@@ -1,8 +1,18 @@
 const { getDefaultConfig } = require('@expo/metro-config');
 
-const defaultConfig = getDefaultConfig(__dirname);
-defaultConfig.resolver.sourceExts.push('cjs');
-defaultConfig.resolver.unstable_enablePackageExports = false;
-defaultConfig.resolver.unstable_enableSymlinks = false;
+const config = getDefaultConfig(__dirname);
 
-module.exports = defaultConfig;
+config.resolver = {
+  ...config.resolver,
+  resolveRequest: (context, moduleName, platform) => {
+    // Exclude pretty-format and other test dependencies from web builds
+    if (platform === 'web' && moduleName === 'pretty-format') {
+      return {
+        type: 'empty',
+      };
+    }
+    return context.resolveRequest(context, moduleName, platform);
+  },
+};
+
+module.exports = config;

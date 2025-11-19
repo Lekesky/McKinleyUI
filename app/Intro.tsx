@@ -1,7 +1,6 @@
 import { router } from 'expo-router';
 import { Image, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
-import McKinleyLogo from '../assets/images/McKinleysGrill.png';
 import styles from '../styles/Intro.styles';
 
 
@@ -16,7 +15,7 @@ export default function Intro(){
     return(
         <View style={styles.container1}>
             <View style={styles.container2}>
-                <Image source={McKinleyLogo} style={styles.image} />
+                <Image source={require("@/assets/images/McKinleysGrill.png")} style={styles.image} />
             </View>
             <View>
                 <Text style={styles.headline}>Welcome to the McKinley&apos;s Grill</Text>

@@ -1,11 +1,13 @@
 import { useAuth } from '@/context/AuthContext';
-import { useTabBar } from '@/context/TabBarContext';
+import { useMobileTabBar } from '@/context/TabBarContext';
 import createAPIClient from '@/services/api';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Modal,
+  Platform,
   RefreshControl,
   ScrollView,
   Text,
@@ -15,6 +17,7 @@ import {
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Icon } from 'react-native-paper';
+import { Toast } from 'toastify-react-native';
 import styles from '../../styles/Notification.styles';
 
 
@@ -30,17 +33,18 @@ type Notification = {
 
 export default function NotificationScreen() {
   const { uid, userRole } = useAuth();
-  const { hideTabBar, showTabBar } = useTabBar();
+  const { hideTabBar, showTabBar } = useMobileTabBar();
   const api = useMemo(() => createAPIClient(), []);
   const [refreshing, setRefreshing] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState<string>('All');
+  const [selectedFilter, setSelectedFilter] = useState<string>('Unread');
   const [pageNumber, setPageNumber] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const PAGE_SIZE = 10; // Small sample size for testing pagination
   const [bottomSheetIsOpen, setBottomSheetIsOpen] = useState(false);
+  const [webModalVisible, setWebModalVisible] = useState(false);
   
   // Bottom sheet configuration
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -73,33 +77,41 @@ export default function NotificationScreen() {
 
 
   const fetchNotifications = useCallback(async (page = 0) => {
-      api.get(`/notifications/${uid}`, {
-        params: {
-          page,
-          size: PAGE_SIZE
+    await api.get(`/notifications/${uid}`, {
+      params: {
+        page,
+        size: PAGE_SIZE
+      }
+    })
+      .then((res) => {
+        
+        // Handle initial load or refresh
+        if (page === 0) {
+          setNotifications(res.data.content || []);
+        } else {
+          // Append new items for infinite scroll
+          setNotifications(prev => [...prev, ...(res.data.content || [])]);
         }
+        
+        setHasMore(!res.data.last);
+        setPageNumber(res.data.number);
       })
-        .then((res) => {
-          if (!res.data) {
-            console.error('No data received from API');
-            return;
-          }
-          
-          // Handle initial load or refresh
-          if (page === 0) {
-            setNotifications(res.data.content || []);
-          } else {
-            // Append new items for infinite scroll
-            setNotifications(prev => [...prev, ...(res.data.content || [])]);
-          }
-          
-          setHasMore(!res.data.last);
-          setPageNumber(res.data.number);
-        })
-        .catch((err) => {
-          console.error('Error fetching notifications:', err);
-        })
-        .finally(() => setLoading(false));
+      .catch((err) => {
+        const errorMessage = err.response?.data || err.message || 'Failed to fetch notifications';
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch notifications',
+          position: 'top',
+          backgroundColor: '#871919ff',
+          textColor: '#FFFFFF',
+        });
+      })
+      .finally(() => {
+        if (page === 0) {
+          setLoading(false);
+        }
+      });
   }, [api, uid]);
 
   useEffect(() => {fetchNotifications();}, [fetchNotifications]);
@@ -130,47 +142,75 @@ export default function NotificationScreen() {
     return date.toLocaleString();
   };
 
-  const handleNotificationPress = async (notification: Notification) => {
+  const handleNotificationPress = (notification: Notification) => {
       api.patch(`/notifications/read/${notification.id}`)
         .then(() => {
           setNotifications((prev) =>
             prev.map((n) => (n.id === notification.id ? { ...n, readStatus: true } : n))
           );
-          console.log(`Notification ${notification.id} marked as read.`);
         })
-      .catch((err) => {
-        console.error('Failed to mark notification as read:', err);
-      });
+        .catch(() => {
+          // Failed to mark notification as read
+        });
   };
   
   const handleSendNotification = () => {
-    if(bottomSheetIsOpen) {
-      closeBottomSheet();
-      return;
+    if (Platform.OS === 'web') {
+      setWebModalVisible(true);
+    } else {
+      if(bottomSheetIsOpen) {
+        closeBottomSheet();
+        return;
+      }
+      openBottomSheet(0);
     }
-    openBottomSheet(0);
   };
   
   const submitNotification = () => {
     // Reset form and close bottom sheet
     setNotificationTitle('');
     setNotificationMessage('');
-    closeBottomSheet();
+
+    if(Platform.OS !== 'web'){
+      closeBottomSheet();
+    }else{
+      setWebModalVisible(false);
+    }
     
-    api.post('/notifications/sendPSA', {
-      userId: uid,
+
+    const data = {
+      authorId: uid,
       title: notificationTitle,
-      message: notificationMessage}
-    ).then(() => {
-      // Refresh notifications after sending
-      fetchNotifications(0);
-    }).catch((err) => {
-      console.error('Error sending notification:', err);
-    });
+      message: notificationMessage
+    }
+    
+    api.post('/notifications/sendPSA', data)
+      .then(() => {
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Notification sent successfully',
+          position: 'top',
+          backgroundColor: '#4CAF50',
+          textColor: '#FFFFFF',
+        });
+        fetchNotifications(0);
+      })
+      .catch((err) => {
+        const errorMessage = err.response?.data || err.message || 'Failed to send notification';
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to send notification',
+          position: 'top',
+          backgroundColor: '#871919ff',
+          textColor: '#FFFFFF',
+        });
+      });
   };
 
   // Filter categories
-  const notificationFilters = ['All', 'Read', 'Unread'];
+  const notificationFilters = ['Unread', 'Read', 'All' ];
   
   // Filter notifications based on selected filter
   const filteredNotifications = useMemo(() => {
@@ -193,18 +233,24 @@ export default function NotificationScreen() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       {/* Main content container */}
       <View style={[styles.container, { maxHeight: '100%' }]}>
-        {/* Header with Back Button and Title */} 
-        <View style={styles.header}>
-          <TouchableOpacity onPress={goBackHandler} style={styles.backButton}>
-            <Icon source="arrow-left" size={24} color="#3c3c3cff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Notifications</Text>
-          {userRole === 'ADMIN' && (
-            <TouchableOpacity onPress={handleSendNotification} style={styles.sendButton}>
-              <Icon source="plus" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-          )}
-        </View>
+        {Platform.OS !== 'web' && (
+          <>
+            {/* Header with Back Button and Title */} 
+            <View style={styles.header}>
+              <TouchableOpacity onPress={goBackHandler} style={styles.backButton}>
+                <Icon source="arrow-left" size={24} color="#3c3c3cff" />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>Notifications</Text>
+              {userRole === 'ADMIN' && (
+                <TouchableOpacity onPress={handleSendNotification} style={styles.sendButton}>
+                  <Icon source="plus" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </>
+        )}
+        
+        
 
         {/* Filter Tabs - Similar to Order screen */}
         <View style={styles.filterContainer}>
@@ -227,6 +273,14 @@ export default function NotificationScreen() {
               </Text>
             </TouchableOpacity>
           ))}
+          
+          {/* Web Add Button - positioned naturally after filters */}
+          {Platform.OS === 'web' && userRole === 'ADMIN' && (
+            <TouchableOpacity onPress={handleSendNotification} style={styles.webAddButton}>
+              <Icon source="plus" size={20} color="#FFFFFF" />
+              <Text style={styles.webAddButtonText}>Add Notification</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <ScrollView
@@ -247,8 +301,9 @@ export default function NotificationScreen() {
             const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
             const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
             
-            if (isCloseToBottom && !refreshing && hasMore) {
-              fetchNotifications(pageNumber + 1);
+            if (isCloseToBottom && !refreshing && hasMore && !loadingMore) {
+              setLoadingMore(true);
+              fetchNotifications(pageNumber + 1).finally(() => setLoadingMore(false));
             }
           }}
           scrollEventThrottle={16}
@@ -351,6 +406,61 @@ export default function NotificationScreen() {
           </View>
         </BottomSheetView>
       </BottomSheet>
+
+      {/* Web Modal for sending notifications */}
+      {Platform.OS === 'web' && (
+        <Modal
+          visible={webModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setWebModalVisible(false)}
+        >
+          <View style={styles.webModalOverlay}>
+            <View style={styles.webModalContent}>
+              <Text style={styles.webModalTitle}>Send New Notification</Text>
+              
+              <View style={styles.webFormGroup}>
+                <TextInput
+                  style={styles.webInput}
+                  placeholder="Title"
+                  value={notificationTitle}
+                  onChangeText={setNotificationTitle}
+                  placeholderTextColor="#666"
+                />
+              </View>
+              
+              <View style={styles.webFormGroup}>
+                <TextInput
+                  style={[styles.webInput, styles.webTextArea]}
+                  placeholder="Message"
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  value={notificationMessage}
+                  onChangeText={setNotificationMessage}
+                  placeholderTextColor="#666"
+                />
+              </View>
+              
+              <View style={styles.webButtonContainer}>
+                <TouchableOpacity 
+                  style={styles.webCancelButton} 
+                  onPress={() => setWebModalVisible(false)}
+                >
+                  <Text style={styles.webCancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.webSubmitButton} 
+                  onPress={submitNotification}
+                >
+                  <Text style={styles.webSubmitButtonText}>Send</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
     </GestureHandlerRootView>
   );
 }

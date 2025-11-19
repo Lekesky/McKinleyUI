@@ -1,12 +1,14 @@
 import createAPIClient from "@/services/api";
-import * as SecureStore from "expo-secure-store";
+import * as jwt from 'jose';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 type AuthContextType = {
     uid: string | null;
     userRole: string | null;
     accessToken: string | null;
+    accessTokenTTL: number | null;
     refreshToken: string | null;
+    isAuthLoading: boolean;
     loginTokens: (accessToken: string, refreshToken: string, uid: string, userRole?: string) => Promise<void>;
     logout: () => Promise<void>;
     refreshAccessToken: () => Promise<void>;
@@ -18,88 +20,111 @@ const REFRESH_TOKEN_KEY = "refresh_token";
 const ACCESS_TOKEN_KEY = "access_token";
 const UID_KEY = "uid";
 
+// Import storage utilities from api.tsx
+import { deleteStoredItem, getStoredItem, setStoredItem } from "@/services/api";
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const api = useMemo(() => createAPIClient(), []);
     const [uid, setUid] = useState<string | null>(null);
     const [userRole, setUserRole] = useState<string | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null);
+    const [accessTokenTTL, setAccessTokenTTL] = useState<number | null>(null);
     const [refreshToken, setRefreshToken] = useState<string | null>(null);
+    const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-    
 
-    const refreshAccessToken = useCallback(async () => {
-        if (!refreshToken) return;
-        api.post("/user/refresh-token", { refreshToken })
-            .then(async (response) => {
-                await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, response.data.accessToken);
-                await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, response.data.refreshToken);
-                setAccessToken(response.data.accessToken);
-                setRefreshToken(response.data.refreshToken);
+    const refreshAccessToken = useCallback(() => {
+        if (!refreshToken) return Promise.resolve();
+        return api.post("/user/refresh-token", { refreshToken }, { withCredentials: true })
+            .then((response) => {
+                return Promise.all([
+                    setStoredItem(ACCESS_TOKEN_KEY, response.data.accessToken),
+                    setStoredItem(REFRESH_TOKEN_KEY, response.data.refreshToken)
+                ]).then(() => {
+                    setAccessToken(response.data.accessToken);
+                    setRefreshToken(response.data.refreshToken);
+
+                    if(response.data.accessToken){
+                        const payload = jwt.decodeJwt(response.data.accessToken);
+                        if(payload.exp && payload.iat) {
+                            setAccessTokenTTL(1000 * (payload.exp - payload.iat));
+                        }
+                    }
+                });
             })
-            .catch((error) => {
-                console.error("Error refreshing token HERE: ", error);
+            .catch(() => {
+                // Silent error - token refresh failed
             });
     }, [api, refreshToken]);
 
-    const fetchUserRole = useCallback(async (uid: string) => {
-        api.get(`/user/role/${uid}`)
+    const fetchUserRole = useCallback((uid: string) => {
+        return api.get(`/user/role/${uid}`)
             .then((response) => {
                 setUserRole(response.data);
             })
-            .catch((error) => {
-                console.error("Error fetching user role:", error);
+            .catch(() => {
+                // Silent error - user role fetch failed
             });
     }, [api]);
 
-    const deleteRefreshToken = async () => {
+    const deleteRefreshToken = useCallback(() => {
         setUid(null);
         setAccessToken(null);
         setRefreshToken(null);
-        await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
-        await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
-        await SecureStore.deleteItemAsync(UID_KEY);
-        
-    }
+        return Promise.all([
+            deleteStoredItem(REFRESH_TOKEN_KEY),
+            deleteStoredItem(ACCESS_TOKEN_KEY),
+            deleteStoredItem(UID_KEY)
+        ]);
+    }, []);
 
-    const loginTokens = async (newAccessToken: string, newRefreshToken: string, uid: string) => {
+    const loginTokens = useCallback((newAccessToken: string, newRefreshToken: string, uid: string) => {
         setUid(uid);
         setAccessToken(newAccessToken);
         setRefreshToken(newRefreshToken);
-        await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, newAccessToken || '');
-        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, newRefreshToken || '');
-        await SecureStore.setItemAsync(UID_KEY, uid || '');
-    };
+        return Promise.all([
+            setStoredItem(ACCESS_TOKEN_KEY, newAccessToken || ''),
+            setStoredItem(REFRESH_TOKEN_KEY, newRefreshToken || ''),
+            setStoredItem(UID_KEY, uid || '')
+        ]);
+    }, []);
     
-    const logout = async () => {
-        await deleteRefreshToken();
-    };
+    const logout = useCallback(() => {
+        return deleteRefreshToken();
+    }, [deleteRefreshToken]);
 
-    //Load tokens from SecureStore when the app starts
+    //Load tokens from storage (SecureStore for mobile, cookies for web) when the app starts
     useEffect(() => {
         (async () => {
-            const refreshTokenStore = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+            const refreshTokenStore = await getStoredItem(REFRESH_TOKEN_KEY);
             if (refreshTokenStore) {
                 setRefreshToken(refreshTokenStore);
-            }else{
-                await refreshAccessToken();
             }
 
-            const accessTokenStore = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+            const accessTokenStore = await getStoredItem(ACCESS_TOKEN_KEY);
             if (accessTokenStore) {
                 setAccessToken(accessTokenStore);
+                
+                // Decode token to get TTL
+                const payload = jwt.decodeJwt(accessTokenStore);
+                if(payload.exp && payload.iat) {
+                    setAccessTokenTTL(1000 * (payload.exp - payload.iat));
+                }
             }
 
-            const uidStore = await SecureStore.getItemAsync(UID_KEY);
+            const uidStore = await getStoredItem(UID_KEY);
             if (uidStore) {
                 setUid(uidStore);
+                fetchUserRole(uidStore);
             }
-            if(uid) fetchUserRole(uid);
-
+            
+            // Mark auth as loaded
+            setIsAuthLoading(false);
         })();
-    }, [refreshAccessToken, fetchUserRole, uid]);
+    }, [fetchUserRole]);
 
     return(
-        <AuthContext.Provider value={{ uid, accessToken, refreshToken, loginTokens, logout, refreshAccessToken, userRole }}>
+        <AuthContext.Provider value={{ uid, accessToken, accessTokenTTL, refreshToken, loginTokens, logout, refreshAccessToken, userRole, isAuthLoading }}>
             {children}
         </AuthContext.Provider>
     );

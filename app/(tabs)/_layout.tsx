@@ -1,17 +1,18 @@
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Tabs as TabNames } from '@/constants/Tabs';
 import { useAuth } from '@/context/AuthContext';
-import { useTabBar } from '@/context/TabBarContext';
+import { useMobileTabBar } from '@/context/TabBarContext';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Tabs } from 'expo-router';
 import React, { useEffect } from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform } from 'react-native';
 
 
 export default function TabLayout() {
   // const [role, setRole] = useState<string | null>(null);
   const { userRole } = useAuth();
-  const { isTabBarVisible, showTabBar } = useTabBar();
+  const { isTabBarVisible, showTabBar } = useMobileTabBar();
   
   // Ensure tab bar is visible on initial load
   useEffect(() => {
@@ -61,59 +62,23 @@ export default function TabLayout() {
       },
     }}
   >
-    <Tabs.Screen
-      name="Home"
-      options={{
-        title: 'Home',
-        tabBarIcon: ({ color }: { color: string }) => (
-          <IconSymbol size={28} name="house.fill" color={color} />
-        ),
-      }}
-    />
-    <Tabs.Screen
-      name="Order"
-      options={{
-        title: 'Order',
-        tabBarIcon: ({ color }: { color: string }) => (
-          <MaterialCommunityIcons size={28} name="progress-clock" color={color} />
-        ),
-      }}
-    />
-    <Tabs.Screen
-      name="Cart"
-      options={{
-        title: 'Cart',
-        tabBarIcon: ({ color }: { color: string }) => (
-          <IconSymbol size={28} name="cart.fill" color={color} />
-        ),
-      }}
-    />
-    <Tabs.Screen
-      name="Notification"
-      options={{
-        title: 'Notification',
-        tabBarIcon: ({ color }: { color: string }) => (
-          <IconSymbol size={28} name="bell.fill" color={color} />
-        ),
-      }}
-    />
-    <Tabs.Screen
-      name="Profile"
-      options={{
-        title: 'Profile',
-        tabBarIcon: ({ color }: { color: string }) => (
-          <IconSymbol size={28} name="person.crop.circle.fill" color={color} />
-        ),
-      }}
-    />
+
+    {TabNames.map((tab) => (
+      <Tabs.Screen
+        key={tab.name}
+        name={tab.name}
+        options={{
+          title: tab.title,
+          tabBarIcon: ({ color }: { color: string }) => {
+            if (tab.iconProvider === 'MaterialCommunityIcons') {
+              return <MaterialCommunityIcons size={28} name={tab.iconName as any} color={color} />;
+            }
+            return <IconSymbol size={28} name={tab.iconName as any} color={color} />;
+          },
+        }}
+      />
+    ))}
+    
   </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBarContainer: {
-    height: 60,
-    borderRadius: 30,
-    overflow: 'hidden',
-  },
-});

@@ -4,7 +4,7 @@ import ViewControl from '@/components/ViewSwitcher';
 import { useAuth } from '@/context/AuthContext';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { Platform, TouchableOpacity, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
 import { useCart } from '../../context/CartContext';
 import styles from '../../styles/Cart.styles';
@@ -28,13 +28,17 @@ export default function Cart() {
     return (
       <View style={styles.container}>
 
-        {/* Header with Back Button and Title */} 
-        <View style={styles.header}>
-            <TouchableOpacity onPress={goBackHandler} style={styles.backButton}>
-                <Icon source="arrow-left" size={24} color="#3c3c3cff" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Cart</Text>
-        </View>
+        {Platform.OS !== 'web' && (
+          <>
+            {/* Header with Back Button and Title */} 
+            <View style={styles.header}>
+                <TouchableOpacity onPress={goBackHandler} style={styles.backButton}>
+                    <Icon source="arrow-left" size={24} color="#3c3c3cff" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Cart</Text>
+            </View>
+          </>
+        )}
 
         {/* View Switcher */}
         {userRole && (userRole === 'WAITRESS' || userRole === 'ADMIN' || userRole === 'CHEF') && (
@@ -49,7 +53,7 @@ export default function Cart() {
               activeTextColor="#000"
               textColor="#333"
               borderRadius={20}
-              containerStyle={{ alignSelf: "center", marginVertical: 20 }}
+              containerStyle={styles.viewController}
           />
         )}
 

@@ -2,7 +2,8 @@ import createAPIClient from '@/services/api';
 import React, { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
-import styles from '../styles/Components/OrderCardKitchen.styles';
+import { Toast } from 'toastify-react-native';
+import styles from '../styles/components/OrderCardKitchen.styles';
 
 interface OrderedItem {
     id: string;
@@ -79,17 +80,47 @@ const api = useMemo(() => createAPIClient(), []);
 const handleInProgressOrder = async(orderId : string) =>{
     api.patch(`/orders/in-progress/${orderId}`)
     .then(() => {
-        console.log('Order is now in progress');
+        Toast.show({
+            type: 'success',
+            text1: 'Success',
+            text2: 'Order marked as in progress',
+            position: 'top',
+            backgroundColor: '#4CAF50',
+            textColor: '#FFFFFF',
+        });
     }).catch((error) => {
-        console.error('Failed to start order:', error);
+        const errorMessage = error.response?.data || error.message || 'Failed to start order';
+        Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to start order',
+            position: 'top',
+            backgroundColor: '#871919ff',
+            textColor: '#FFFFFF',
+        });
     });
 } 
 
 const handleCompleteOrder = async (orderId: string) => {
     api.patch(`/orders/complete/${orderId}`).then(() => {
-        console.log('Order completed successfully');
+        Toast.show({
+            type: 'success',
+            text1: 'Success',
+            text2: 'Order marked as completed',
+            position: 'top',
+            backgroundColor: '#4CAF50',
+            textColor: '#FFFFFF',
+        });
     }).catch((error) => {
-        console.error('Failed to complete order:', error);
+        const errorMessage = error.response?.data || error.message || 'Failed to complete order';
+        Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to complete order',
+            position: 'top',
+            backgroundColor: '#871919ff',
+            textColor: '#FFFFFF',
+        });
     });
 } 
 

@@ -1,24 +1,28 @@
 import { useAuth } from "@/context/AuthContext";
-import { useTabBar } from "@/context/TabBarContext";
+import { useMobileTabBar } from "@/context/TabBarContext";
 import createAPIClient from "@/services/api";
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { TouchableOpacity, View } from "react-native";
+import { Modal, Platform, TouchableOpacity, View } from "react-native";
 import { Button, Dialog, Icon, PaperProvider, Portal, Text } from "react-native-paper";
+import { Toast } from 'toastify-react-native';
 import styles from "../../styles/Profile.styles";
 
 export default function Profile() {
     const { accessToken, refreshToken, logout, uid } = useAuth();
-    const { hideTabBar, showTabBar } = useTabBar();
+    const { hideTabBar, showTabBar } = useMobileTabBar();
     const api = useMemo(() => createAPIClient(), []);
     const [logoutDialogVisible, setLogoutDialogVisible] = useState(false);
     const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+    const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+    const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
     const [timeCreated, setTimeCreated] = useState(new Date());
+    const [signInMethod, setSignInMethod] = useState("");
 
 
     useEffect(() => {
@@ -28,8 +32,19 @@ export default function Profile() {
                 setLastName(res.data.lastName)
                 setEmail(res.data.email)
                 setTimeCreated(new Date(res.data.timeCreated));
+                setSignInMethod(res.data.signInMethod);
             })
-            .catch((error) => console.error(`Error fetching user details for: `, error.message));
+            .catch((error) => {
+                const errorMessage = error.response?.data || error.message || 'Failed to fetch user details';
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch user details',
+                    position: 'top',
+                    backgroundColor: '#871919ff',
+                    textColor: '#FFFFFF',
+                });
+            });
     },[api, uid, accessToken]);
     
     // Ensure tab bar is shown when component unmounts
@@ -40,6 +55,7 @@ export default function Profile() {
     }, [showTabBar]);
 
     const showLogoutDialog = () => {
+        setLogoutModalVisible(!logoutModalVisible);
         setLogoutDialogVisible(true);
         hideTabBar();
     };
@@ -63,7 +79,7 @@ export default function Profile() {
     const handleAdminView = () => { router.push('/Admin')}
 
     const handlePaymentMethods = () => {
-        console.log("Payment methods logic here");
+        // Payment methods logic
     }
 
     const handleDeleteAccount = () => {
@@ -73,12 +89,27 @@ export default function Profile() {
             .then(async (res) => {
                 if (res.status === 200) {
                     await logout();
-                    console.log("Account deleted successfully");
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Success',
+                        text2: 'Account deleted successfully',
+                        position: 'top',
+                        backgroundColor: '#4CAF50',
+                        textColor: '#FFFFFF',
+                    });
                     router.replace('/Intro');
                 }
             })
             .catch((error) => {
-                console.error("Error deleting account: ", error);
+                const errorMessage = error.response?.data || error.message || 'Failed to delete account';
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to delete account',
+                    position: 'top',
+                    backgroundColor: '#871919ff',
+                    textColor: '#FFFFFF',
+                });
             });
     }
 
@@ -89,50 +120,128 @@ export default function Profile() {
         .then(async (res) => {
             if(res.status === 200){
                 await logout(); // Clear tokens from context and secure storage
-                console.log("Logged out successfully");
                 router.replace('/Intro');
             }
         }).catch((error) => {
-            console.error("Error during logout: ", error);
+            const errorMessage = error.response?.data || error.message || 'Failed to logout';
+            Toast.show({
+                type: 'error',
+                text1: 'Logout Error',
+                text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to logout',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
         });
     }
 
     return (
         <PaperProvider>
             <View style={styles.container}>
-                <Portal>
-                    <Dialog visible={logoutDialogVisible} onDismiss={hideLogoutDialog}>
-                        <Dialog.Title>Confirm Logout?</Dialog.Title>
-                        <Dialog.Content><Text variant="bodyMedium">Are you sure you want to log out?</Text></Dialog.Content>
-                        <Dialog.Actions>
-                            <Button onPress={hideLogoutDialog}>Cancel</Button>
-                            <Button onPress={handleLogout}>Logout</Button>
-                        </Dialog.Actions>
-                    </Dialog>
-                </Portal>
 
-                <Portal>
-                    <Dialog visible={deleteDialogVisible} onDismiss={hideDeleteDialog}>
-                        <Dialog.Title>Delete Account</Dialog.Title>
-                        <Dialog.Content><Text variant="bodyMedium">Are you sure you want to delete this account?</Text></Dialog.Content>
-                        <Dialog.Actions>
-                            <Button onPress={hideDeleteDialog}>Cancel</Button>
-                            <Button onPress={handleDeleteAccount}>Delete</Button>
-                        </Dialog.Actions>
-                    </Dialog>
-                </Portal>
+                {Platform.OS !== 'web' ? ( 
+                    <>
+                        <Portal>
+                            <Dialog visible={logoutDialogVisible} onDismiss={hideLogoutDialog}>
+                                <Dialog.Title>Confirm Logout?</Dialog.Title>
+                                <Dialog.Content><Text variant="bodyMedium">Are you sure you want to log out?</Text></Dialog.Content>
+                                <Dialog.Actions>
+                                    <Button onPress={hideLogoutDialog}>Cancel</Button>
+                                    <Button onPress={handleLogout}>Logout</Button>
+                                </Dialog.Actions>
+                            </Dialog>
+                        </Portal>
 
-                {/* Header with Back Button and Title */} 
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={goBackHandler} style={styles.backButton}>
-                        <Icon source="arrow-left" size={24} color="#3c3c3cff" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Profile</Text>
-                </View>
+                        <Portal>
+                            <Dialog visible={deleteDialogVisible} onDismiss={hideDeleteDialog}>
+                                <Dialog.Title>Delete Account</Dialog.Title>
+                                <Dialog.Content><Text variant="bodyMedium">Are you sure you want to delete this account?</Text></Dialog.Content>
+                                <Dialog.Actions>
+                                    <Button onPress={hideDeleteDialog}>Cancel</Button>
+                                    <Button onPress={handleDeleteAccount}>Delete</Button>
+                                </Dialog.Actions>
+                            </Dialog>
+                        </Portal>
+                    </>
+                ) : (
+                    <>
+                        <Modal
+                            transparent={true}
+                            visible={logoutModalVisible}
+                            onRequestClose={() => {
+                                setLogoutModalVisible(!logoutModalVisible);
+                        }}>
+                            <View style={styles.webModalOverlay}>
+                                <View style={styles.centeredModelView}>
+                                    <View style={styles.modalView}>
+                                    <Text style={styles.modalTextHeader}>Confirm Logout?</Text>
+                                    <Text style={styles.modalText}>Are you sure you want to log out?</Text>
+                                    <View style={styles.modalButtonContainer}>
+                                        {/* Logout and Cancel Buttons */}
+                                        <TouchableOpacity
+                                            style={[styles.modalButton, styles.modalButtonCancel]}
+                                            onPress={() => setLogoutModalVisible(!logoutModalVisible)}>
+                                            <Text style={styles.modalTextStyle}>Cancel</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.modalButton, styles.modalButtonLogout]}
+                                            onPress={handleLogout}>
+                                            <Text style={styles.modalTextStyle}>Logout</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                    </View>
+                                </View>
+                            </View>
+                        </Modal>
+
+                        <Modal
+                            transparent={true}
+                            visible={deleteDialogVisible}
+                            onRequestClose={() => {
+                                setDeleteDialogVisible(!deleteDialogVisible);
+                        }}>
+                            <View style={styles.webModalOverlay}>
+                                <View style={styles.centeredModelView}>
+                                    <View style={styles.modalView}>
+                                    <Text style={styles.modalTextHeader}>Delete Account?</Text>
+                                    <Text style={styles.modalText}>Are you sure you want to delete your account? This process cannot be undone.</Text>
+                                    <View style={styles.modalButtonContainer}>
+                                        {/* Logout and Cancel Buttons */}
+                                        <TouchableOpacity
+                                            style={[styles.modalButton, styles.modalButtonCancel]}
+                                            onPress={() => setDeleteDialogVisible(!deleteDialogVisible)}>
+                                            <Text style={styles.modalTextStyle}>Cancel</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.modalButton, styles.modalButtonLogout]}
+                                            onPress={handleLogout}>
+                                            <Text style={styles.modalTextStyle}>Logout</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                    </View>
+                                </View>
+                            </View>
+                        </Modal>
+                    </>
+                )}
+
+                {Platform.OS !== 'web' && ( 
+                    <>
+                        {/* Header with Back Button and Title */} 
+                        <View style={styles.header}>
+                            <TouchableOpacity onPress={goBackHandler} style={styles.backButton}>
+                                <Icon source="arrow-left" size={24} color="#3c3c3cff" />
+                            </TouchableOpacity>
+                            <Text style={styles.headerTitle}>Profile</Text>
+                        </View>
+                    </>
+                )}
+                
 
                 <View>
                     <Text style={styles.firstLastName}>{firstName} {lastName}</Text>
                     <Text style={styles.email}>{email}</Text>
+                    <Text style={styles.email}>UID: {uid}</Text>
                     <Text style={styles.timeJoined}>Joined: {timeCreated.toLocaleDateString()}</Text>
                 </View>
 
@@ -152,10 +261,10 @@ export default function Profile() {
                 </View>
                 
                 
-                <Text style={styles.personalInfo}>Personal Information</Text>
                 
                 <View style={styles.buttonContainer}>
-
+                    <Text style={styles.personalInfo}>Personal Information</Text>
+                
                     {/* Edit Profile Button */}
                     <TouchableOpacity style={styles.button} onPress={handleEditProfile}>
                         <View style ={styles.edgeIcons}>
@@ -170,17 +279,19 @@ export default function Profile() {
                     </TouchableOpacity>
                     
                     {/* Update Password Button */}
-                    <TouchableOpacity style={styles.button} onPress={handleUpdatePassword}>
-                        <View style ={styles.edgeIcons}>
-                            <MaterialIcons name="lock" size={20} color="black"/>
-                        </View>
-                        <View style={styles.buttonContent}>
-                            <Text variant="bodyLarge" style={styles.buttonText}>Update Password</Text>
-                        </View>
-                        <View style ={styles.edgeIcons}>
-                            <MaterialIcons name="arrow-forward-ios" size={20} color="black"/>
-                        </View>
-                    </TouchableOpacity>
+                    {signInMethod === "EMAIL" && (
+                        <TouchableOpacity style={styles.button} onPress={handleUpdatePassword}>
+                            <View style ={styles.edgeIcons}>
+                                <MaterialIcons name="lock" size={20} color="black"/>
+                            </View>
+                            <View style={styles.buttonContent}>
+                                <Text variant="bodyLarge" style={styles.buttonText}>Update Password</Text>
+                            </View>
+                            <View style ={styles.edgeIcons}>
+                                <MaterialIcons name="arrow-forward-ios" size={20} color="black"/>
+                            </View>
+                        </TouchableOpacity>
+                    )}
 
                     {/* Order History Button */}
                     <TouchableOpacity style={styles.button} onPress={handleOrderHistory}>

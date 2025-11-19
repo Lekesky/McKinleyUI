@@ -1,6 +1,7 @@
-import { Dimensions, StyleSheet } from 'react-native';
+import { Dimensions, Platform, StyleSheet } from 'react-native';
+const isWeb = Platform.OS === 'web';
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffffff' },
+  container: { flex: 1, backgroundColor: '#ffffffff', paddingHorizontal: isWeb ? 80 : 40, alignItems: isWeb ? 'center' : 'stretch' },
   disabledInput: {
     // This ensures the input is visually disabled
     color: 'transparent',
@@ -8,15 +9,20 @@ const styles = StyleSheet.create({
   greetingContainer: {
     flex: 1,
     justifyContent: 'center', // Center text vertically in container
+    alignItems: 'flex-start', // Align text to the left
     marginRight: 10,
   },
   header: { 
-    marginHorizontal: 20, 
-    marginTop: "1%",
-    height: 80,
+    width: '100%',
+    maxWidth: isWeb ? 1800 : 1200,
+    marginHorizontal: 0, 
+    marginTop: 20,
+    height: 100,
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'center',
+    paddingHorizontal: 20,
+    alignSelf: isWeb ? 'center' : 'auto',
   },
   searchButton: {
     backgroundColor: '#e8e8e8ff', 
@@ -27,8 +33,8 @@ const styles = StyleSheet.create({
     alignItems: 'center' 
   },
   greetingText: { 
-    fontSize: 28, 
-    fontWeight: 'bold', 
+    fontSize: 32, 
+    fontWeight: '700', 
     color: '#871919ff', 
     fontFamily: 'Helvetica',
   },
@@ -37,14 +43,20 @@ const styles = StyleSheet.create({
     marginVertical: 20, 
     backgroundColor: '#871919ff' 
   },
-  pillContainer: { flexDirection: 'row'},
+  pillContainer: { 
+    flexDirection: 'row',
+    alignSelf: isWeb ? 'center' : 'auto',
+  },
   selectedButton: {
     backgroundColor: '#600e0eff',
     elevation: 4,
   },
   menuContainer: {
-    paddingHorizontal: 15,
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    marginBottom: 40,
+    width: '100%',
+    maxWidth: isWeb ? 1800 : "auto",
+    alignSelf: 'center',
   },
   sectionTitle: {
     fontSize: 24,
@@ -55,18 +67,20 @@ const styles = StyleSheet.create({
   menuItemsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    // Better utilize horizontal space on web
+    justifyContent: isWeb ? 'flex-start' : 'center',
+    alignItems: 'flex-start',
+    gap: isWeb ? 25 : 0,
   },
   searchContainer: {
-    marginLeft: -11,
-    height: 50,
-    backgroundColor: '#e8e8e8ff',
-    borderRadius: 25,
+    height: 56,
+    backgroundColor: '#f4f4f4',
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 15,
+    paddingLeft: 20,
     justifyContent: 'flex-end',
-    overflow: 'hidden',
+    overflow: 'hidden'
   },
   searchIcon: {
     width: 50,

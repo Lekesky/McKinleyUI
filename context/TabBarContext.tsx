@@ -1,20 +1,19 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
 
-type TabBarContextType = {
+type MobileTabBarContextType = {
   isTabBarVisible: boolean;
-  setTabBarVisible: (visible: boolean) => void;
+  setMobileTabBarVisible: (visible: boolean) => void;
   hideTabBar: () => void;
   showTabBar: () => void;
   toggleTabBar: () => void;
 };
 
-const TabBarContext = createContext<TabBarContextType | undefined>(undefined);
+const TabBarContext = createContext<MobileTabBarContextType | undefined>(undefined);
 
 export const TabBarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isTabBarVisible, setIsTabBarVisible] = useState<boolean>(true);
 
-  const setTabBarVisible = useCallback((visible: boolean) => {
-    console.log(`Setting tab bar visibility to: ${visible}`);
+  const setMobileTabBarVisible = useCallback((visible: boolean) => {
     setIsTabBarVisible(visible);
   }, []);
 
@@ -33,7 +32,7 @@ export const TabBarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   return (
     <TabBarContext.Provider value={{ 
       isTabBarVisible, 
-      setTabBarVisible,
+      setMobileTabBarVisible,
       hideTabBar,
       showTabBar,
       toggleTabBar 
@@ -43,11 +42,11 @@ export const TabBarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   );
 };
 
-export const useTabBar = (): TabBarContextType => {
+export const useMobileTabBar = (): MobileTabBarContextType => {
   const context = useContext(TabBarContext);
   
   if (context === undefined) {
-    throw new Error('useTabBar must be used within a TabBarProvider');
+    throw new Error('useMobileTabBar must be used within a TabBarProvider');
   }
   
   return context;

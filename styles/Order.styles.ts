@@ -1,9 +1,11 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
+
+const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create({
     container: { 
-        flex: 1, 
-        padding: 20,
+        flex: 1,
+        paddingHorizontal: 20,
         backgroundColor: '#ffffffff' 
     },
     header: {
@@ -27,6 +29,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center', 
         alignItems: 'center' 
     },
+    viewController: {
+        alignSelf: "center",
+        marginTop: isWeb ? "1.5%" : "15%",
+    }
 });
 
 export default styles;

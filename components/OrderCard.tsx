@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
-import styles from '../styles/Components/OrderCard.styles';
+import styles from '../styles/components/OrderCard.styles';
 
 interface OrderedItem {
     id: string;
@@ -21,7 +21,7 @@ interface OrderCardProps {
     onPress: () => void;
 }
 
-const OrderCard = ({
+const OrderCard = React.memo(({
     id,
     orderNumber,
     orderedItems,
@@ -32,7 +32,7 @@ const OrderCard = ({
     onPress,
 }: OrderCardProps) => {
 
-    const getStatusColor = () => {
+    const statusColor = useMemo(() => {
         switch (status.toUpperCase()) {
             case 'COMPLETED':
                 return '#22C55E'; // Green
@@ -45,9 +45,9 @@ const OrderCard = ({
             default:
                 return '#b6b6b6ff'; // Gray
         }
-    };
+    }, [status]);
 
-    const getProgressWidth = () => {
+    const progressWidth = useMemo(() => {
         switch (status.toUpperCase()) {
             case 'COMPLETED':
                 return '100%';
@@ -60,20 +60,22 @@ const OrderCard = ({
             default:
                 return '0%';
         }
-    };
+    }, [status]);
 
-    const getPaymentStatusColor = () => {
+    const paymentStatusColor = useMemo(() => {
         switch (paymentStatus.toUpperCase()) {
             case 'PAID':
                 return '#22C55E'; // Green
             case 'PENDING':
                 return '#F59E0B'; // Orange/Amber
+            default:
+                return '#b6b6b6ff';
         }
-    }
+    }, [paymentStatus]);
 
 
     // Display only the first 2 items with a "+X more" if there are more
-    const displayItems = orderedItems.slice(0, 2);
+    const displayItems = useMemo(() => orderedItems.slice(0, 2), [orderedItems]);
     const remainingItemsCount = orderedItems.length - displayItems.length;
 
     return (
@@ -86,7 +88,7 @@ const OrderCard = ({
             <View style={styles.progressContainer}>
                 <View style={styles.statusText}>
                     <Text style={{ 
-                        color: getStatusColor(),
+                        color: statusColor,
                         fontWeight: 'bold'
                     }}>
                         {status.charAt(0) + status.slice(1).toLowerCase()}
@@ -95,7 +97,7 @@ const OrderCard = ({
                 <View style={styles.progressBackground}>
                     <View style={[
                         styles.progressFill, 
-                        { width: getProgressWidth(), backgroundColor: getStatusColor() }
+                        { width: progressWidth, backgroundColor: statusColor }
                     ]} />
                 </View>
             </View>
@@ -122,12 +124,12 @@ const OrderCard = ({
             </View>
             
             {paymentStatus !== 'COMPLETED' && (
-                <View style={[styles.paymentBadge, { backgroundColor: getPaymentStatusColor() + '33' }]}>
+                <View style={[styles.paymentBadge, { backgroundColor: paymentStatusColor + '33' }]}>
                     <Text style={styles.paymentText}>{paymentStatus}</Text>
                 </View>
             )}
         </TouchableOpacity>
     );
-};
+});
 
 export default OrderCard;

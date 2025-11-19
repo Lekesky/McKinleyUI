@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>11/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>1/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
@@ -112,15 +112,19 @@
 <a name='L47'></a><a href='#L47'>47</a>
 <a name='L48'></a><a href='#L48'>48</a>
 <a name='L49'></a><a href='#L49'>49</a>
-<a name='L50'></a><a href='#L50'>50</a>
-<a name='L51'></a><a href='#L51'>51</a>
-<a name='L52'></a><a href='#L52'>52</a>
-<a name='L53'></a><a href='#L53'>53</a>
-<a name='L54'></a><a href='#L54'>54</a>
-<a name='L55'></a><a href='#L55'>55</a>
-<a name='L56'></a><a href='#L56'>56</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L50'></a><a href='#L50'>50</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -134,16 +138,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -167,67 +161,55 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { router } from "expo-router";
-import { Button, Image, StyleSheet, Text, View } from "react-native";
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import CustomerHome from "@/components/ui/CustomerHome";
+import WaitressHome from "@/components/ui/WaitressHome";
+import ViewControl from "@/components/ViewSwitcher";
+import { useAuth } from "@/context/AuthContext";
+import { useState } from "react";
+import { View } from "react-native";
+import styles from "../../styles/Home.styles";
+&nbsp;
+const VIEWS = ["Customer", "Waitress"];
 &nbsp;
 export default function HomeScreen() {
+  const { userRole } = useAuth();
+  const [selectedIndex, setSelectedIndex] = useState&lt;number&gt;(userRole === 'CUSTOMER' ? 0 : 1);
+  
   return (
     &lt;View style={styles.container}&gt;
-      &lt;Image testID = "logo-image"
-        source={{ uri: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092" }}
-        style={styles.heroImage}
-        resizeMode="cover"
-      /&gt;
+      
+      {/* View Switcher */}
+        {userRole &amp;&amp; (userRole === 'WAITRESS' || userRole === 'ADMIN' || userRole === 'CHEF') &amp;&amp; (
+          &lt;ViewControl
+              values={VIEWS}
+              selectedIndex={selectedIndex}
+              onChange={setSelectedIndex}
+              width={300}
+              height={40}
+              activeColor="#ffffff"
+              inactiveColor="#d3d3d3"
+              activeTextColor="#000"
+              textColor="#333"
+              borderRadius={20}
+              containerStyle={styles.viewController}
+          /&gt;
+        )}
 &nbsp;
-      &lt;Text style={styles.title}&gt;🍽️ Welcome to McKinley Grill&lt;/Text&gt;
-      &lt;Text style={styles.subtitle}&gt;Your favorite dishes, delivered fresh.&lt;/Text&gt;
+        {/* Customer View */}
+        {selectedIndex === 0 &amp;&amp; (
+          &lt;CustomerHome /&gt;
+        )}
 &nbsp;
-      &lt;View style={styles.buttonGroup}&gt;
-        &lt;Button title="View Menu" onPress={() =&gt; router.push("/(tabs)/Menu")} /&gt;
-        {/* &lt;Button title="View Orders" onPress={() =&gt; router.push("/orders")} /&gt; */}
-        {/* Optional: add a logout button */}
-        {/* &lt;Button title="Logout" color="red" onPress={handleLogout} /&gt; */}
-      &lt;/View&gt;
+        {/* Waitress View */}
+        {selectedIndex === 1 &amp;&amp; (
+          &lt;WaitressHome /&gt;
+        )}
     &lt;/View&gt;
   );
 }
 &nbsp;
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-  },
-  heroImage: {
-    width: "100%",
-    height: 200,
-    borderRadius: 12,
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginVertical: 10,
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  buttonGroup: {
-    width: "100%",
-    gap: 10,
-  },
-});
+&nbsp;
+&nbsp;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -235,7 +217,7 @@ const styles = StyleSheet.create({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-29T19:46:17.141Z
+                at 2025-11-19T00:31:50.142Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

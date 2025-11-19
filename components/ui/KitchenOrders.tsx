@@ -3,6 +3,7 @@ import createAPIClient, { PageableResponse } from '@/services/api';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { FlatList, TouchableOpacity, View } from "react-native";
 import { ActivityIndicator, Text } from "react-native-paper";
+import { Toast } from 'toastify-react-native';
 import styles from '../../styles/KitchenOrder.styles';
 
 interface OrderedItem {
@@ -79,17 +80,15 @@ export default function KitchenOrders() {
             setKitchenHasMore(more);
             setKitchenPageNumber(typeof response.data.number === 'number' ? response.data.number : page);
         } catch (error : any) {
-            if (error.response) {
-                // The request was made and the server responded with a status code
-                console.error('Error fetching kitchen orders - Status:', error.response.status);
-                console.error('Error message:', error.response.data);
-            } else if (error.request) {
-                // The request was made but no response was received
-                console.error('Error fetching kitchen orders - No response:', error.request);
-            } else {
-                // Something happened in setting up the request
-                console.error('Error fetching kitchen orders:', error.message);
-            }
+            const errorMessage = error.response?.data || error.message || 'Failed to fetch kitchen orders';
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch kitchen orders',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
         } finally {
             if (page > 0) {
                 setLoadingMoreKitchen(false);
@@ -154,7 +153,7 @@ export default function KitchenOrders() {
                         onPress={() => handleOrderPress(order.id)}
                     />
                 )}
-                contentContainerStyle={{ paddingBottom: 80 }}
+                contentContainerStyle={styles.flatListContainer}
                 showsVerticalScrollIndicator={false}
                 refreshing={refreshing}
                 onRefresh={() => {

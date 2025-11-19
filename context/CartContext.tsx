@@ -31,16 +31,21 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     WAITRESS: []
   });
 
-  const loadCart = useCallback(async () => {
-    const customerCartData = await AsyncStorage.getItem('cart_CUSTOMER').catch((error) => console.error("Error loading customer cart data: ", error));
-    const waitressCartData = await AsyncStorage.getItem('cart_WAITRESS').catch((error) => console.error("Error loading waitress cart data: ", error));
-
-    const newCart: Record<CartType, CartItem[]> = {
-      CUSTOMER: customerCartData ? JSON.parse(customerCartData) : [],
-      WAITRESS: waitressCartData ? JSON.parse(waitressCartData) : []
-    };
-
-    setCart(newCart);
+  const loadCart = useCallback(() => {
+    return Promise.all([
+      AsyncStorage.getItem('cart_CUSTOMER'),
+      AsyncStorage.getItem('cart_WAITRESS')
+    ])
+      .then(([customerCartData, waitressCartData]) => {
+        const newCart: Record<CartType, CartItem[]> = {
+          CUSTOMER: customerCartData ? JSON.parse(customerCartData) : [],
+          WAITRESS: waitressCartData ? JSON.parse(waitressCartData) : []
+        };
+        setCart(newCart);
+      })
+      .catch(() => {
+        // Silent error - failed to load cart
+      });
   }, []);
 
   useEffect(() => {
@@ -53,7 +58,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
 
-  const addToCart = async (item: MenuItem, quantity: number, type: CartType = 'CUSTOMER') => {
+  const addToCart = useCallback((item: MenuItem, quantity: number, type: CartType = 'CUSTOMER') => {
     setCart(prevCart => {
       const currentCart = [...prevCart[type]];
       const existingItemIndex = currentCart.findIndex(cartItem => cartItem.id === item.id);
@@ -69,16 +74,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         [type]: currentCart
       };
 
-      // Save to AsyncStorage immediately after updating state
-      (async () => {
-        await AsyncStorage.setItem('cart_' + type, JSON.stringify(currentCart)).catch((error) => console.error("Error saving cart data: ", error));
-      })();
+      // Save to AsyncStorage
+      AsyncStorage.setItem('cart_' + type, JSON.stringify(currentCart))
+        .catch(() => {
+          // Silent error - failed to save cart
+        });
 
       return newCart;
     });
-  };
+  }, []);
 
-  const removeFromCart = (itemId: string, type: CartType = 'CUSTOMER') => {
+  const removeFromCart = useCallback((itemId: string, type: CartType = 'CUSTOMER') => {
     setCart(prevCart => {
       const currentCart = [...prevCart[type]];
       const itemIndex = currentCart.findIndex(item => item.id === itemId);
@@ -97,46 +103,54 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         // Otherwise remove the item entirely
         updatedCart = currentCart.filter(item => item.id !== itemId);
       }
-      // Save to AsyncStorage immediately after updating state
-      (async () => { 
-        await AsyncStorage.setItem('cart_' + type, JSON.stringify(updatedCart))
-          .catch((error) => console.error("Error saving cart data: ", error)); 
-      })();
+
+      // Save to AsyncStorage
+      AsyncStorage.setItem('cart_' + type, JSON.stringify(updatedCart))
+        .catch(() => {
+          // Silent error - failed to save cart
+        });
       
       return {
         ...prevCart,
         [type]: updatedCart
       };
     });
-  };
+  }, []);
 
-  const clearCart = async (type?: CartType) => {
+  const clearCart = useCallback((type?: CartType) => {
     if (type) {
       setCart(prevCart => ({
         ...prevCart,
         [type]: []
       }));
-      await AsyncStorage.removeItem('cart_' + type).catch((error) => console.error("Error clearing cart data: ", error));
+      return AsyncStorage.removeItem('cart_' + type)
+        .catch(() => {
+          // Silent error
+        });
     } else {
       setCart({
         CUSTOMER: [],
         WAITRESS: []
       });
-      await AsyncStorage.removeItem('cart_CUSTOMER').catch((error) => console.error("Error clearing customer cart data: ", error));
-      await AsyncStorage.removeItem('cart_WAITRESS').catch((error) => console.error("Error clearing waitress cart data: ", error));
+      return Promise.all([
+        AsyncStorage.removeItem('cart_CUSTOMER'),
+        AsyncStorage.removeItem('cart_WAITRESS')
+      ])
+        .catch(() => {
+          // Silent error
+        });
     }
-    
-  };
+  }, []);
 
-  const getTotal = (type: CartType = 'CUSTOMER') => {
+  const getTotal = useCallback((type: CartType = 'CUSTOMER') => {
     return cart[type].reduce((total, item) => {
       return total + (parseFloat(item.price) * item.quantity);
     }, 0).toFixed(2);
-  }
+  }, [cart]);
 
-  const getTotalItemCount = (type: CartType = 'CUSTOMER') => {
+  const getTotalItemCount = useCallback((type: CartType = 'CUSTOMER') => {
     return cart[type].reduce((sum, item) => sum + item.quantity, 0);
-  };
+  }, [cart]);
 
 
   return (

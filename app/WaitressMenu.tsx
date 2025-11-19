@@ -4,13 +4,14 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Image,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Image,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
+import { Toast } from 'toastify-react-native';
 import { useCart } from '../context/CartContext';
 import { useTable } from '../context/TableContext';
 import createAPIClient from '../services/api';
@@ -80,12 +81,27 @@ export default function WaitressMenuScreen() {
           // Fallback for non-paginated response
           setMenuItems(response.data);
         } else {
-          console.error("Invalid menu data format:", response.data);
           setMenuItems([]);
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: 'Invalid menu data format',
+            position: 'top',
+            backgroundColor: '#871919ff',
+            textColor: '#FFFFFF',
+          });
         }
       })
       .catch((error) => {
-        console.error("Error fetching menu:", error);
+        const errorMessage = error.response?.data || error.message || 'Failed to fetch menu';
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch menu',
+          position: 'top',
+          backgroundColor: '#871919ff',
+          textColor: '#FFFFFF',
+        });
         setMenuItems([]);
       })
       .finally(() => {

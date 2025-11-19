@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Image, SafeAreaView, View } from "react-native";
 import { Button, Divider, IconButton, Text } from "react-native-paper";
+import { Toast } from 'toastify-react-native';
 import styles from "../styles/MenuItem.styles";
 
 
@@ -25,7 +26,17 @@ export default function MenuItemScreen() {
     useEffect(() => {
         api.get(`/menu/${id}`)
             .then((res) => setMenuItem(res.data))
-            .catch((error) => console.error("Error fetching menu item:", error));
+            .catch((error) => {
+                const errorMessage = error.response?.data || error.message || 'Failed to fetch menu item';
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch menu item',
+                    position: 'top',
+                    backgroundColor: '#871919ff',
+                    textColor: '#FFFFFF',
+                });
+            });
     }, [api, id]);
 
     const handleDecrement = () => {
@@ -37,8 +48,6 @@ export default function MenuItemScreen() {
     };
 
     const handleAddToCart = () => {
-        // Add to cart logic will go here
-        console.log(`Added ${quantity} ${menuItem?.name} to cart`);
         if (menuItem) {
             addToCart(menuItem, quantity);
             router.back();

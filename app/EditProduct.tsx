@@ -1,12 +1,15 @@
+import { useAuth } from '@/context/AuthContext';
 import createAPIClient from '@/services/api';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo } from 'react';
-import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { Image, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Button, Icon, Snackbar, Text, TextInput } from 'react-native-paper';
+import { Toast } from 'toastify-react-native';
 import styles from '../styles/EditProducts.styles';
 
 export default function EditProduct() {
+    const { uid } = useAuth();
     const router = useRouter();
     const { product } = useLocalSearchParams(); // Retrieve the product details
     const productString = Array.isArray(product) ? product[0] : product;
@@ -22,7 +25,7 @@ export default function EditProduct() {
     const [snackbarMessage, setSnackbarMessage] = React.useState('');
     const api = useMemo(() => createAPIClient(), []);
 
-    const handleSave = () => {
+    const handleSave = useCallback(() => {
         if (!image) {
             setSnackbarMessage("Please select an image for menu item.");
             setSnackbarVisible(true);
@@ -32,11 +35,15 @@ export default function EditProduct() {
         setLoading(true);
         const formData = new FormData();
 
+        const authorId = uid;
+        formData.append('authorId', authorId || '');
+
         const menuItem = {
             name,
             description,
             price: parseFloat(price),
         };
+        
         formData.append('menuItem', JSON.stringify(menuItem));
 
         const filename = image.split('/').pop() || 'photo.jpg';
@@ -49,25 +56,36 @@ export default function EditProduct() {
             type
         } as any);
 
-        api.post('menu/add', formData, {
+        api.post('menu', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
-        }).then((response) => {   
-            console.log('Product added successfully:', response.data);
-            setSnackbarMessage('Menu item added successfully!');
-            setSnackbarVisible(true);
-            setTimeout(() => router.back(), 1500); // Navigate back after showing success message
-        }).catch(error => {
-            console.error('Error adding product:', error);
-            setSnackbarMessage('Error adding menu item. Please try again.');
-            setSnackbarVisible(true);
-        }).finally(() => {
-            setLoading(false);
-        });
-    };
+        })
+            .then(() => {
+                setSnackbarMessage('Menu item added successfully!');
+                setSnackbarVisible(true);
+                setTimeout(() => router.back(), 1500);
+            })
+            .catch((error) => {
+                const errorMessage = error.response?.data || error.message || 'Error adding menu item';
+                const displayMessage = typeof errorMessage === 'string' ? errorMessage : 'Error adding menu item. Please try again.';
+                setSnackbarMessage(displayMessage);
+                setSnackbarVisible(true);
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: displayMessage,
+                    position: 'top',
+                    backgroundColor: '#871919ff',
+                    textColor: '#FFFFFF',
+                });
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, [image, uid, name, description, price, api, router]);
 
-    const handleSaveEdit = () => {
+    const handleSaveEdit = useCallback(() => {
         if (!image && !imageURL) {
             setSnackbarMessage("Please select an image for menu item.");
             setSnackbarVisible(true);
@@ -76,6 +94,9 @@ export default function EditProduct() {
 
         setLoading(true);
         const formData = new FormData();
+
+        const authorId = uid;
+        formData.append('authorId', authorId || '');
 
         const menuItem = {
             id,
@@ -98,43 +119,62 @@ export default function EditProduct() {
             } as any);
         }
 
-        api.put(`menu/update/${id}`, formData, {
+        api.patch(`menu/${id}`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
-        }).then((response) => {
-            console.log('Product updated successfully:', response.data);
-            setSnackbarMessage('Menu item updated successfully!');
-            setSnackbarVisible(true);
-            setTimeout(() => router.back(), 1500); // Navigate back after showing success message
-        }).catch(error => {
-            console.error('Error updating product:', error);
-            setSnackbarMessage('Error updating menu item. Please try again.');
-            setSnackbarVisible(true);
-        }).finally(() => {
-            setLoading(false);
-        });
-    };
-
-    const handleDelete = () => {
-        setLoading(true);
-        
-        api.delete(`menu/delete/${id}`)
-            .then((response) => {
-                console.log('Product deleted successfully:', response.data);
-                setSnackbarMessage('Menu item deleted successfully!');
+        })
+            .then(() => {
+                setSnackbarMessage('Menu item updated successfully!');
                 setSnackbarVisible(true);
-                setTimeout(() => router.back(), 1500); // Navigate back after showing success message
+                setTimeout(() => router.back(), 1500);
             })
             .catch((error) => {
-                console.error('Error deleting product:', error);
-                setSnackbarMessage('Error deleting menu item. Please try again.');
+                const errorMessage = error.response?.data || error.message || 'Error updating menu item';
+                const displayMessage = typeof errorMessage === 'string' ? errorMessage : 'Error updating menu item. Please try again.';
+                setSnackbarMessage(displayMessage);
                 setSnackbarVisible(true);
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: displayMessage,
+                    position: 'top',
+                    backgroundColor: '#871919ff',
+                    textColor: '#FFFFFF',
+                });
             })
             .finally(() => {
                 setLoading(false);
             });
-    };
+    }, [image, imageURL, uid, id, name, description, price, api, router]);
+
+    const handleDelete = useCallback(() => {
+        setLoading(true);
+        
+        api.delete(`menu/${id}`)
+            .then(() => {
+                setSnackbarMessage('Menu item deleted successfully!');
+                setSnackbarVisible(true);
+                setTimeout(() => router.back(), 1500);
+            })
+            .catch((error) => {
+                const errorMessage = error.response?.data || error.message || 'Error deleting menu item';
+                const displayMessage = typeof errorMessage === 'string' ? errorMessage : 'Error deleting menu item. Please try again.';
+                setSnackbarMessage(displayMessage);
+                setSnackbarVisible(true);
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: displayMessage,
+                    position: 'top',
+                    backgroundColor: '#871919ff',
+                    textColor: '#FFFFFF',
+                });
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, [api, id, router]);
 
     const handleSelectImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -162,17 +202,22 @@ export default function EditProduct() {
 
     return (
         <>
-            <ScrollView style={styles.container}>
-                {/* Header with Back Button */}
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Icon source="arrow-left" size={24} color="#3c3c3cff" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>
-                        {parsedProduct.id !== "" ? "Edit Menu Item" : "Add Menu Item"}
-                    </Text>
-                </View>
 
+            {Platform.OS !== 'web' && (
+                <>
+                    {/* Header with Back Button */}
+                    <View style={styles.header}>
+                        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                            <Icon source="arrow-left" size={24} color="#3c3c3cff" />
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>
+                            {parsedProduct.id !== "" ? "Edit Menu Item" : "Add Menu Item"}
+                        </Text>
+                    </View>
+                </>
+            )}
+
+            <ScrollView style={styles.container}>
                 <View style={styles.formContainer}>
                     <Text style={styles.inputLabel}>Product Name</Text>
                     <TextInput

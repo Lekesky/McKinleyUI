@@ -1,9 +1,15 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create({
     cardContainer: {
-    width: '47%',
-    margin: 5,
+    // Use flex-basis and maxWidth for predictable wrapping on web; full-width on mobile
+    flexBasis: isWeb ? '30%' : '100%',
+    maxWidth: isWeb ? '30%' : '100%',
+    flexGrow: 0,
+    marginVertical: isWeb ? 10 : 6,
+    marginHorizontal: isWeb ? 12 : 0,
   },
   card: {
     borderRadius: 12,

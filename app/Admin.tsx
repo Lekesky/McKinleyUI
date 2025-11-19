@@ -6,7 +6,7 @@ import ViewControl from '@/components/ViewSwitcher';
 import createAPIClient from '@/services/api';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { Platform, TouchableOpacity, View } from 'react-native';
 import { Icon, Text, TextInput } from 'react-native-paper';
 import styles from '../styles/Admin.styles';
 
@@ -31,7 +31,7 @@ export default function Admin() {
         setMenuItems(resp?.data?.content || []);
       })
       .catch(() => {
-        /* ignore errors here; children may fetch if needed */
+        // Silent error
       });
     return () => {
       mounted = false;
@@ -41,19 +41,22 @@ export default function Admin() {
   return (
     <View style={styles.container}>
       <View style={{ backgroundColor: '#ffffffff', zIndex: 10 }}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Icon source="arrow-left" size={24} color="#3c3c3cff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Admin Dashboard</Text>
-        </View>
+
+        {Platform.OS !== 'web' && (
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <Icon source="arrow-left" size={24} color="#3c3c3cff" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Admin Dashboard</Text>
+          </View>
+        )}
 
         <ViewControl
           values={["Analytics", "Members", "Menu", "Order History"]}
           selectedIndex={selectedIndex}
           onChange={setSelectedIndex}
-          width={340}
-          height={45}
+          width={Platform.OS === 'web' ? 600 : 410}
+          height={40}
           activeColor="#ffffff"
           inactiveColor="#e8e8e8ff"
           activeTextColor="#000"

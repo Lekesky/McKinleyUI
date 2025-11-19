@@ -1,110 +1,95 @@
+import NavBar from '@/components/NavBar.web';
+import StripeWrapper from '@/components/StripeWrapper';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { TabBarProvider } from '@/context/TabBarContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import createAPIClient from '@/services/api';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { StripeProvider } from '@stripe/stripe-react-native';
 import { useFonts } from 'expo-font';
-import * as Notifications from "expo-notifications";
-import { router, Stack } from 'expo-router';
+import * as Notifications from 'expo-notifications';
+import { router, Stack, useSegments } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, AppState, AppStateStatus, Platform, View } from 'react-native';
+import { useCallback, useEffect } from 'react';
+import { AppState, AppStateStatus, Platform } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { CartProvider } from '../context/CartContext';
 import { TableProvider } from '../context/TableContext';
 
-// Configure notification handling
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+SplashScreen.preventAutoHideAsync();
 
-let publishableKey : string | null = null;
+
+// Configure notification handling for native platforms only
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
+
 // Create a component to handle authenticated routing
 function AuthenticatedLayout() {
-  const [isRedirecting, setIsRedirecting] = useState(false);
-  const [initializing, setInitializing] = useState(true);
-  const { refreshToken, refreshAccessToken, accessToken } = useAuth(); // This is now safely inside AuthProvider
-  const api = useMemo(() => createAPIClient(), []);
+  const segments = useSegments();
+  const { refreshToken, refreshAccessToken, accessTokenTTL, isAuthLoading } = useAuth();
 
-  const fetchPublishableKey = useCallback(async() => {
-    if(!accessToken) return;
-
-    api.get('/payments/config').then((res) => {
-      publishableKey = res.data.publishableKey;
-    }).catch((error) => {
-      console.error("Error fetching Stripe publishable key:", error);
-    });
-
-  }, [api, accessToken]);
-
-  const handleAppStateChange = useCallback(async (nextAppState: AppStateStatus) => {
-    if (!initializing && nextAppState === 'active' && refreshToken) {
-      console.log('App returned to foreground, refreshing token');
+  // Handle app state changes (mobile only - web doesn't have AppState)
+  const handleAppStateChange = useCallback((nextAppState: AppStateStatus) => {
+    if (!isAuthLoading && nextAppState === 'active' && refreshToken) {
       refreshAccessToken();
     }
-  }, [refreshToken, refreshAccessToken, initializing]);
+  }, [refreshToken, refreshAccessToken, isAuthLoading]);
 
+  // Setup app state listener for mobile platforms
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-    return () => { subscription.remove() };
+    if (Platform.OS !== 'web') {
+      const subscription = AppState.addEventListener('change', handleAppStateChange);
+      return () => { subscription.remove() };
+    }
   }, [handleAppStateChange]);
 
+  // Hide splash screen once auth is ready
   useEffect(() => {
-    // Short delay to allow auth state to be determined
-    const timer = setTimeout(() => {
-      setInitializing(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (initializing || isRedirecting) return;
-    
-    setIsRedirecting(true);
-    if(refreshToken){
-      router.replace('/(tabs)/Home');
-    } else {
-      router.replace('/Intro');
+    if (!isAuthLoading) {
+      SplashScreen.hideAsync();
     }
-  }, [initializing, refreshToken, isRedirecting]);
+  }, [isAuthLoading]);
 
-
+  // Handle navigation based on auth state
   useEffect(() => {
+    if (isAuthLoading) return;
+
+    const inPublicRoute = segments[0] === 'Intro' || segments[0] === 'Login' || segments[0] === 'Signup';
+
+    if (!refreshToken && !inPublicRoute) {
+      // User is not authenticated and not on a public route
+      if (Platform.OS !== 'web') {
+        router.replace('/Intro');
+      } else {
+        router.replace('/Login');
+      }
+    } else if (refreshToken && inPublicRoute) {
+      // User is authenticated but on a public route - send to home
+      router.replace('/(tabs)/Home');
+    }
+  }, [isAuthLoading, refreshToken, segments]);
+
+  // Auto-refresh access token
+  useEffect(() => {
+    if (isAuthLoading) return;
+    
+    const ttl = accessTokenTTL || 5 * 60 * 1000; // Default to 5 minutes if TTL not available
     const interval = setInterval(() => {
       if (refreshToken) {
-        console.log("Auto-refreshing access token");
         refreshAccessToken();
       }
-    }, 1000 * 60 * 4.99);
+    }, ttl * 0.9); // Refresh at 90% of TTL
     return () => clearInterval(interval);
-  }, [refreshToken, refreshAccessToken]);
-
-   useEffect(() => {
-    if (accessToken) {
-      fetchPublishableKey();
-    }
-  }, [accessToken, fetchPublishableKey]);
-
-
-  if (initializing) {
-    return(
-      <View
-        style = {{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-        <ActivityIndicator size="large" color="#871919ff" />
-      </View>
-    );
-  }
+  }, [accessTokenTTL, refreshToken, refreshAccessToken, isAuthLoading]);
 
   return null;
 }
@@ -115,62 +100,66 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  // Setup notification listeners
+  // Only hide splash screen after fonts are loaded
+  // Auth state will be evaluated separately
   useEffect(() => {
-    // This listener is fired whenever a notification is received while the app is foregrounded
-    const foregroundSubscription = Notifications.addNotificationReceivedListener(notification => {
-      console.log('Notification received in foreground:', notification);
-      // Handle the notification here
-    });
+    if (loaded) {
+      // Don't hide splash screen yet - let AuthenticatedLayout handle it
+    }
+  }, [loaded]);
 
-    // This listener is fired whenever a user taps on or interacts with a notification
-    const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log('Notification response received:', response);
-      // Example of handling notification data
-      if (response.notification.request.content.data) {
-        const data = response.notification.request.content.data;
-        console.log('Notification data:', data);
-        // Navigate based on data if needed
-        // Example: if (data.screen) router.push(data.screen);
-      }
-    });
+  // Setup notification listeners for native platforms only
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      // This listener is fired whenever a notification is received while the app is foregrounded
+      const foregroundSubscription = Notifications.addNotificationReceivedListener(() => {
+        // Handle the notification here
+      });
 
-    return () => {
-      // Clean up the listeners
-      foregroundSubscription.remove();
-      responseSubscription.remove();
-    };
+      // This listener is fired whenever a user taps on or interacts with a notification
+      const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+        // Handle notification data
+        if (response.notification?.request?.content?.data) {
+          // Navigate based on data if needed
+        }
+      });
+
+      return () => {
+        // Clean up the listeners
+        foregroundSubscription.remove();
+        responseSubscription.remove();
+      };
+    }
   }, []);
 
   if (!loaded) {
-    // Async font loading only occurs in development.
     return null;
   }
 
-  
-
-
   return (
     <AuthProvider>
-      <StripeProvider publishableKey={publishableKey || ''}>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <TabBarProvider>
-            <TableProvider>
-              <CartProvider>
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="(tabs)" />
-                  <Stack.Screen name="+not-found" />
-                  <Stack.Screen name="Intro" />
-                  <Stack.Screen name="Login" />
-                  <Stack.Screen name="Signup" />
-                </Stack>
-                {Platform.OS !== 'web' && <AuthenticatedLayout />}
-              </CartProvider>
-            </TableProvider>
-          </TabBarProvider>
-          <StatusBar style="auto" />
-        </ThemeProvider>
-      </StripeProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DefaultTheme : DarkTheme}>
+        <GestureHandlerRootView>
+          <StripeWrapper>
+            <TabBarProvider>
+              {(Platform.OS === 'web' ? <NavBar /> : null) as any}
+              <TableProvider>
+                <CartProvider>
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="(tabs)" />
+                    <Stack.Screen name="+not-found" />
+                    <Stack.Screen name="Intro" />
+                    <Stack.Screen name="Login" />
+                    <Stack.Screen name="Signup" />
+                  </Stack>
+                  <AuthenticatedLayout />
+                </CartProvider>
+              </TableProvider>
+            </TabBarProvider>
+            <StatusBar style="auto" />
+          </StripeWrapper>
+        </GestureHandlerRootView>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

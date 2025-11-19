@@ -1,11 +1,12 @@
 
 import { useAuth } from '@/context/AuthContext';
-import { useTabBar } from '@/context/TabBarContext';
+import { useMobileTabBar } from '@/context/TabBarContext';
 import createAPIClient from '@/services/api';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Icon } from 'react-native-paper';
+import { Toast } from 'toastify-react-native';
 import styles from '../../styles/AdminMembers.styles';
 
 type Users = {
@@ -21,7 +22,7 @@ interface MembersProps {
 
 export default function AdminMembers({ userSearch }: MembersProps) {
     const { uid } = useAuth();
-    const { showTabBar } = useTabBar();
+    const { showTabBar } = useMobileTabBar();
     const api = useMemo(() => createAPIClient(), []);
     
     const [customers, setCustomers] = useState<Users[] | null>([]);
@@ -64,7 +65,14 @@ export default function AdminMembers({ userSearch }: MembersProps) {
         })
         .then((response) => {
             if (!response?.data?.content) {
-                console.error('No valid data received from API');
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'No valid data received from API',
+                    position: 'top',
+                    backgroundColor: '#871919ff',
+                    textColor: '#FFFFFF',
+                });
                 setHasMoreStaff(false);
                 return;
             }
@@ -81,7 +89,15 @@ export default function AdminMembers({ userSearch }: MembersProps) {
             setStaffPageNumber(response.data.number);
         })
         .catch((error) => {
-            console.error('Error fetching staff:', error);
+            const errorMessage = error.response?.data || error.message || 'Failed to fetch staff';
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch staff',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
             setHasMoreStaff(false);
         })
         .finally(() => {
@@ -105,7 +121,14 @@ export default function AdminMembers({ userSearch }: MembersProps) {
         })
         .then((response) => {
             if (!response?.data?.content) {
-                console.error('No data received from API');
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'No data received from API',
+                    position: 'top',
+                    backgroundColor: '#871919ff',
+                    textColor: '#FFFFFF',
+                });
                 setHasMoreCustomers(false);
                 return;
             }
@@ -126,7 +149,15 @@ export default function AdminMembers({ userSearch }: MembersProps) {
             setCustomerPageNumber(response.data.number);
         })
         .catch((error) => {
-            console.error('Error fetching customers:', error);
+            const errorMessage = error.response?.data || error.message || 'Failed to fetch customers';
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch customers',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
             setHasMoreCustomers(false);
         })
         .finally(() => {

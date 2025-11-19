@@ -28,7 +28,7 @@ export default function HomeScreen() {
               activeTextColor="#000"
               textColor="#333"
               borderRadius={20}
-              containerStyle={{ alignSelf: "center", marginTop: "15%"}}
+              containerStyle={styles.viewController}
           />
         )}
 

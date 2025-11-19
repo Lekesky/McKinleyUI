@@ -4,7 +4,7 @@ import ViewControl from '@/components/ViewSwitcher';
 import { useAuth } from '@/context/AuthContext';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Text, TouchableOpacity, View } from 'react-native';
 import { Icon } from 'react-native-paper';
 import styles from '../../styles/Order.styles';
 
@@ -17,13 +17,19 @@ export default function OrderScreen() {
 
     return (
         <View style={styles.container}>
-            {/* Header with Back Button and Title */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={goBackHandler} style={styles.backButton}>
-                    <Icon source="arrow-left" size={24} color="#3c3c3cff" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Orders</Text>
-            </View>
+
+            {Platform.OS !== 'web' && (
+                <>
+                    {/* Header with Back Button and Title */}
+                    <View style={styles.header}>
+                        <TouchableOpacity onPress={goBackHandler} style={styles.backButton}>
+                            <Icon source="arrow-left" size={24} color="#3c3c3cff" />
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>Orders</Text>
+                    </View>
+                </>
+            )}
+           
 
             {/* View Switcher */}
             {userRole && (userRole === 'WAITRESS' || userRole === 'ADMIN' || userRole === 'CHEF') && (
@@ -38,7 +44,7 @@ export default function OrderScreen() {
                     activeTextColor="#000"
                     textColor="#333"
                     borderRadius={20}
-                    containerStyle={{ alignSelf: "center", marginVertical: 20 }}
+                    containerStyle={styles.viewController}
                 />
             )}
 

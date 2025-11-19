@@ -2,7 +2,7 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
-import styles from '../styles/Components/OrderHistoryCard.styles';
+import styles from '../styles/components/OrderHistoryCard.styles';
 
 interface OrderedItem {
     id: string;
@@ -56,28 +56,32 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                     <Text style={styles.orderDate}>{new Date(orderStartTime).toLocaleDateString()}</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
-                    {/* Show status badge */}
-                    <Text style={[
-                        styles.orderStatus, 
-                        status === 'COMPLETED' ? styles.statusCompleted : 
-                        status === 'IN-PROGRESS' ? styles.statusInProgress : 
-                        status === 'PENDING' ? styles.statusPending : 
-                        styles.statusCanceled
-                    ]}>
-                        {status}
-                    </Text>
-                    {/* Show payment badge below */}
-                    <Text style={[
-                        styles.paymentStatus, 
-                        paymentStatus === 'PAID' ? styles.statusCompleted : 
-                        styles.statusPending
-                    ]}>
-                        {paymentStatus}
-                    </Text>
+                    {/* Show status badge with label */}
+                    <View style={{ alignItems: 'center' }}>
+                        <Text style={styles.statusLabel}>Order Status</Text>
+                        <Text style={[
+                            styles.orderStatus, 
+                            status === 'COMPLETED' ? styles.statusCompleted : 
+                            status === 'IN-PROGRESS' ? styles.statusInProgress : 
+                            status === 'PENDING' ? styles.statusPending : 
+                            styles.statusCanceled
+                        ]}>
+                            {status}
+                        </Text>
+                    </View>
+                    {/* Show payment badge with label below */}
+                    <View style={{ alignItems: 'center', marginTop: 8 }}>
+                        <Text style={styles.paymentLabel}>Payment</Text>
+                        <Text style={[
+                            styles.paymentStatus, 
+                            paymentStatus === 'PAID' ? styles.statusCompleted : 
+                            styles.statusPending
+                        ]}>
+                            {paymentStatus}
+                        </Text>
+                    </View>
                 </View>
             </View>
-
-            <View style={styles.divider} />
 
             {customerFirstName && customerLastName && (
                 <View style={styles.userInfoRow}>

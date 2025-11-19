@@ -1,12 +1,19 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create({
     container: {
+        justifyContent: 'center',
+        backgroundColor: '#ffffffff',
         flex: 1,
         padding: 16,
     },
     header: {
         marginTop: 30,
+        position: "absolute",
+        top: 20,
+        left: 20,
         marginBottom: "30%",
         flexDirection: 'row',
         alignItems: 'center',
@@ -35,6 +42,8 @@ const styles = StyleSheet.create({
         alignItems: 'center' 
     },
     updateProfileForm: {
+        alignSelf: 'center',
+        width: isWeb ? 1000 : '100%',
         marginTop: 10,
     },
     errorText: {
@@ -49,7 +58,7 @@ const styles = StyleSheet.create({
     },
     textInputDisable: {
         marginBottom: 15, 
-        backgroundColor: '#c3c2c2ff', 
+        backgroundColor: '#aeaeaeff', 
         height: 58 
     },
     textInputOutline: { 

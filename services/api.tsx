@@ -1,12 +1,60 @@
-
-
 import axios, { AxiosInstance } from "axios";
 import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 
-const API_URL = "https://confirmed-receptor-inkjet-pee.trycloudflare.com/api";
+const API_URL = "https://influences-colours-cited-examining.trycloudflare.com/api";
 const ACCESS_TOKEN_KEY = "access_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
+
+// Cookie helper for web
+const getCookie = (name: string): string | null => {
+  if (Platform.OS !== 'web') return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+};
+
+const setCookie = (name: string, value: string, days: number = 365) => {
+  if (Platform.OS !== 'web') return;
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+};
+
+const deleteCookie = (name: string) => {
+  if (Platform.OS !== 'web') return;
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+};
+
+// Storage abstraction
+const getStoredItem = async (key: string): Promise<string | null> => {
+  if (Platform.OS === 'web') {
+    return getCookie(key);
+  } else {
+    return await SecureStore.getItemAsync(key);
+  }
+};
+
+const setStoredItem = async (key: string, value: string) => {
+  if (Platform.OS === 'web') {
+    setCookie(key, value);
+  } else {
+    await SecureStore.setItemAsync(key, value);
+  }
+};
+
+const deleteStoredItem = async (key: string) => {
+  if (Platform.OS === 'web') {
+    deleteCookie(key);
+  } else {
+    await SecureStore.deleteItemAsync(key);
+  }
+};
+
+// Export storage utilities for use in other modules
+export { deleteStoredItem, getStoredItem, setStoredItem };
 
 export interface PageableResponse<T> {
   content: T[];
@@ -46,12 +94,12 @@ export default function createAPIClient(): AxiosInstance {
   // Request interceptor - Add token to headers if exists/Up-to-date
   apiClient.interceptors.request.use(
     async (config) => {
-      const accessToken = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+      const accessToken = await getStoredItem(ACCESS_TOKEN_KEY);
     
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
-        
       }
+      
       return config;
     }, 
     (error) => { return Promise.reject(error) }
@@ -70,7 +118,7 @@ export default function createAPIClient(): AxiosInstance {
         
         try {
           // Get stored refresh token
-          const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+          const refreshToken = await getStoredItem(REFRESH_TOKEN_KEY);
           if (!refreshToken) throw new Error('No refresh token available');
           
           // Attempt to refresh the token
@@ -79,17 +127,17 @@ export default function createAPIClient(): AxiosInstance {
           });
           
           // Save new tokens
-          await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, response.data.accessToken);
-          await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, response.data.refreshToken);
-          
+          await setStoredItem(ACCESS_TOKEN_KEY, response.data.accessToken);
+          await setStoredItem(REFRESH_TOKEN_KEY, response.data.refreshToken);
+        
           // Retry original request with new token
           originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
           return axios(originalRequest);
         } catch (refreshError) {
           // Force logout on refresh failure
-          await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
-          await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
-          await SecureStore.deleteItemAsync('uid');
+          await deleteStoredItem(ACCESS_TOKEN_KEY);
+          await deleteStoredItem(REFRESH_TOKEN_KEY);
+          await deleteStoredItem('uid');
           
           // Navigate to login
           router.replace('/Intro');

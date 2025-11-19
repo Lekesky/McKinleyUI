@@ -1,6 +1,12 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
+const isWeb = Platform.OS === 'web';
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignSelf: 'center',
+        minWidth: "100%",
+    },
     analyticsRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',

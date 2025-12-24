@@ -12,12 +12,7 @@ import { Platform } from 'react-native';
 export default function TabLayout() {
   // const [role, setRole] = useState<string | null>(null);
   const { userRole } = useAuth();
-  const { isTabBarVisible, showTabBar } = useMobileTabBar();
-  
-  // Ensure tab bar is visible on initial load
-  useEffect(() => {
-    showTabBar();
-  }, [showTabBar]);
+  const { isTabBarVisible } = useMobileTabBar();
 
   if (userRole === null) {
     return null; // Or a loading spinner if desired
@@ -41,7 +36,8 @@ export default function TabLayout() {
         borderRadius: 30,
         backgroundColor: '#871919ff',
         marginHorizontal: 10,
-        display: isTabBarVisible ? 'flex' : 'none', // Hide tab bar based on context
+        // Hide tab bar completely on web, use context state on mobile
+        display: Platform.OS === 'web' ? 'none' : (isTabBarVisible ? 'flex' : 'none'),
         ...Platform.select({
           ios: {
             shadowColor: '#000',

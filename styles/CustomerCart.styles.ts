@@ -1,7 +1,8 @@
 import { Platform, StyleSheet } from 'react-native';
 const isWeb = Platform.OS === 'web';
 
-const styles = StyleSheet.create({
+
+const styles = (isCartPaused: boolean) => StyleSheet.create({
     container: { 
         flex: 1,
         padding: 20,
@@ -32,7 +33,7 @@ const styles = StyleSheet.create({
         alignItems: 'center' 
     },
     checkoutButton: { 
-        backgroundColor: '#871919ff', 
+        backgroundColor: isCartPaused ? '#a9a9a9ff' : '#871919ff', 
         marginTop: 20, 
         height: 58, 
         borderRadius: 30, 

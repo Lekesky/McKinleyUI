@@ -88,14 +88,14 @@ export default function Signup() {
       signInMethod: 'google'
     };
     
-    return api.post('/user/login', user, { withCredentials: true })
+    return api.post('/user/login', user)
       .then((response) => {
         if(Platform.OS !== 'web'){
           return loginTokens(response.data.accessToken, response.data.refreshToken, response.data.uid);
         }
       })
       .then(() => {
-        router.replace('/(tabs)/Home');
+        console.log('Google sign-in successful, AuthenticatedLayout will handle navigation');
       })
       .catch((error) => {
         const errorMessage = error.response?.data || error.message || 'Google sign-in failed';
@@ -162,8 +162,14 @@ export default function Signup() {
     };
 
     return api.post('/user', user)
+      .then((response) => {
+        // After signup, login with the returned tokens
+        if (Platform.OS !== 'web' && response.data.accessToken) {
+          return loginTokens(response.data.accessToken, response.data.refreshToken, response.data.uid);
+        }
+      })
       .then(() => {
-        router.replace('/(tabs)/Home');
+        console.log('Signup successful, AuthenticatedLayout will handle navigation');
       })
       .catch((error) => {
         const errorMessage = error.response?.data || error.message || 'Signup failed';
@@ -176,7 +182,7 @@ export default function Signup() {
           textColor: '#FFFFFF',
         });
       });
-  }, [firstName, lastName, email, phoneNumber, password, api]);
+  }, [firstName, lastName, email, phoneNumber, password, api, loginTokens]);
 
   const appleSignInHandler = () => {
     // Apple Sign-In implementation

@@ -6,12 +6,12 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Modal, Platform, TouchableOpacity, View } from "react-native";
-import { Button, Dialog, Icon, PaperProvider, Portal, Text } from "react-native-paper";
+import { Button, Dialog, Icon, Portal, Text } from "react-native-paper";
 import { Toast } from 'toastify-react-native';
 import styles from "../../styles/Profile.styles";
 
 export default function Profile() {
-    const { accessToken, refreshToken, logout, uid } = useAuth();
+    const { accessToken, logout, deleteAccount, uid } = useAuth();
     const { hideTabBar, showTabBar } = useMobileTabBar();
     const api = useMemo(() => createAPIClient(), []);
     const [logoutDialogVisible, setLogoutDialogVisible] = useState(false);
@@ -82,61 +82,20 @@ export default function Profile() {
         // Payment methods logic
     }
 
-    const handleDeleteAccount = () => {
+    const handleDeleteAccount = async () => {
         //Need to add password confirmation before allowing deletion
         hideDeleteDialog();
-        api.delete(`/user/${uid}`)
-            .then(async (res) => {
-                if (res.status === 200) {
-                    await logout();
-                    Toast.show({
-                        type: 'success',
-                        text1: 'Success',
-                        text2: 'Account deleted successfully',
-                        position: 'top',
-                        backgroundColor: '#4CAF50',
-                        textColor: '#FFFFFF',
-                    });
-                    router.replace('/Intro');
-                }
-            })
-            .catch((error) => {
-                const errorMessage = error.response?.data || error.message || 'Failed to delete account';
-                Toast.show({
-                    type: 'error',
-                    text1: 'Error',
-                    text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to delete account',
-                    position: 'top',
-                    backgroundColor: '#871919ff',
-                    textColor: '#FFFFFF',
-                });
-            });
+        await deleteAccount();
     }
 
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
         hideLogoutDialog();
-        api.post('/user/logout', { refreshToken: refreshToken })
-        .then(async (res) => {
-            if(res.status === 200){
-                await logout(); // Clear tokens from context and secure storage
-                router.replace('/Intro');
-            }
-        }).catch((error) => {
-            const errorMessage = error.response?.data || error.message || 'Failed to logout';
-            Toast.show({
-                type: 'error',
-                text1: 'Logout Error',
-                text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to logout',
-                position: 'top',
-                backgroundColor: '#871919ff',
-                textColor: '#FFFFFF',
-            });
-        });
+        await logout();
     }
 
     return (
-        <PaperProvider>
+        // <PaperProvider>
             <View style={styles.container}>
 
                 {Platform.OS !== 'web' ? ( 
@@ -196,9 +155,9 @@ export default function Profile() {
 
                         <Modal
                             transparent={true}
-                            visible={deleteDialogVisible}
+                            visible={deleteModalVisible}
                             onRequestClose={() => {
-                                setDeleteDialogVisible(!deleteDialogVisible);
+                                setDeleteModalVisible(!deleteModalVisible);
                         }}>
                             <View style={styles.webModalOverlay}>
                                 <View style={styles.centeredModelView}>
@@ -209,7 +168,7 @@ export default function Profile() {
                                         {/* Logout and Cancel Buttons */}
                                         <TouchableOpacity
                                             style={[styles.modalButton, styles.modalButtonCancel]}
-                                            onPress={() => setDeleteDialogVisible(!deleteDialogVisible)}>
+                                            onPress={() => setDeleteModalVisible(!deleteModalVisible)}>
                                             <Text style={styles.modalTextStyle}>Cancel</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity
@@ -347,7 +306,7 @@ export default function Profile() {
 
                 </View>
             </View>
-        </PaperProvider>
+        // </PaperProvider>
     );
 }
 

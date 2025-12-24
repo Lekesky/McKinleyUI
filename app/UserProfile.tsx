@@ -3,7 +3,7 @@ import createAPIClient from "@/services/api";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { Button, Icon, PaperProvider } from 'react-native-paper';
+import { Button, Icon } from 'react-native-paper';
 import { Toast } from 'toastify-react-native';
 import styles from "../styles/UserProfile.styles";
 
@@ -192,18 +192,18 @@ export default function UserProfile() {
     // Display loading state while data is being fetched
     if (loading) {
         return (
-            <PaperProvider>
+            // <PaperProvider>
                 <View style={styles.centeredContainer}>
                     <Text style={styles.loadingText}>Loading user profile...</Text>
                 </View>
-            </PaperProvider>
+            // </PaperProvider>
         );
     }
 
     // Display error state if user data couldn't be fetched
     if (!user) {
         return (
-            <PaperProvider>
+            // <PaperProvider>
                 <View style={styles.centeredContainer}>
                     <Text style={styles.errorTitle}>Could not load profile</Text>
                     <Button 
@@ -216,12 +216,12 @@ export default function UserProfile() {
                         Retry
                     </Button>
                 </View>
-            </PaperProvider>
+            // </PaperProvider>
         );
     }
     
     return (
-        <PaperProvider>
+        // <PaperProvider>
             <ScrollView 
                 style={styles.scrollContainer} 
                 contentContainerStyle={{ paddingBottom: 40 }}
@@ -381,7 +381,7 @@ export default function UserProfile() {
                 )}
             </View>
         </ScrollView>
-        </PaperProvider>
+        // </PaperProvider>
     );
 }
 

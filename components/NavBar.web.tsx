@@ -2,14 +2,20 @@ import { Tabs } from '@/constants/Tabs';
 import { useAuth } from '@/context/AuthContext';
 import { useMobileTabBar } from '@/context/TabBarContext';
 import { router } from 'expo-router';
-import React from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
 import styles from '../styles/NavBar.web.styles';
 
 export default function NavBar() {
     const { hideTabBar } = useMobileTabBar();
-    const { refreshToken } = useAuth();
-    hideTabBar();
+    const { isAuthenticated } = useAuth();
+    
+    useEffect(() => {
+        // Only hide tab bar on mobile (shouldn't be needed on web as it's hidden by Platform check)
+        if (Platform.OS !== 'web') {
+            hideTabBar();
+        }
+    }, [hideTabBar]);
 
     return (
         <View style={styles.container}>
@@ -28,7 +34,7 @@ export default function NavBar() {
                 ))}
             </View>
             <View style={styles.actions}>
-                {refreshToken ? (
+                {isAuthenticated ? (
                     <View style={styles.profileLink}>
                         <TouchableOpacity
                             key='Profile'

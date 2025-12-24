@@ -36,7 +36,7 @@ export default function Login() {
     });
   };
 
-  const goBackHandler = () => {router.back()}
+  const goBackHandler = () => { router.back() }
 
   const loginHandler = useCallback(() => {
     const user = {
@@ -45,16 +45,22 @@ export default function Login() {
       signInMethod: 'email'
     };
 
-    return api.post('/user/login', user, { withCredentials: true })
+    console.log('Attempting login...');
+    return api.post('/user/login', user)
       .then((response) => {
-        if(Platform.OS !== 'web'){
-          return loginTokens(response.data.accessToken, response.data.refreshToken, response.data.uid);
-        }
+        console.log('Login response:', response.data);
+        console.log('Calling loginTokens with:', {
+          accessToken: response.data.accessToken ? 'present' : 'missing',
+          refreshToken: response.data.refreshToken ? 'present' : 'missing',
+          uid: response.data.uid
+        });
+        return loginTokens(response.data.accessToken, response.data.refreshToken, response.data.uid);
       })
       .then(() => {
-        router.replace('/(tabs)/Home');
+        console.log('loginTokens completed successfully');
       })
       .catch((error) => {
+        console.error('Login error:', error);
         const errorMessage = error.response?.data || error.message || 'Login failed';
         Toast.show({
           type: 'error',
@@ -66,6 +72,54 @@ export default function Login() {
         });
       });
   }, [email, password, api, loginTokens]);
+
+  const handleGoogleSignInSuccess = useCallback((idToken: string) => {
+    if (!idToken) {
+      console.error('No idToken provided to handleGoogleSignInSuccess');
+      return Promise.resolve();
+    }
+    
+    const user = {
+      loginToken: idToken,
+      signInMethod: 'google'
+    };
+    
+    console.log('Sending Google sign-in request to backend...');
+    return api.post('/user/login', user)
+      .then((response) => {
+        console.log('Google sign-in response:', response.data);
+        
+        if (!response.data.uid) {
+          console.error('Missing tokens in response:', response.data);
+          Toast.show({
+            type: 'error',
+            text1: 'Sign-In Failed',
+            text2: 'Invalid response from server',
+            position: 'top',
+            backgroundColor: '#871919ff',
+            textColor: '#FFFFFF',
+          });
+          return Promise.reject(new Error('Invalid response from server'));
+        }
+        
+        return loginTokens(response.data.accessToken, response.data.refreshToken, response.data.uid);
+      })
+      .then(() => {
+        console.log('Google sign-in successful, AuthenticatedLayout will handle navigation');
+      })
+      .catch((error: any) => {
+        console.error('Google sign-in error:', error);
+        const errorMessage = error.response?.data || error.message || 'Google sign-in failed';
+        Toast.show({
+          type: 'error',
+          text1: 'Sign-In Failed',
+          text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to sign in with Google',
+          position: 'top',
+          backgroundColor: '#871919ff',
+          textColor: '#FFFFFF',
+        });
+      });
+  }, [api, loginTokens]);
 
   const trySilentSignIn = useCallback(() => {
     // Do not attempt native GoogleSignin on web (not implemented there).
@@ -79,10 +133,11 @@ export default function Login() {
         }
       })
       .catch((error: unknown) => {
-        // Silent - it's normal for silent sign-in to fail if user hasn't signed in before
-        // Only log if it's not the expected SIGN_IN_REQUIRED error
+        console.log('Silent sign-in failed (expected if not signed in before):', error);
       });
-  }, []);
+  }, [handleGoogleSignInSuccess]);
+
+  
 
   const googleSignInHandler = useCallback(() => {
     // On web, use Google Identity Services (loaded separately) to get an ID token
@@ -98,43 +153,37 @@ export default function Login() {
     return GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
       .then(() => GoogleSignin.signIn())
       .then((userInfo) => {
-        const idToken = (userInfo as any)?.data.idToken;
+        const idToken = (userInfo as any)?.data?.idToken;
+        
         if (idToken) {
-          handleGoogleSignInSuccess(idToken);
+          return handleGoogleSignInSuccess(idToken);
+        } else {
+          console.error('No idToken received from Google Sign-In');
+          Toast.show({
+            type: 'error',
+            text1: 'Google Sign-In',
+            text2: 'Failed to get authentication token',
+            position: 'top',
+            backgroundColor: '#871919ff',
+            textColor: '#FFFFFF',
+          });
         }
       })
-      .catch(() => {
-        // Silent error - Google Sign-In failed
-      });
-  }, []);
-
-  const handleGoogleSignInSuccess = useCallback((idToken: string) => {
-    if (!idToken) return;
-    
-    const user = {
-      loginToken: idToken,
-      signInMethod: 'google'
-    };
-    
-    return api.post('/user/login', user, { withCredentials: true })
-      .then((response) => {
-        return loginTokens(response.data.accessToken, response.data.refreshToken, response.data.uid);
-      })
-      .then(() => {
-        router.replace('/(tabs)/Home');
-      })
-      .catch((error) => {
-        const errorMessage = error.response?.data || error.message || 'Google sign-in failed';
+      .catch((error: any) => {
+        console.error('Google Sign-In error:', error);
         Toast.show({
           type: 'error',
-          text1: 'Sign-In Failed',
-          text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to sign in with Google',
+          text1: 'Google Sign-In Failed',
+          text2: error.message || 'An error occurred',
           position: 'top',
           backgroundColor: '#871919ff',
           textColor: '#FFFFFF',
         });
       });
-  }, [api, loginTokens]);
+  }, [handleGoogleSignInSuccess]);
+
+
+  
 
   // Load Google Identity Services (web only) and configure a callback that reuses
   // the same native `handleGoogleSignInSuccess` flow (it posts idToken to /user/login).

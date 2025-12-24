@@ -3,7 +3,12 @@ import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
-const API_URL = "https://influences-colours-cited-examining.trycloudflare.com/api";
+export const API_URL = Platform.OS === 'web'
+  ? "http://localhost:8080/api"
+  : Platform.OS === 'android'
+    ? "http://10.0.2.2:8080/api"  // Android emulator
+    : "http://localhost:8080/api";
+
 const ACCESS_TOKEN_KEY = "access_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
 
@@ -20,12 +25,14 @@ const setCookie = (name: string, value: string, days: number = 365) => {
   if (Platform.OS !== 'web') return;
   const expires = new Date();
   expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+  // SameSite=None is required for cross-origin requests, Secure flag is required when using SameSite=None
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=None;Secure`;
 };
 
 const deleteCookie = (name: string) => {
   if (Platform.OS !== 'web') return;
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+  // Must match the SameSite and Secure attributes used when setting the cookie
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=None;Secure`;
 };
 
 // Storage abstraction
@@ -85,67 +92,125 @@ export interface PageableResponse<T> {
   empty: boolean;
 }
 
+// Token refresh state to prevent multiple simultaneous refresh attempts
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+const subscribeTokenRefresh = (callback: (token: string) => void) => {
+  refreshSubscribers.push(callback);
+};
+
+const onTokenRefreshed = (newToken: string) => {
+  refreshSubscribers.forEach(callback => callback(newToken));
+  refreshSubscribers = [];
+};
+
+const clearTokensAndLogout = async () => {
+  await Promise.all([
+    deleteStoredItem(ACCESS_TOKEN_KEY),
+    deleteStoredItem(REFRESH_TOKEN_KEY),
+    deleteStoredItem('uid')
+  ]);
+  router.replace('/Intro');
+};
+
 export default function createAPIClient(): AxiosInstance {
   const apiClient = axios.create({
     baseURL: API_URL,
     timeout: 10000,
+    withCredentials: true,
   });
 
-  // Request interceptor - Add token to headers if exists/Up-to-date
+  // Request interceptor - Add token to headers if exists
   apiClient.interceptors.request.use(
     async (config) => {
       const accessToken = await getStoredItem(ACCESS_TOKEN_KEY);
     
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
+        console.log(accessToken);
       }
+      config.headers['X-Client-Type'] = Platform.OS === 'web' ? 'WEB' : 'MOBILE';
       
       return config;
     }, 
-    (error) => { return Promise.reject(error) }
+    (error) => Promise.reject(error)
   );
 
-  // Response interceptor - Handle 403 errors
+  // Response interceptor - Handle 401/403 errors with token refresh
   apiClient.interceptors.response.use(
-    (response) => { return response },
+    (response) => response,
     async (error) => { 
       const originalRequest = error.config;
       
-      // If 401/403 and not already retrying
-      if ((error.response?.status === 401 || error.response?.status === 403) && 
-          !originalRequest._retry) {
-        originalRequest._retry = true;
-        
-        try {
-          // Get stored refresh token
-          const refreshToken = await getStoredItem(REFRESH_TOKEN_KEY);
-          if (!refreshToken) throw new Error('No refresh token available');
-          
-          // Attempt to refresh the token
-          const response = await axios.post(`${API_URL}/user/refresh-token`, { 
-            refreshToken 
-          });
-          
-          // Save new tokens
-          await setStoredItem(ACCESS_TOKEN_KEY, response.data.accessToken);
-          await setStoredItem(REFRESH_TOKEN_KEY, response.data.refreshToken);
-        
-          // Retry original request with new token
-          originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
-          return axios(originalRequest);
-        } catch (refreshError) {
-          // Force logout on refresh failure
-          await deleteStoredItem(ACCESS_TOKEN_KEY);
-          await deleteStoredItem(REFRESH_TOKEN_KEY);
-          await deleteStoredItem('uid');
-          
-          // Navigate to login
-          router.replace('/Intro');
-          return Promise.reject(refreshError);
-        }
+      // Check if this is a 401/403 error and not already retrying
+      const isAuthError = error.response?.status === 401 || error.response?.status === 403;
+      if (!isAuthError || originalRequest._retry) {
+        return Promise.reject(error);
       }
-      
-      return Promise.reject(error);
+
+      // Mark request as retrying to prevent infinite loops
+      originalRequest._retry = true;
+
+      // If already refreshing, wait for the new token
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          subscribeTokenRefresh((newToken: string) => {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            resolve(apiClient(originalRequest));
+          });
+        });
+      }
+
+      isRefreshing = true;
+
+      try {
+        // For web, cookies are sent automatically with withCredentials
+        // For mobile, we need to send the refresh token in the body
+        const refreshToken = Platform.OS === 'web' ? null : await getStoredItem(REFRESH_TOKEN_KEY);
+        
+        if (Platform.OS !== 'web' && !refreshToken) {
+          throw new Error('No refresh token available');
+        }
+        
+        // Use a fresh axios instance for refresh to avoid interceptor loops
+        const response = await axios.post(
+          `${API_URL}/user/refresh-token`,
+          Platform.OS === 'web' ? {} : { refreshToken },
+          { 
+            headers: { 'X-Client-Type': Platform.OS === 'web' ? 'WEB' : 'MOBILE' },
+            withCredentials: true, // Important for web to send cookies
+            timeout: 10000 
+          }
+        );
+        
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
+        
+        // For mobile, save new tokens. For web, tokens are in HTTP-only cookies
+        if (Platform.OS !== 'web' && newAccessToken && newRefreshToken) {
+          await Promise.all([
+            setStoredItem(ACCESS_TOKEN_KEY, newAccessToken),
+            setStoredItem(REFRESH_TOKEN_KEY, newRefreshToken)
+          ]);
+        }
+        
+        // Notify all waiting requests
+        onTokenRefreshed(newAccessToken || 'cookie-auth');
+        
+        // Retry original request with new token (for mobile) or cookies (for web)
+        if (Platform.OS !== 'web' && newAccessToken) {
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        }
+        return apiClient(originalRequest);
+        
+      } catch (refreshError) {
+        // Clear tokens and logout on refresh failure
+        await clearTokensAndLogout();
+        return Promise.reject(refreshError);
+        
+      } finally {
+        isRefreshing = false;
+      }
     }
   );
 

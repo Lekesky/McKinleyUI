@@ -7,20 +7,18 @@ import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 import { Text } from "react-native-paper";
 
 interface WebStripeCheckoutProps {
-    amount: number;
     customerCart: any[];
     onSuccess: () => void;
     onError: (error: string) => void;
     buttonStyle: any;
+    onAmountsCalculated?: (amounts: { subTotal: number; taxAmount: number; total: number }) => void;
 }
 
 function CheckoutForm({ 
-    amount, 
     customerCart, 
     onSuccess, 
     onError, 
-    buttonStyle,
-    clientSecret 
+    buttonStyle
 }: WebStripeCheckoutProps & { clientSecret: string }) {
     const stripe = useStripe();
     const elements = useElements();
@@ -37,6 +35,8 @@ function CheckoutForm({
             })),
             paymentIntentId
         };
+
+
         
         try {
             const response = await api.post(`/orders`, orderData);
@@ -125,21 +125,24 @@ function CheckoutForm({
 }
 
 export default function StripeCheckout({ 
-    amount, 
     customerCart, 
     onSuccess, 
     onError, 
-    buttonStyle 
+    buttonStyle,
+    onAmountsCalculated
 }: WebStripeCheckoutProps) {
     const { uid } = useAuth();
     const api = useMemo(() => createAPIClient(), []);
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [stripePromise, setStripePromise] = useState<Promise<any> | null>(null);
+    const [subTotal, setSubTotal] = useState<number>(0);
+    const [taxAmount, setTaxAmount] = useState<number>(0);
+    const [total, setTotal] = useState<number>(0);
 
     useEffect(() => {
         const initializePayment = async () => {
             try {
-                if (!uid || amount <= 0) return;
+                if (!uid) return;
 
                 // Fetch publishable key
                 const configRes = await api.get('/payments/config');
@@ -149,11 +152,26 @@ export default function StripeCheckout({
                 // Create payment intent
                 const stripeData = {
                     customerId: uid,
-                    amount: Math.round(amount * 100), // Convert to cents
+                    orderItems: customerCart.map((item) => ({
+                        menuItemId: item.id, 
+                        quantity: item.quantity
+                    })),
                 };
 
                 const response = await api.post('/payments', stripeData);
-                const { paymentIntent } = response.data;
+                const { paymentIntent, subtotal, taxAmount, totalAmount } = response.data;
+                setSubTotal(subtotal);
+                setTaxAmount(taxAmount);
+                setTotal(totalAmount);
+
+                if (onAmountsCalculated) {
+                    onAmountsCalculated({
+                        subTotal: subtotal / 100,
+                        taxAmount: taxAmount / 100,
+                        total: totalAmount / 100
+                    });
+                }
+
                 setClientSecret(paymentIntent);
             } catch (error: any) {
                 console.error('Error initializing payment:', error);
@@ -162,7 +180,7 @@ export default function StripeCheckout({
         };
 
         initializePayment();
-    }, [uid, amount, api, onError]);
+    }, [uid, api, onError, customerCart, onAmountsCalculated]);
 
     if (!clientSecret || !stripePromise) {
         return (
@@ -175,8 +193,7 @@ export default function StripeCheckout({
 
     return (
         <Elements stripe={stripePromise} options={{ clientSecret }}>
-            <CheckoutForm 
-                amount={amount}
+            <CheckoutForm
                 customerCart={customerCart}
                 onSuccess={onSuccess}
                 onError={onError}

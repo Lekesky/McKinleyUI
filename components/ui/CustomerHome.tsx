@@ -1,11 +1,13 @@
 import HorizontalPills from '@/components/HorizontalPills';
 import { MenuItemCard } from "@/components/MenuItemCard";
 import { useAuth } from "@/context/AuthContext";
-import createAPIClient from "@/services/api";
+import createAPIClient, { API_URL } from "@/services/api";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Dimensions, Keyboard, RefreshControl, ScrollView, TextInput, TouchableOpacity, View } from "react-native";
+import { Animated, Dimensions, Keyboard, Platform, RefreshControl, ScrollView, TextInput, TouchableOpacity, View } from "react-native";
 import { IconButton, Text } from "react-native-paper";
+import RNEventSource from 'react-native-sse';
+import { Toast } from 'toastify-react-native';
 import styles from '../../styles/CustomerHome.styles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -30,8 +32,8 @@ const CATEGORIES = [
   'Drinks'
 ]
 export default function CustomerHome() {
-    const { uid } = useAuth();
-    const api = useMemo(() => createAPIClient(), []);
+    const { uid, accessToken, refreshAccessToken } = useAuth();
+    const api = useMemo(() => createAPIClient(), []); 
     const [firstName, setFirstName] = useState<string>('');
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
     const [refreshing, setRefreshing] = useState(false);
@@ -116,13 +118,101 @@ export default function CustomerHome() {
         setIsSearchExpanded(!isSearchExpanded);
     }, [isSearchExpanded, animatedWidth, animatedOpacity, animatedGreetingOpacity]);
 
+    useEffect(() => {
+      const url = `${API_URL}/orders/stream?streamMessage=FULFILLMENT_STATUS`;
+      
+      if (Platform.OS === 'web') {
+        // Web EventSource
+        const sse = new EventSource(url, { withCredentials: true });
+
+        sse.onopen = () => {
+          console.log('SSE connection opened');
+        };
+
+        sse.onmessage = (event) => {
+          try {
+            if (event.data == null) return;
+            const data = JSON.parse(event.data);
+            if (data.paused === true) {
+              Toast.show({
+                type: 'info',
+                text1: 'Order Fulfillment Paused',
+                text2: 'We have put a pause on accepting new orders in the meantime. Please check back later.',
+                autoHide: false,
+                position: 'bottom',
+                backgroundColor: '#871919ff',
+                iconColor: '#FFFFFF',
+                textColor: '#FFFFFF',
+              });
+            }
+          } catch (parseError) {
+            console.warn('SSE: Failed to parse message', parseError);
+          }
+        };
+
+        sse.onerror = (error) => {
+          console.error('SSE error:', error);
+          sse.close();
+        };
+
+        return () => {
+          console.log('Closing SSE connection');
+          sse.close();
+        };
+      } else {
+        // React Native EventSource
+        const sse = new RNEventSource(url, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+
+        sse.addEventListener('open', () => {
+          console.log('SSE connection opened');
+        });
+
+        sse.addEventListener('message', (event) => {
+          try {
+            if (event.data == null) return;
+            const data = JSON.parse(event.data);
+            if (data.paused === true) {
+              Toast.show({
+                type: 'info',
+                text1: 'Order Fulfillment Paused',
+                text2: 'We have put a pause on accepting new orders in the meantime. Please check back later.',
+                autoHide: false,
+                position: 'bottom',
+                backgroundColor: '#871919ff',
+                iconColor: '#FFFFFF',
+                textColor: '#FFFFFF',
+              });
+            }
+          } catch (parseError) {
+            console.warn('SSE: Failed to parse message', parseError);
+          }
+        });
+
+        sse.addEventListener('error', (error) => {
+          console.error('SSE error:', error);
+          if(JSON.stringify(error).includes('403')){
+            refreshAccessToken();
+          }
+        });
+
+        return () => {
+          console.log('Closing SSE connection');
+          sse.close();
+        };
+      }
+    }, [accessToken, refreshAccessToken]);
+
     const handleSearch = useCallback((text: string) => {
         setSearchQuery(text);
     }, []);
 
     const handleItemPress = useCallback((id: string) => {
         router.push({ pathname: '/MenuItem', params: { id } });
-    }, [router]);
+    }, []);
 
     const fetchUserData = useCallback(() => {
         return api.get(`/user/${uid}`)
@@ -214,6 +304,12 @@ export default function CustomerHome() {
 
     return (
         <>
+            {/* <ToastManager
+                showProgressBar={false}
+                showCloseIcon={true}
+                animationStyle="fade"
+                useModal={false}
+            /> */}
             <View style={styles.header}>
                 <Animated.View style={[
                 styles.greetingContainer,

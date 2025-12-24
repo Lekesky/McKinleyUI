@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Platform, Text, TouchableOpacity, View } from 'react-native';
 import { Icon, TextInput } from 'react-native-paper';
-import ToastManager, { Toast } from 'toastify-react-native';
+import { Toast } from 'toastify-react-native';
 import styles from '../styles/UpdatePassword.styles';
 
 export default function UpdatePassword() {
@@ -54,11 +54,11 @@ export default function UpdatePassword() {
     const toastConfig = {
         customSuccess: (props: any) => (
             <View style={styles.customSuccessToast}>
-            <Ionicons name="checkmark-circle-outline" size={24} color="white" />
-            <View style={styles.textContainer}>
-                <Text style={styles.customTitle}>{props.text1}</Text>
-                {props.text2 && <Text style={styles.customMessage}>{props.text2}</Text>}
-            </View>
+                <Ionicons name="checkmark-circle-outline" size={24} color="white" />
+                <View style={styles.textContainer}>
+                    <Text style={styles.customTitle}>{props.text1}</Text>
+                    {props.text2 && <Text style={styles.customMessage}>{props.text2}</Text>}
+                </View>
             </View>
         ),
         custom: (props: any) => <CustomToast {...props} />,
@@ -112,12 +112,12 @@ export default function UpdatePassword() {
 
     return(
         <View style={styles.container}>
-            <ToastManager
+            {/* <ToastManager
                 config={toastConfig}
                 showProgressBar={false}
                 showCloseIcon={true}
                 animationStyle="fade"
-            />
+            /> */}
 
             {Platform.OS !== 'web' && (
                 <>

@@ -1,5 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
+import { Platform } from "react-native";
+import RNEventSource from 'react-native-sse';
+import { API_URL } from "../services/api";
+import { useAuth } from "./AuthContext";
 
 type MenuItem = {
   id: string;
@@ -15,6 +19,7 @@ type CartType = 'CUSTOMER' | 'WAITRESS';
 
 type CartContextType = {
   cart: Record<CartType, CartItem[]>;
+  isCartPaused: boolean
   addToCart: (item: MenuItem, quantity: number, type?: CartType) => void;
   removeFromCart: (itemId: string, type?: CartType) => void;
   clearCart: (type?: CartType) => void;
@@ -30,6 +35,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     CUSTOMER: [],
     WAITRESS: []
   });
+  const { accessToken, refreshAccessToken } = useAuth();
+  const [isCartPaused, setIsCartPaused] = useState<boolean>(false);
 
   const loadCart = useCallback(() => {
     return Promise.all([
@@ -52,10 +59,76 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     loadCart();
   }, [loadCart]);
 
+
   // Get the active cart based on type (defaults to customer)
   const getActiveCart = (type: CartType = 'CUSTOMER') => {
     return cart[type];
   };
+
+  useEffect(() => {
+      const url = `${API_URL}/orders/stream?streamMessage=FULFILLMENT_STATUS`;
+      
+      if (Platform.OS === 'web') {
+        // Web EventSource
+        const sse = new EventSource(url, { withCredentials: true });
+
+        sse.onopen = () => {
+          console.log('SSE connection opened');
+        };
+
+        sse.onmessage = (event) => {
+          try {
+            if (event.data == null) return;
+            const data = JSON.parse(event.data);
+            setIsCartPaused(data.paused);
+          } catch (parseError) {
+            console.warn('SSE: Failed to parse message', parseError);
+          }
+        };
+
+        sse.onerror = (error) => {
+          console.error('SSE error:', error);
+          sse.close();
+        };
+
+        return () => {
+          console.log('Closing SSE connection');
+          sse.close();
+        };
+      } else {
+        // React Native EventSource
+        const sse = new RNEventSource(url, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+
+        sse.addEventListener('open', () => {
+          console.log('SSE connection opened');
+        });
+
+        sse.addEventListener('message', (event) => {
+          try {
+            if (event.data == null) return;
+            const data = JSON.parse(event.data);
+            if(data?.paused === undefined) return;
+            setIsCartPaused(data.paused);
+          } catch (parseError) {
+            console.warn('SSE: Failed to parse message', parseError);
+          }
+        });
+
+        sse.addEventListener('error', (error) => {
+          if(JSON.stringify(error).includes('403')){
+            refreshAccessToken();
+          }
+        });
+
+        return () => {
+          sse.close();
+        };
+      }
+  },[accessToken, refreshAccessToken]);
 
 
   const addToCart = useCallback((item: MenuItem, quantity: number, type: CartType = 'CUSTOMER') => {
@@ -156,6 +229,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   return (
     <CartContext.Provider value={{ 
       cart, 
+      isCartPaused,
       addToCart, 
       removeFromCart,
       clearCart, 

@@ -12,7 +12,9 @@ import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect } from 'react';
 import { AppState, AppStateStatus, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { PaperProvider } from 'react-native-paper';
 import 'react-native-reanimated';
+import ToastManager from 'toastify-react-native';
 import { CartProvider } from '../context/CartContext';
 import { TableProvider } from '../context/TableContext';
 
@@ -35,7 +37,7 @@ if (Platform.OS !== 'web') {
 // Create a component to handle authenticated routing
 function AuthenticatedLayout() {
   const segments = useSegments();
-  const { refreshToken, refreshAccessToken, accessTokenTTL, isAuthLoading } = useAuth();
+  const { refreshToken, refreshAccessToken, accessTokenTTL, isAuthLoading, isAuthenticated } = useAuth();
 
   // Handle app state changes (mobile only - web doesn't have AppState)
   const handleAppStateChange = useCallback((nextAppState: AppStateStatus) => {
@@ -65,18 +67,20 @@ function AuthenticatedLayout() {
 
     const inPublicRoute = segments[0] === 'Intro' || segments[0] === 'Login' || segments[0] === 'Signup';
 
-    if (!refreshToken && !inPublicRoute) {
+    if (!isAuthenticated && !inPublicRoute) {
       // User is not authenticated and not on a public route
+      console.log('Redirecting to public route (not authenticated)');
       if (Platform.OS !== 'web') {
         router.replace('/Intro');
       } else {
         router.replace('/Login');
       }
-    } else if (refreshToken && inPublicRoute) {
+    } else if (isAuthenticated && inPublicRoute) {
       // User is authenticated but on a public route - send to home
+      console.log('Redirecting to Home (authenticated)');
       router.replace('/(tabs)/Home');
     }
-  }, [isAuthLoading, refreshToken, segments]);
+  }, [isAuthLoading, isAuthenticated, segments]);
 
   // Auto-refresh access token
   useEffect(() => {
@@ -140,24 +144,34 @@ export default function RootLayout() {
     <AuthProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DefaultTheme : DarkTheme}>
         <GestureHandlerRootView>
-          <StripeWrapper>
-            <TabBarProvider>
-              {(Platform.OS === 'web' ? <NavBar /> : null) as any}
-              <TableProvider>
-                <CartProvider>
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="(tabs)" />
-                    <Stack.Screen name="+not-found" />
-                    <Stack.Screen name="Intro" />
-                    <Stack.Screen name="Login" />
-                    <Stack.Screen name="Signup" />
-                  </Stack>
-                  <AuthenticatedLayout />
-                </CartProvider>
-              </TableProvider>
-            </TabBarProvider>
-            <StatusBar style="auto" />
-          </StripeWrapper>
+          <PaperProvider>
+            <StripeWrapper>
+              <TabBarProvider>
+                {(Platform.OS === 'web' ? <NavBar /> : null) as any}
+                <TableProvider>
+                  <CartProvider>
+                    <Stack screenOptions={{ headerShown: false }}>
+                      <Stack.Screen name="(tabs)" />
+                      <Stack.Screen name="+not-found" />
+                      <Stack.Screen name="Intro" />
+                      <Stack.Screen name="Login" />
+                      <Stack.Screen name="Signup" />
+                    </Stack>
+                    <AuthenticatedLayout />
+                  </CartProvider>
+                </TableProvider>
+              </TabBarProvider>
+              <StatusBar style="auto" />
+              <ToastManager 
+                position='bottom'
+                bottomOffset={Platform.OS === 'web' ? 0 : 100}
+                showProgressBar={false}
+                showCloseIcon={true}
+                animationStyle="fade"
+                useModal={false}
+              />
+            </StripeWrapper>
+          </PaperProvider>
         </GestureHandlerRootView>
       </ThemeProvider>
     </AuthProvider>

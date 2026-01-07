@@ -1,6 +1,6 @@
 import { ScrollView, View } from "react-native";
 import { Button } from 'react-native-paper';
-import styles from "../styles/components/HorizontalPills.styles";
+import styles from "../styles/Components/HorizontalPills.styles";
 
 interface HorizontalPillsProps {
     readonly categories: string[];

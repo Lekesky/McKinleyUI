@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import styles from '../styles/components/AppleSignInButton.styles';
+import styles from '../styles/Components/AppleSignInButton.styles';
 
 interface AppleSignInButtonProps {
   onPress: () => void;

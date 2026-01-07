@@ -1,7 +1,7 @@
 import React from "react";
 import { Image, TouchableOpacity, View } from "react-native";
 import { Card, Text } from "react-native-paper";
-import styles from "../styles/components/MenuItemCard.styles";
+import styles from "../styles/Components/MenuItemCard.styles";
 
 interface MenuItemCardProps {
     id: string;

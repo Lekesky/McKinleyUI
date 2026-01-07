@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import styles from '../styles/components/OrderDetailsCard.styles';
+import styles from '../styles/Components/OrderDetailsCard.styles';
 
 interface OrderedItem {
     id: string;

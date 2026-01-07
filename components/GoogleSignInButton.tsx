@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import styles from '../styles/components/GoogleSignInButton.styles';
+import styles from '../styles/Components/GoogleSignInButton.styles';
 
 interface GoogleSignInButtonProps {
   onPress: () => void;

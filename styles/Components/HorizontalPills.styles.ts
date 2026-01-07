@@ -1,9 +1,11 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create({
     pillContainer: { 
         flexDirection: 'row',
-        marginHorizontal: -20, // Extend beyond container padding for edge-to-edge appearance
+        alignSelf: isWeb ? 'center' : 'auto',
     },
     selectedButton: {
         backgroundColor: '#600e0eff',
@@ -13,7 +15,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 5,
         marginVertical: 20, 
         backgroundColor: '#871919ff',
-        minWidth: 105, // Ensure buttons have reasonable minimum width
+        minWidth: 105,
     },
 });
 

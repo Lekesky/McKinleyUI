@@ -1,17 +1,24 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ffffffff',
-    padding: 20, // Match Order screen
+    paddingHorizontal: isWeb ? 80 : 20,
+    paddingVertical: 20,
+    alignItems: isWeb ? 'center' : 'stretch',
   },
   // Header styles - updated to match Order.tsx
   header: {
+    width: '100%',
+    maxWidth: isWeb ? 1800 : undefined,
     marginBottom: "1%",
     flexDirection: 'row',
     alignItems: 'center',
     gap: 20,
+    alignSelf: isWeb ? 'center' : 'auto',
   },
   backButton: { 
     backgroundColor: '#e8e8e8ff', 
@@ -37,10 +44,13 @@ const styles = StyleSheet.create({
   
   // Search styles
   searchContainer: {
+    width: '100%',
+    maxWidth: isWeb ? 1800 : undefined,
     paddingVertical: 10,
     backgroundColor: 'transparent',
     marginBottom: 0,
-    paddingHorizontal: 0, // No extra padding needed since container has padding
+    paddingHorizontal: 0,
+    alignSelf: isWeb ? 'center' : 'auto',
   },
   searchBarWrapper: {
     height: 50,
@@ -65,16 +75,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   
-  // Category styles
+  // Category styles - consistent with CustomerHome
   pillContainer: { 
     flexDirection: 'row',
-    marginHorizontal: -20, // Extend beyond container padding for edge-to-edge appearance
+    alignSelf: isWeb ? 'center' : 'auto',
+    width: '100%',
+    maxWidth: isWeb ? 1800 : undefined,
   },
   buttonSegment: { 
     marginHorizontal: 5,
     marginVertical: 20, 
     backgroundColor: '#871919ff',
-    minWidth: 105, // Ensure buttons have reasonable minimum width
+    minWidth: 105,
   },
   selectedButton: {
     backgroundColor: '#600e0eff',
@@ -92,11 +104,15 @@ const styles = StyleSheet.create({
   
   // Menu grid styles
   menuGrid: {
-    paddingBottom: 100, // Increased to avoid navigation bar overlap
+    width: '100%',
+    paddingBottom: 100,
   },
   menuContainer: {
-    paddingHorizontal: 0, // No need for extra padding since container has it
+    width: '100%',
+    maxWidth: isWeb ? 1800 : undefined,
+    paddingHorizontal: isWeb ? 20 : 0,
     marginBottom: 20,
+    alignSelf: 'center',
   },
   sectionTitle: {
     fontSize: 24,
@@ -107,13 +123,15 @@ const styles = StyleSheet.create({
   menuItemsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
+    justifyContent: isWeb ? "flex-start" : "space-between",
+    alignItems: 'flex-start',
+    gap: isWeb ? 25 : 0,
   },
   menuCard: {
     backgroundColor: "#fff",
     borderRadius: 12,
-    marginBottom: 16,
-    width: "48%",
+    marginBottom: isWeb ? 0 : 16,
+    width: isWeb ? 280 : "48%",
     overflow: "hidden",
     elevation: 1,
     shadowColor: "#000",

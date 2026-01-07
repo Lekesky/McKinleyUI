@@ -1,3 +1,4 @@
+import styles from '@/styles/components/ViewSwitcher.styles';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -9,7 +10,6 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import styles from '../styles/components/ViewSwitcher.styles';
 
 interface ViewSwitchProps {
   values: string[];

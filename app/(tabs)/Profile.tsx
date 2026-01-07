@@ -7,6 +7,7 @@ import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Modal, Platform, TouchableOpacity, View } from "react-native";
 import { Button, Dialog, Icon, Portal, Text } from "react-native-paper";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import styles from "../../styles/Profile.styles";
 
@@ -14,6 +15,7 @@ export default function Profile() {
     const { accessToken, logout, deleteAccount, uid } = useAuth();
     const { hideTabBar, showTabBar } = useMobileTabBar();
     const api = useMemo(() => createAPIClient(), []);
+    const insets = useSafeAreaInsets();
     const [logoutDialogVisible, setLogoutDialogVisible] = useState(false);
     const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
     const [logoutModalVisible, setLogoutModalVisible] = useState(false);
@@ -96,7 +98,7 @@ export default function Profile() {
 
     return (
         // <PaperProvider>
-            <View style={styles.container}>
+            <View style={[styles.container, { paddingTop: insets.top }]}>
 
                 {Platform.OS !== 'web' ? ( 
                     <>

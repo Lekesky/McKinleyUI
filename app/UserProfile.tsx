@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Button, Icon } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import styles from "../styles/UserProfile.styles";
 
@@ -42,6 +43,7 @@ type User = {
 export default function UserProfile() {
     const { user: uid } = useLocalSearchParams();
     const api = useMemo(() => createAPIClient(), []);
+    const insets = useSafeAreaInsets();
     const [user, setUser] = useState<User | null>(null);
     const [userOrder, setUserOrder] = useState<OrderHistory[]>([]);
     const [displayedOrders, setDisplayedOrders] = useState<OrderHistory[]>([]);
@@ -223,7 +225,7 @@ export default function UserProfile() {
     return (
         // <PaperProvider>
             <ScrollView 
-                style={styles.scrollContainer} 
+                style={[styles.scrollContainer, { paddingTop: insets.top }]} 
                 contentContainerStyle={{ paddingBottom: 40 }}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#871919ff"]} tintColor="#871919ff" />

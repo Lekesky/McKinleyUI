@@ -7,7 +7,7 @@ const styles = StyleSheet.create({
   },
   viewController: {
       alignSelf: "center",
-      marginTop: isWeb ? "1.5%" : "15%",
+      marginTop: isWeb ? "1.5%" : 15,
   }
 });
 

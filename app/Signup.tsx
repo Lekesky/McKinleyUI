@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
 import { Icon, Text, TextInput } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import AppleSignInButton from '../components/AppleSignInButton';
 import GoogleSignInButton from '../components/GoogleSignInButton';
@@ -20,6 +21,7 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const {loginTokens} = useAuth();
   const api = useMemo(() => createAPIClient(), []);
+  const insets = useSafeAreaInsets();
 
   // Initialize Google Sign-In when component mounts
   useEffect(() => {
@@ -191,7 +193,7 @@ export default function Signup() {
   
 
   return (
-    <View style={styles.container}> 
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}> 
       <View>
         <TouchableOpacity onPress={goBackHandler} style = {styles.backButton}>
           <Icon source="arrow-left" size={24} color ="#3c3c3cff"/>
@@ -221,7 +223,7 @@ export default function Signup() {
         <AppleSignInButton onPress={appleSignInHandler} style={styles.socialButton}/>
       </View>
       <View style= {styles.accountText}>
-        <Text>Already have an account? <Text style={{color: '#871919ff', fontWeight: 'bold'}} onPress={() => router.replace('/Login')}>Login</Text></Text>
+        <Text style={{ color: '#000' }}>Already have an account? <Text style={{color: '#871919ff', fontWeight: 'bold'}} onPress={() => router.replace('/Login')}>Login</Text></Text>
       </View>
     </View>
   );

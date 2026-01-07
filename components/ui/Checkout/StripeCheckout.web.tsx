@@ -186,7 +186,7 @@ export default function StripeCheckout({
         return (
             <View style={{ padding: 16, alignItems: 'center' }}>
                 <ActivityIndicator size="large" color="#871919ff" />
-                <Text style={{ marginTop: 8 }}>Initializing payment...</Text>
+                <Text style={{ marginTop: 8, color: '#333' }}>Initializing payment...</Text>
             </View>
         );
     }

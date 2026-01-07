@@ -5,12 +5,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useMemo } from 'react';
 import { Image, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Button, Icon, Snackbar, Text, TextInput } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import styles from '../styles/EditProducts.styles';
 
 export default function EditProduct() {
     const { uid } = useAuth();
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const { product } = useLocalSearchParams(); // Retrieve the product details
     const productString = Array.isArray(product) ? product[0] : product;
     const parsedProduct = JSON.parse(productString);
@@ -201,7 +203,7 @@ export default function EditProduct() {
     };
 
     return (
-        <>
+        <View style={{ flex: 1, paddingTop: insets.top }}>
 
             {Platform.OS !== 'web' && (
                 <>
@@ -363,7 +365,7 @@ export default function EditProduct() {
             >
                 {snackbarMessage}
             </Snackbar>
-        </>
+        </View>
     );
 }
 

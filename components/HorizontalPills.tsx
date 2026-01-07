@@ -20,6 +20,7 @@ export default function HorizontalPills({ categories, selectedCategory, setSelec
                 <Button
                 key={category}
                 mode="contained" 
+                textColor="#fff"
                 style={[
                     styles.buttonSegment,
                     selectedCategory === category && styles.selectedButton

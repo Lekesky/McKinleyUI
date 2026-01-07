@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Platform, RefreshControl, TouchableOpacity, View } from 'react-native';
 import { ActivityIndicator, Icon, Text } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import OrderDetailsCard from '../components/OrderDetailsCard';
 import styles from '../styles/OrderHistory.styles';
@@ -28,6 +29,7 @@ type Order = {
 export default function OrderHistory() {
     const { uid } = useAuth();
     const api = useMemo(() => createAPIClient(), []);
+    const insets = useSafeAreaInsets();
     const [orders, setOrders] = useState<Order[]>([]);
     const [refreshing, setRefreshing] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -117,7 +119,10 @@ export default function OrderHistory() {
     }, [api, uid, hasMore, loadingMore]);
 
     const handleOrderPress = (orderId: string) => {
-        // Navigate to order details screen
+        router.push({
+            pathname: '/OrderDetails',
+            params: { orderId }
+        });
     };
 
     useEffect(() => {
@@ -136,7 +141,7 @@ export default function OrderHistory() {
     }
     
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
             
             {Platform.OS !== 'web' && (
                 <>

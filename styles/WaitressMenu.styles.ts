@@ -8,7 +8,6 @@ const styles = StyleSheet.create({
   },
   // Header styles - updated to match Order.tsx
   header: {
-    marginTop: 30,
     marginBottom: "1%",
     flexDirection: 'row',
     alignItems: 'center',

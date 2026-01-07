@@ -14,6 +14,7 @@ import { AppState, AppStateStatus, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
 import 'react-native-reanimated';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ToastManager from 'toastify-react-native';
 import { CartProvider } from '../context/CartContext';
 import { TableProvider } from '../context/TableContext';
@@ -53,13 +54,6 @@ function AuthenticatedLayout() {
       return () => { subscription.remove() };
     }
   }, [handleAppStateChange]);
-
-  // Hide splash screen once auth is ready
-  useEffect(() => {
-    if (!isAuthLoading) {
-      SplashScreen.hideAsync();
-    }
-  }, [isAuthLoading]);
 
   // Handle navigation based on auth state
   useEffect(() => {
@@ -108,7 +102,15 @@ export default function RootLayout() {
   // Auth state will be evaluated separately
   useEffect(() => {
     if (loaded) {
-      // Don't hide splash screen yet - let AuthenticatedLayout handle it
+      // For mobile, we need to hide the splash screen after fonts load
+      // The AuthenticatedLayout will handle navigation
+      if (Platform.OS !== 'web') {
+        // Small delay to ensure auth context has initialized
+        const timer = setTimeout(() => {
+          SplashScreen.hideAsync();
+        }, 100);
+        return () => clearTimeout(timer);
+      }
     }
   }, [loaded]);
 
@@ -141,39 +143,41 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DefaultTheme : DarkTheme}>
-        <GestureHandlerRootView>
-          <PaperProvider>
-            <StripeWrapper>
-              <TabBarProvider>
-                {(Platform.OS === 'web' ? <NavBar /> : null) as any}
-                <TableProvider>
-                  <CartProvider>
-                    <Stack screenOptions={{ headerShown: false }}>
-                      <Stack.Screen name="(tabs)" />
-                      <Stack.Screen name="+not-found" />
-                      <Stack.Screen name="Intro" />
-                      <Stack.Screen name="Login" />
-                      <Stack.Screen name="Signup" />
-                    </Stack>
-                    <AuthenticatedLayout />
-                  </CartProvider>
-                </TableProvider>
-              </TabBarProvider>
-              <StatusBar style="auto" />
-              <ToastManager 
-                position='bottom'
-                bottomOffset={Platform.OS === 'web' ? 0 : 100}
-                showProgressBar={false}
-                showCloseIcon={true}
-                animationStyle="fade"
-                useModal={false}
-              />
-            </StripeWrapper>
-          </PaperProvider>
-        </GestureHandlerRootView>
-      </ThemeProvider>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DefaultTheme : DarkTheme}>
+          <GestureHandlerRootView>
+            <PaperProvider>
+              <StripeWrapper>
+                <TabBarProvider>
+                  {(Platform.OS === 'web' ? <NavBar /> : null) as any}
+                  <TableProvider>
+                    <CartProvider>
+                      <Stack screenOptions={{ headerShown: false }}>
+                        <Stack.Screen name="(tabs)" />
+                        <Stack.Screen name="+not-found" />
+                        <Stack.Screen name="Intro" />
+                        <Stack.Screen name="Login" />
+                        <Stack.Screen name="Signup" />
+                      </Stack>
+                      <AuthenticatedLayout />
+                    </CartProvider>
+                  </TableProvider>
+                </TabBarProvider>
+                <StatusBar style="auto" />
+                <ToastManager 
+                  position='bottom'
+                  bottomOffset={Platform.OS === 'web' ? 0 : 100}
+                  showProgressBar={false}
+                  showCloseIcon={true}
+                  animationStyle="fade"
+                  useModal={false}
+                />
+              </StripeWrapper>
+            </PaperProvider>
+          </GestureHandlerRootView>
+        </ThemeProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

@@ -119,8 +119,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setStoredItem(UID_KEY, newUid || ''),
                 setStoredItem(IS_AUTHENTICATED_KEY, 'true')
             ]);
-            // Fetch user role for web after login
-            fetchUserRole(newUid);
         } else {
             setAccessToken(newAccessToken);
             setRefreshToken(newRefreshToken);
@@ -143,6 +141,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setStoredItem(UID_KEY, newUid || '')
             ]);
         }
+        
+        // Fetch user role for both web and mobile after login
+        await fetchUserRole(newUid);
         
         console.log('loginTokens completed successfully');
     }, [fetchUserRole]);

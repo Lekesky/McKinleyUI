@@ -4,6 +4,7 @@ import ViewControl from "@/components/ViewSwitcher";
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 import { View } from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import styles from "../../styles/Home.styles";
 
 const VIEWS = ["Customer", "Waitress"];
@@ -11,9 +12,10 @@ const VIEWS = ["Customer", "Waitress"];
 export default function HomeScreen() {
   const { userRole } = useAuth();
   const [selectedIndex, setSelectedIndex] = useState<number>(userRole === 'CUSTOMER' ? 0 : 1);
+  const insets = useSafeAreaInsets();
   
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       
       {/* View Switcher */}
         {userRole && (userRole === 'WAITRESS' || userRole === 'ADMIN' || userRole === 'CHEF') && (

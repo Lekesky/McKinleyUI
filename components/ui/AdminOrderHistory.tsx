@@ -21,21 +21,31 @@ interface OrderedItem {
     quantity: number;
 }
 
+interface User {
+    uid: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    userRole: string;
+    signInMethod: string;
+    timeCreated: string;
+    registerPushToken: string | null;
+}
+
 type OrderHistory = {
     id: string;
-    customerId: string;
-    customerFirstName: string;
-    customerLastName: string;
-    waitressFirstName: string;
-    waitressLastName: string;
+    orderNumber: string;
+    customer: User;
+    waitress: User | null;
     tableNumber: number;
-    menuItemIds: string[];
+    menuItemIds?: string[];
     orderedItems?: OrderedItem[];
     status: string;
     paymentStatus: string;
     totalPrice: number;
     orderStartTime: string;
-    orderEndTime: string;
+    orderEndTime: string | null;
 }
 interface OrderSearchProps {
     readonly orderSearch: string;
@@ -147,8 +157,8 @@ export default function AdminOrderHistory({ orderSearch, menuItems } : OrderSear
     return (
         <FlatList
             data={orderHistory.filter(order =>
-                (order.customerFirstName + " " + order.customerLastName).toLowerCase().includes(orderSearch.toLowerCase()) ||
-                (order.waitressFirstName + " " + order.waitressLastName).toLowerCase().includes(orderSearch.toLowerCase()) ||
+                (order.customer?.firstName + " " + order.customer?.lastName).toLowerCase().includes(orderSearch.toLowerCase()) ||
+                (order.waitress?.firstName + " " + order.waitress?.lastName).toLowerCase().includes(orderSearch.toLowerCase()) ||
                 order.id.toLowerCase().includes(orderSearch.toLowerCase())
             )}
             contentContainerStyle={styles.orderList}
@@ -199,10 +209,10 @@ export default function AdminOrderHistory({ orderSearch, menuItems } : OrderSear
                     <OrderHistoryCard
                         key={order.id}
                         id={order.id}
-                        customerFirstName={order.customerFirstName}
-                        customerLastName={order.customerLastName}
-                        waitressFirstName={order.waitressFirstName}
-                        waitressLastName={order.waitressLastName}
+                        customerFirstName={order.customer?.firstName || ''}
+                        customerLastName={order.customer?.lastName || ''}
+                        waitressFirstName={order.waitress?.firstName || null}
+                        waitressLastName={order.waitress?.lastName || null}
                         tableNumber={order.tableNumber}
                         orderedItems={orderedItems}
                         status={order.status}

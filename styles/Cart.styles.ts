@@ -9,7 +9,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffffffff',
     },
     header: {
-        marginTop: 30,
         marginBottom: '1%',
         flexDirection: 'row',
         alignItems: 'center',
@@ -31,7 +30,13 @@ const styles = StyleSheet.create({
     },
     viewController: {
         alignSelf: "center",
-        marginTop: isWeb ? "1.5%" : "15%",
+        marginTop: isWeb ? "1.5%" : 15,
+    },
+    emptyCartContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 100, // Account for bottom tab bar
     }
 });
 

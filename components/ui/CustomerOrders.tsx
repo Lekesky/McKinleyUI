@@ -3,6 +3,7 @@ import { ActivityIndicator, FlatList, TouchableOpacity, View } from "react-nativ
 import OrderCard from '@/components/OrderCard';
 import { useAuth } from "@/context/AuthContext";
 import createAPIClient, { PageableResponse } from "@/services/api";
+import { router } from "expo-router";
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Text } from "react-native-paper";
@@ -51,8 +52,10 @@ export default function CustomerOrders() {
     const [userPageNumber, setUserPageNumber] = useState(0);
 
     const handleOrderPress = (orderId: string) => {
-
-        // Navigate to order details screen or perform another action
+        router.push({
+            pathname: '/OrderDetails',
+            params: { orderId }
+        });
     };
 
     const fetchUserOrders = useCallback(async(page = 0) => {

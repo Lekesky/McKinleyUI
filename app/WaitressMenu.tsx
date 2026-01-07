@@ -11,6 +11,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import { useCart } from '../context/CartContext';
 import { useTable } from '../context/TableContext';
@@ -43,6 +44,7 @@ const CATEGORIES = [
 
 export default function WaitressMenuScreen() {
   const api = React.useMemo(() => createAPIClient(), []);
+  const insets = useSafeAreaInsets();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -132,7 +134,7 @@ export default function WaitressMenuScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header with table info */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBackButton} style={styles.backButton}>

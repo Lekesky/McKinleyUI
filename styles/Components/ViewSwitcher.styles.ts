@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
   },
   segmentText: {
     fontSize: 14,
+    color: '#333',
   },
 });
-
 export default styles;

@@ -74,7 +74,7 @@ export default function WaitressCart( { waitressCart }: WaitressCartProps) {
 
                     <View style={styles.menuItemDetailsContainer}>
                       <View style={styles.menuItemName}>
-                        <Text style={{ fontFamily: 'Helvetica', fontWeight: 'bold', fontSize: 17 }}>{item.name}</Text>
+                        <Text style={{ fontFamily: 'Helvetica', fontWeight: 'bold', fontSize: 17, color: '#000' }}>{item.name}</Text>
                       </View>
                       <View style={styles.quantityPriceContainer}>
                         <TouchableOpacity onPress={() => removeFromCart(item.id, "WAITRESS")} style={styles.plusMinusButton}>
@@ -82,7 +82,7 @@ export default function WaitressCart( { waitressCart }: WaitressCartProps) {
                         </TouchableOpacity>
 
                         <View style={styles.quantityPrice}>
-                          <Text style={{ fontFamily: 'Helvetica', fontWeight: 'bold', fontSize: 14, }}>{item.quantity} x ${item.price}</Text>
+                          <Text style={{ fontFamily: 'Helvetica', fontWeight: 'bold', fontSize: 14, color: '#000' }}>{item.quantity} x ${item.price}</Text>
                         </View>
 
                         <TouchableOpacity onPress={() => addToCart(item, 1, "WAITRESS")} style={styles.plusMinusButton}>
@@ -93,7 +93,7 @@ export default function WaitressCart( { waitressCart }: WaitressCartProps) {
                     </View>
 
                     <View style={styles.menuItemPriceContainer}>
-                      <Text style={{ fontFamily: 'Helvetica', fontWeight: 'bold', textAlign: 'right' }}>${(item.quantity * Number.parseFloat(item.price)).toFixed(2)}</Text>
+                      <Text style={{ fontFamily: 'Helvetica', fontWeight: 'bold', textAlign: 'right', color: '#000' }}>${(item.quantity * Number.parseFloat(item.price)).toFixed(2)}</Text>
                     </View>
                 </View>
               );
@@ -101,20 +101,20 @@ export default function WaitressCart( { waitressCart }: WaitressCartProps) {
 
             <View style={styles.summary}>
               <View style= {styles.summaryColumn}>
-                  <Text>Total Items</Text>
-                  <Text>{getTotalItemCount("WAITRESS")}</Text>
+                  <Text style={{ color: '#333' }}>Total Items</Text>
+                  <Text style={{ color: '#333' }}>{getTotalItemCount("WAITRESS")}</Text>
               </View>
               <View style= {styles.summaryColumn}>
-                  <Text>Subtotal</Text>
-                  <Text>${getTotal("WAITRESS")}</Text>
+                  <Text style={{ color: '#333' }}>Subtotal</Text>
+                  <Text style={{ color: '#333' }}>${getTotal("WAITRESS")}</Text>
               </View>
               <View style= {styles.summaryColumn}>
-                  <Text>Tax</Text>
-                  <Text>{(tax * 100).toFixed(0)}%</Text>
+                  <Text style={{ color: '#333' }}>Tax</Text>
+                  <Text style={{ color: '#333' }}>{(tax * 100).toFixed(0)}%</Text>
               </View>
               <Divider/>
               <View style= {styles.summaryColumn}>
-                  <Text>Total</Text>
+                  <Text style={{ color: '#333' }}>Total</Text>
                   <Text style = {{ fontWeight: 'bold', color: '#871919ff' }}>${waitressTotal}</Text>
               </View>
             </View>

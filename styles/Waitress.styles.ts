@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
     },
     tableNum: {
         fontSize: 30,
+        color: '#000',
     },
     container: {
         flex: 1,
@@ -46,7 +47,8 @@ const styles = StyleSheet.create({
         textAlign: "center",
         fontSize: 60,
         fontWeight: 'bold',
-        alignItems: "center"
+        alignItems: "center",
+        color: '#000',
     },
     center: {
         flex: 1,

@@ -6,6 +6,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCart } from '../../context/CartContext';
 import styles from '../../styles/Cart.styles';
 
@@ -17,6 +18,7 @@ export default function Cart() {
     const { getActiveCart } = useCart();
     const customerCart = getActiveCart("CUSTOMER");
     const waitressCart = getActiveCart("WAITRESS");
+    const insets = useSafeAreaInsets();
     
     const [selectedIndex, setSelectedIndex] = useState<number>(
       defaultView === 'waitress' ? 1 : 
@@ -26,7 +28,7 @@ export default function Cart() {
     const goBackHandler = () => { router.back() }
 
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
 
         {Platform.OS !== 'web' && (
           <>
@@ -60,8 +62,10 @@ export default function Cart() {
         {/* Customer View*/}
         {selectedIndex === 0 && (
           customerCart.length === 0 ? (
-            <View>
-              <Text>Your cart is empty.</Text>
+            <View style={styles.emptyCartContainer}>
+              <Icon source="cart-outline" size={120} color="#d0d0d0" />
+              <Text style={{ fontSize: 18, color: '#666', marginTop: 20, fontFamily: 'Helvetica' }}>Your cart is empty</Text>
+              <Text style={{ fontSize: 14, color: '#999', marginTop: 8, fontFamily: 'Helvetica' }}>Start adding items to get started!</Text>
             </View>
           ) : (
             <CustomerCart customerCart={customerCart} />
@@ -71,8 +75,10 @@ export default function Cart() {
         {/* Waitress View */}
         { selectedIndex === 1 && (
           waitressCart.length === 0 ? (
-            <View>
-              <Text>Your cart is empty.</Text>
+            <View style={styles.emptyCartContainer}>
+              <Icon source="cart-outline" size={120} color="#d0d0d0" />
+              <Text style={{ fontSize: 18, color: '#666', marginTop: 20, fontFamily: 'Helvetica' }}>Your cart is empty</Text>
+              <Text style={{ fontSize: 14, color: '#999', marginTop: 8, fontFamily: 'Helvetica' }}>Start adding items to get started!</Text>
             </View>
           ) : (
             <WaitressCart waitressCart={waitressCart} />

@@ -40,10 +40,19 @@ export default StyleSheet.create({
   linkButton: {
     paddingHorizontal: 12,
     paddingVertical: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  linkButtonActive: {
+    borderBottomColor: '#871919',
   },
   linkText: {
     fontSize: 16,
     color: '#333',
+  },
+  linkTextActive: {
+    color: '#871919',
+    fontWeight: '600',
   },
   actions: {
     flex: 1,

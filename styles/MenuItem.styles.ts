@@ -1,7 +1,33 @@
-import { Dimensions, StyleSheet } from 'react-native';
+import { Dimensions, ImageStyle, StyleSheet, TextStyle, ViewStyle } from 'react-native';
 const { width } = Dimensions.get('window');
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create<{
+    container: ViewStyle;
+    loadingContainer: ViewStyle;
+    backButton: ViewStyle;
+    image: ImageStyle;
+    contentContainer: ViewStyle;
+    header: ViewStyle;
+    name: TextStyle;
+    price: TextStyle;
+    divider: ViewStyle;
+    descriptionTitle: TextStyle;
+    description: TextStyle;
+    quantityContainer: ViewStyle;
+    quantityLabel: TextStyle;
+    quantityControls: ViewStyle;
+    quantityButton: ViewStyle;
+    quantityText: TextStyle;
+    bottomButtonContainer: ViewStyle;
+    addToCartButton: ViewStyle;
+    modalOverlay: ViewStyle;
+    modalContent: ViewStyle;
+    scrollContentWeb: ViewStyle;
+    closeButton: ViewStyle;
+    imageWeb: ImageStyle;
+    contentContainerWeb: ViewStyle;
+    addToCartButtonWeb: ViewStyle;
+}>({
     container: {
         flex: 1,
         backgroundColor: '#fff',
@@ -13,10 +39,19 @@ const styles = StyleSheet.create({
     },
     backButton: {
         position: 'absolute',
-        top: 40,
-        left: 10,
+        left: 20,
         zIndex: 10,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: '#ffffffff',
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
     },
     image: {
         width: width,
@@ -45,6 +80,7 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         flex: 1,
+        color: '#000',
     },
     price: {
         fontSize: 22,
@@ -60,6 +96,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 8,
+        color: '#000',
     },
     description: {
         fontSize: 16,
@@ -75,6 +112,7 @@ const styles = StyleSheet.create({
     quantityLabel: {
         fontSize: 18,
         fontWeight: 'bold',
+        color: '#000',
     },
     quantityControls: {
         flexDirection: 'row',
@@ -90,6 +128,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 10,
         minWidth: 24,
         textAlign: 'center',
+        color: '#000',
     },
     bottomButtonContainer: {
         position: 'absolute',
@@ -101,6 +140,57 @@ const styles = StyleSheet.create({
         paddingBottom: 30,
     },
     addToCartButton: {
+        paddingVertical: 8,
+        backgroundColor: '#871919ff',
+    },
+    // Web-specific styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        maxWidth: 750,
+        width: '100%',
+        maxHeight: '85vh',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
+        elevation: 10,
+        overflow: 'hidden',
+    },
+    scrollContentWeb: {
+        flexGrow: 1,
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 15,
+        right: 15,
+        zIndex: 10,
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+    },
+    imageWeb: {
+        width: '100%',
+        height: 400,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+    },
+    contentContainerWeb: {
+        padding: 30,
+        paddingBottom: 20,
+    },
+    addToCartButtonWeb: {
+        marginTop: 25,
         paddingVertical: 8,
         backgroundColor: '#871919ff',
     },

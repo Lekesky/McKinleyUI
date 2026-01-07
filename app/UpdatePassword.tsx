@@ -5,12 +5,14 @@ import { router } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Platform, Text, TouchableOpacity, View } from 'react-native';
 import { Icon, TextInput } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import styles from '../styles/UpdatePassword.styles';
 
 export default function UpdatePassword() {
     const { uid } = useAuth();
     const api = useMemo(() => createAPIClient(), []);
+    const insets = useSafeAreaInsets();
     
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -111,7 +113,7 @@ export default function UpdatePassword() {
     }, [oldPassword, newPassword, uid, api]);
 
     return(
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
             {/* <ToastManager
                 config={toastConfig}
                 showProgressBar={false}

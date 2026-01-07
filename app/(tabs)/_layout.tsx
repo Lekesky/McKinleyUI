@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useMobileTabBar } from '@/context/TabBarContext';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Tabs } from 'expo-router';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Platform } from 'react-native';
 
 
@@ -21,9 +21,10 @@ export default function TabLayout() {
   return (
     <Tabs
     screenOptions={{
-      tabBarActiveTintColor: "#fcfcfcff", // Active tab icon color
-      tabBarInactiveTintColor: '#ffffff', // Inactive tab icon color (customize this)
+      tabBarActiveTintColor: "#fcfcfcff",
+      tabBarInactiveTintColor: "#d3a3a3",
       tabBarShowLabel: false,
+      headerPressOpacity: 1,
       headerShown: false,
       tabBarButton: HapticTab,
       tabBarStyle: {
@@ -47,14 +48,14 @@ export default function TabLayout() {
           },
           android: {
             elevation: 10,
+            rippleColor: 'transparent',
           },
         }),
       },
-       tabBarItemStyle: {
-          height: 60,
-          justifyContent: 'center',
-          paddingTop: 0,
-          marginTop: 8,
+      tabBarItemStyle: {
+        top: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
       },
     }}
   >
@@ -66,6 +67,7 @@ export default function TabLayout() {
         options={{
           title: tab.title,
           tabBarIcon: ({ color }: { color: string }) => {
+            
             if (tab.iconProvider === 'MaterialCommunityIcons') {
               return <MaterialCommunityIcons size={28} name={tab.iconName as any} color={color} />;
             }

@@ -5,7 +5,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#f8f8f8',
         paddingHorizontal: 18,
-        paddingTop: 45,
     },
     centeredContainer: {
         flex: 1,
@@ -223,7 +222,6 @@ const styles = StyleSheet.create({
         fontFamily: 'Helvetica',
     },
     header: {
-        marginTop: 30,
         marginBottom: "5%",
         flexDirection: 'row',
         alignItems: 'center',

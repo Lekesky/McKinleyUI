@@ -13,7 +13,6 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 20,
         left: 20,
-        marginTop: 30,
         marginBottom: "30%",
         flexDirection: 'row',
         alignItems: 'center',

@@ -218,7 +218,8 @@ const styles = (isCartPaused: boolean) => StyleSheet.create({
         textAlign: "center",
         fontSize: 60,
         fontWeight: 'bold',
-        alignItems: "center"
+        alignItems: "center",
+        color: '#000',
     },
     center: {
         flex: 1,

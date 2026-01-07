@@ -3,11 +3,7 @@ import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
-export const API_URL = Platform.OS === 'web'
-  ? "http://localhost:8080/api"
-  : Platform.OS === 'android'
-    ? "http://10.0.2.2:8080/api"  // Android emulator
-    : "http://localhost:8080/api";
+export const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const ACCESS_TOKEN_KEY = "access_token";
 const REFRESH_TOKEN_KEY = "refresh_token";

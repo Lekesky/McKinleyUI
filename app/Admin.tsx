@@ -10,6 +10,7 @@ import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Platform, TouchableOpacity, View } from 'react-native';
 import { Button, Dialog, Icon, Portal, Text, TextInput } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 
 import { useCart } from '@/context/CartContext';
@@ -19,6 +20,7 @@ export default function Admin() {
   const api = useMemo(() => createAPIClient(), []);
   const { accessToken, refreshAccessToken } = useAuth();
   const { hideTabBar, showTabBar } = useMobileTabBar();
+  const insets = useSafeAreaInsets();
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   // const [isPaused, setIsPaused] = useState<boolean>(false);
   const { isCartPaused: isPaused } = useCart();
@@ -81,7 +83,7 @@ export default function Admin() {
   }, [api]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={{ backgroundColor: '#ffffffff', zIndex: 10 }}>
 
         {Platform.OS !== 'web' ? ( 

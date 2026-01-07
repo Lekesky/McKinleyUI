@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Image, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import styles from '../styles/Intro.styles';
 
 
@@ -11,9 +12,10 @@ const handleSignInPage = () => {
 
 
 export default function Intro(){
+    const insets = useSafeAreaInsets();
     
     return(
-        <View style={styles.container1}>
+        <View style={[styles.container1, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
             <View style={styles.container2}>
                 <Image source={require("@/assets/images/McKinleysGrill.png")} style={styles.image} />
             </View>

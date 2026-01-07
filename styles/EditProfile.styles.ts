@@ -10,7 +10,6 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     header: {
-        marginTop: 30,
         position: "absolute",
         top: 20,
         left: 20,

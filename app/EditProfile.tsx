@@ -6,12 +6,14 @@ import { router } from "expo-router";
 import parsePhoneNumberFromString from "libphonenumber-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Icon, Text, TextInput } from "react-native-paper";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import styles from "../styles/EditProfile.styles";
 
 export default function EditProfile() {
     const { uid, accessToken } = useAuth();
     const api = useMemo(() => createAPIClient(), []);
+    const insets = useSafeAreaInsets();
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -116,7 +118,7 @@ export default function EditProfile() {
 
 
     return(
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
 
             {Platform.OS !== 'web' && (
                 <>

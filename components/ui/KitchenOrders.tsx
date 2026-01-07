@@ -1,5 +1,6 @@
 import OrderCardKitchen from '@/components/OrderCardKitchen';
 import createAPIClient, { PageableResponse } from '@/services/api';
+import { router } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { FlatList, TouchableOpacity, View } from "react-native";
 import { ActivityIndicator, Text } from "react-native-paper";
@@ -97,8 +98,10 @@ export default function KitchenOrders() {
     }, [api, kitchenHasMore, loadingMoreKitchen]);
 
     const handleOrderPress = (orderId: string) => {
-
-        // Navigate to order details screen or perform another action
+        router.push({
+            pathname: '/OrderDetails',
+            params: { orderId }
+        });
     };
     const orderCategories = ['All', 'In-Progress', 'Completed', 'Canceled'];
     const filteredKitchenOrders = kitchenOrders.filter(order => {

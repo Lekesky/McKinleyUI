@@ -2,8 +2,9 @@ import { useCart } from "@/context/CartContext";
 import createAPIClient from "@/services/api";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Image, SafeAreaView, View } from "react-native";
-import { Button, Divider, IconButton, Text } from "react-native-paper";
+import { Image, Modal, Platform, ScrollView, TouchableOpacity, View } from "react-native";
+import { Button, Divider, Icon, IconButton, Text } from "react-native-paper";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import styles from "../styles/MenuItem.styles";
 
@@ -19,6 +20,7 @@ interface MenuItem {
 export default function MenuItemScreen() {
     const { id } = useLocalSearchParams();
     const api = useMemo(() => createAPIClient(), []);
+    const insets = useSafeAreaInsets();
     const [menuItem, setMenuItem] = useState<MenuItem | null>(null);
     const [quantity, setQuantity] = useState(1);
     const { addToCart } = useCart();
@@ -61,66 +63,119 @@ export default function MenuItemScreen() {
     if (!menuItem) {
         return (
             <View style={styles.loadingContainer}>
-                <Text>Loading...</Text>
+                <Text style={{ color: '#000' }}>Loading...</Text>
             </View>
         );
     }
+
+    const isWeb = Platform.OS === 'web';
     
-    return (
-        <SafeAreaView style={styles.container}>
-                {/* Back Button */}
-                <IconButton
-                    icon="arrow-left"
-                    style={styles.backButton}
-                    iconColor="#fff"
-                    size={24}
-                    onPress={goBack}
-                />
+    const content = (
+        <>
+            {/* Food Image */}
+            <Image
+                source={{ uri: menuItem.imageURL }}
+                style={isWeb ? styles.imageWeb : styles.image}
+                resizeMode="cover"
+            />
+            
+            {/* Content Container */}
+            <View style={isWeb ? styles.contentContainerWeb : styles.contentContainer}>
+                <View style={styles.header}>
+                    <Text style={styles.name}>{menuItem.name}</Text>
+                    <Text style={styles.price}>${menuItem.price}</Text>
+                </View>
                 
-                {/* Food Image */}
-                <Image
-                    source={{ uri: menuItem.imageURL }}
-                    style={styles.image}
-                    resizeMode="cover"
-                />
+                <Divider style={styles.divider} />
                 
-                {/* Content Container */}
-                <View style={styles.contentContainer}>
-                    <View style={styles.header}>
-                        <Text style={styles.name}>{menuItem.name}</Text>
-                        <Text style={styles.price}>${menuItem.price}</Text>
-                    </View>
-                    
-                    <Divider style={styles.divider} />
-                    
-                    <Text style={styles.descriptionTitle}>Description</Text>
-                    <Text style={styles.description}>{menuItem.description}</Text>
-                    
-                    <Divider style={styles.divider} />
-                    
-                    {/* Quantity Selector */}
-                    <View style={styles.quantityContainer}>
-                        <Text style={styles.quantityLabel}>Quantity</Text>
-                        <View style={styles.quantityControls}>
-                            <IconButton
-                                icon="minus"
-                                style={styles.quantityButton}
-                                iconColor="#871919ff"
-                                size={20}
-                                onPress={handleDecrement}
-                            />
-                            <Text style={styles.quantityText}>{quantity}</Text>
-                            <IconButton
-                                icon="plus"
-                                style={styles.quantityButton}
-                                iconColor="#871919ff"
-                                size={20}
-                                onPress={handleIncrement}
-                            />
-                        </View>
+                <Text style={styles.descriptionTitle}>Description</Text>
+                <Text style={styles.description}>{menuItem.description}</Text>
+                
+                <Divider style={styles.divider} />
+                
+                {/* Quantity Selector */}
+                <View style={styles.quantityContainer}>
+                    <Text style={styles.quantityLabel}>Quantity</Text>
+                    <View style={styles.quantityControls}>
+                        <IconButton
+                            icon="minus"
+                            style={styles.quantityButton}
+                            iconColor="#871919ff"
+                            size={20}
+                            onPress={handleDecrement}
+                        />
+                        <Text style={styles.quantityText}>{quantity}</Text>
+                        <IconButton
+                            icon="plus"
+                            style={styles.quantityButton}
+                            iconColor="#871919ff"
+                            size={20}
+                            onPress={handleIncrement}
+                        />
                     </View>
                 </View>
-            {/* Add to Cart Button */}
+
+                {/* Add to Cart Button - For Web */}
+                {isWeb && (
+                    <Button
+                        mode="contained"
+                        style={styles.addToCartButtonWeb}
+                        onPress={handleAddToCart}
+                    >
+                        <Text style={{ color: '#fff' }}>Add to Cart - ${(parseFloat(menuItem.price) * quantity).toFixed(2)}</Text>
+                    </Button>
+                )}
+            </View>
+        </>
+    );
+
+    // Web Modal View
+    if (isWeb) {
+        return (
+            <Modal
+                visible={true}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={goBack}
+            >
+                <TouchableOpacity 
+                    style={styles.modalOverlay} 
+                    activeOpacity={1} 
+                    onPress={goBack}
+                >
+                    <TouchableOpacity 
+                        style={styles.modalContent} 
+                        activeOpacity={1}
+                        onPress={(e) => e.stopPropagation()}
+                    >
+                        <IconButton
+                            icon="close"
+                            style={styles.closeButton}
+                            iconColor="#871919ff"
+                            size={24}
+                            onPress={goBack}
+                        />
+                        <ScrollView 
+                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={styles.scrollContentWeb}
+                        >
+                            {content}
+                        </ScrollView>
+                    </TouchableOpacity>
+                </TouchableOpacity>
+            </Modal>
+        );
+    }
+    
+    // Mobile Full Screen View
+    return (
+        <View style={styles.container}>
+            {/* Back Button */}
+            <TouchableOpacity onPress={goBack} style={[styles.backButton, { top: insets.top + 10 }]}>
+                <Icon source="arrow-left" size={24} color="#3c3c3cff" />
+            </TouchableOpacity>
+            {content}
+            {/* Add to Cart Button - For Mobile */}
             <View style={styles.bottomButtonContainer}>
                 <Button
                     mode="contained"
@@ -130,7 +185,7 @@ export default function MenuItemScreen() {
                     Add to Cart - ${(parseFloat(menuItem.price) * quantity).toFixed(2)}
                 </Button>
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 

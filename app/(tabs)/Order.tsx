@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Platform, Text, TouchableOpacity, View } from 'react-native';
 import { Icon } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import styles from '../../styles/Order.styles';
 
 const VIEWS = ["Customer", "Kitchen"];
@@ -13,10 +14,11 @@ const VIEWS = ["Customer", "Kitchen"];
 export default function OrderScreen() {
     const { userRole } = useAuth();
     const [selectedIndex, setSelectedIndex] = useState<number>(userRole === 'CUSTOMER' ? 0 : 1);
+    const insets = useSafeAreaInsets();
     const goBackHandler = () => { router.back() }
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
 
             {Platform.OS !== 'web' && (
                 <>

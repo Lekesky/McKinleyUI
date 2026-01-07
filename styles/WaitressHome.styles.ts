@@ -5,15 +5,17 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        height: Dimensions.get('window').height - 190,
+        height: Dimensions.get('window').height - 250,
         paddingVertical: 20,
     },
     waitressContainer: {
         width: '90%',
+        maxWidth: 500,
         paddingVertical: 30,
         paddingHorizontal: 15,
         backgroundColor: '#ffffff',
         alignItems: 'center',
+        justifyContent: 'center',
     },
     waitressTitle: {
         fontSize: 28,

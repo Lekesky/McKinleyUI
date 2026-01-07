@@ -65,17 +65,17 @@ export default function CustomerCart( { customerCart }: CustomerCartProps) {
 
                             <View style={styles.menuItemDetailsContainer}>
                                 <View style={styles.menuItemName}>
-                                    <Text style={{ fontFamily: 'Helvetica', fontWeight: 'bold', fontSize: 17 }}>{item.name}</Text>
+                                    <Text style={{ fontFamily: 'Helvetica', fontWeight: 'bold', fontSize: 17, color: '#000' }}>{item.name}</Text>
                                 </View>
                                 <View style={styles.quantityPriceContainer}>
                                     <View style={styles.quantityPrice}>
-                                        <Text style={{ fontFamily: 'Helvetica', fontWeight: 'bold', fontSize: 14, }}>{item.quantity} x ${item.price}</Text>
+                                        <Text style={{ fontFamily: 'Helvetica', fontWeight: 'bold', fontSize: 14, color: '#000' }}>{item.quantity} x ${item.price}</Text>
                                     </View>
                                     <View style={{ justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                                         <TouchableOpacity onPress={() => removeFromCart(item.id, "CUSTOMER")} style={styles.plusMinusButton}>
                                             <Icon source="minus" size={20} color='#ffffff' />
                                         </TouchableOpacity>
-                                        <Text>{item.quantity}</Text>
+                                        <Text style={{ color: '#333' }}>{item.quantity}</Text>
                                         <TouchableOpacity onPress={() => addToCart(item, 1, "CUSTOMER")} style={styles.plusMinusButton}>
                                             <Icon source="plus" size={20} color='#ffffff' />
                                         </TouchableOpacity>
@@ -84,7 +84,7 @@ export default function CustomerCart( { customerCart }: CustomerCartProps) {
                             </View>
 
                             <View style={styles.menuItemPriceContainer}>
-                                <Text style={{ fontFamily: 'Helvetica', fontWeight: 'bold', textAlign: 'right' }}>${(item.quantity * Number.parseFloat(item.price)).toFixed(2)}</Text>
+                                <Text style={{ fontFamily: 'Helvetica', fontWeight: 'bold', textAlign: 'right', color: '#000' }}>${(item.quantity * Number.parseFloat(item.price)).toFixed(2)}</Text>
                             </View>
                         </View>
                     );
@@ -92,20 +92,20 @@ export default function CustomerCart( { customerCart }: CustomerCartProps) {
 
                 <View style={styles.summary}>
                     <View style= {styles.summaryColumn}>
-                        <Text>Total Items</Text>
-                        <Text>{getTotalItemCount("CUSTOMER")}</Text>
+                        <Text style={{ color: '#333' }}>Total Items</Text>
+                        <Text style={{ color: '#333' }}>{getTotalItemCount("CUSTOMER")}</Text>
                     </View>
                     <View style= {styles.summaryColumn}>
-                        <Text>Subtotal</Text>
-                        <Text>${subTotal.toFixed(2)}</Text>
+                        <Text style={{ color: '#333' }}>Subtotal</Text>
+                        <Text style={{ color: '#333' }}>${subTotal.toFixed(2)}</Text>
                     </View>
                     <View style= {styles.summaryColumn}>
-                        <Text>Tax</Text>
-                        <Text>${taxAmount.toFixed(2)}</Text>
+                        <Text style={{ color: '#333' }}>Tax</Text>
+                        <Text style={{ color: '#333' }}>${taxAmount.toFixed(2)}</Text>
                     </View>
                     <Divider/>
                     <View style= {styles.summaryColumn}>
-                        <Text>Total</Text>
+                        <Text style={{ color: '#333' }}>Total</Text>
                         <Text style = {{ fontWeight: 'bold', color: '#871919ff' }}>${total.toFixed(2)}</Text>
                     </View>
                 </View>

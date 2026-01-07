@@ -9,7 +9,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffffffff' 
     },
     header: {
-        marginTop: 30,
         marginBottom: "30%",
         flexDirection: 'row',
         alignItems: 'center',

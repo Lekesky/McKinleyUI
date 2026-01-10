@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import styles from '../styles/components/OrderDetailsCard.styles';
 

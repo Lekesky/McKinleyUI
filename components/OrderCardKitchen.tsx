@@ -1,5 +1,5 @@
 import createAPIClient from '@/services/api';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { Toast } from 'toastify-react-native';

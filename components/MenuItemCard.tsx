@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import { Image, TouchableOpacity, View } from "react-native";
 import { Card, Text } from "react-native-paper";
 import styles from "../styles/components/MenuItemCard.styles";

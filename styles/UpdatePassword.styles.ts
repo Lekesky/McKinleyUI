@@ -7,7 +7,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         flex: 1, 
         padding: 20,
-        backgroundColor: '#ffffffff' 
+        backgroundColor: '#ffffffff',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                padding: 16,
+            },
+        }),
     },
     header: {
         position: 'absolute',
@@ -17,12 +23,26 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 20,
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                top: 16,
+                left: 16,
+                gap: 12,
+            },
+        }),
     },
     profileTitle: {
         fontSize: 24,
         color: '#871919ff',
         fontWeight: 'bold',
         fontFamily: 'Helvetica',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                fontSize: 20,
+            },
+        }),
     },
     backButton: { 
         backgroundColor: '#e8e8e8ff', 
@@ -30,7 +50,14 @@ const styles = StyleSheet.create({
         height: 50, 
         borderRadius: 25, 
         justifyContent: 'center', 
-        alignItems: 'center' 
+        alignItems: 'center',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                width: 44,
+                height: 44,
+            },
+        }),
     },
     updatePasswordButton: { 
         backgroundColor: '#871919ff', 
@@ -38,12 +65,26 @@ const styles = StyleSheet.create({
         height: 58, 
         borderRadius: 30, 
         justifyContent: 'center',
-        alignItems: 'center' 
+        alignItems: 'center',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                height: 52,
+                marginTop: 16,
+            },
+        }),
     },
     updatePasswordForm: {
         alignSelf: 'center',
-        width: isWeb ? 1000 : '100%',
+        width: isWeb ? '100%' : '100%',
+        maxWidth: isWeb ? 600 : undefined,
         marginTop: 10,
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                maxWidth: '100%',
+            },
+        }),
     },
     requirements: {
         alignSelf: 'stretch',

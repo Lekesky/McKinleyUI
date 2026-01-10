@@ -1,10 +1,18 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create({
     container: { 
         flex: 1, 
         padding: 20, 
-        backgroundColor: '#ffffffff' 
+        backgroundColor: '#ffffffff',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                padding: 15,
+            },
+        }),
     },
     header: { 
         marginBottom: 10, 
@@ -17,7 +25,13 @@ const styles = StyleSheet.create({
         fontSize: 24, 
         color: '#871919ff', 
         fontWeight: 'bold', 
-        fontFamily: 'Helvetica' 
+        fontFamily: 'Helvetica',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                fontSize: 20,
+            },
+        }),
     },
     backButton: { 
         backgroundColor: '#e8e8e8ff', 

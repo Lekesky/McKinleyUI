@@ -1,4 +1,6 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create({
     orderList: {
@@ -12,6 +14,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 80,
         paddingHorizontal: 32,
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                paddingVertical: 60,
+                paddingHorizontal: 24,
+            },
+        } as any),
     },
     emptyIcon: {
         marginBottom: 16,
@@ -27,6 +35,12 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         lineHeight: 24,
         fontFamily: 'Helvetica',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 16,
+                lineHeight: 22,
+            },
+        } as any),
     },
     emptySubtext: {
         textAlign: 'center',

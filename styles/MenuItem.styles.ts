@@ -1,5 +1,6 @@
-import { Dimensions, ImageStyle, StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { Dimensions, ImageStyle, Platform, StyleSheet, TextStyle, ViewStyle } from 'react-native';
 const { width } = Dimensions.get('window');
+const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create<{
     container: ViewStyle;
@@ -52,11 +53,25 @@ const styles = StyleSheet.create<{
         shadowOpacity: 0.25,
         shadowRadius: 4,
         elevation: 5,
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                width: 44,
+                height: 44,
+                left: 16,
+            },
+        } as any),
     },
     image: {
         width: width,
         // height: width * 0.75,
         height: 530,
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                height: 400,
+            },
+        } as any),
     },
     contentContainer: {
         marginTop: -35,
@@ -69,6 +84,13 @@ const styles = StyleSheet.create<{
         shadowOpacity: 0.1,
         shadowRadius: 6,
         borderRadius: 35,
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                padding: 16,
+                borderRadius: 24,
+            },
+        } as any),
     },
     header: {
         flexDirection: 'row',
@@ -81,11 +103,23 @@ const styles = StyleSheet.create<{
         fontWeight: 'bold',
         flex: 1,
         color: '#000',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                fontSize: 20,
+            },
+        } as any),
     },
     price: {
         fontSize: 22,
         fontWeight: 'bold',
         color: '#871919ff',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                fontSize: 20,
+            },
+        } as any),
     },
     divider: {
         marginVertical: 15,
@@ -97,22 +131,43 @@ const styles = StyleSheet.create<{
         fontWeight: 'bold',
         marginBottom: 8,
         color: '#000',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 16,
+            },
+        } as any),
     },
     description: {
         fontSize: 16,
         lineHeight: 24,
         color: '#555',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 14,
+                lineHeight: 20,
+            },
+        } as any),
     },
     quantityContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginVertical: 20,
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                marginVertical: 16,
+            },
+        } as any),
     },
     quantityLabel: {
         fontSize: 18,
         fontWeight: 'bold',
         color: '#000',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 16,
+            },
+        } as any),
     },
     quantityControls: {
         flexDirection: 'row',
@@ -129,6 +184,12 @@ const styles = StyleSheet.create<{
         minWidth: 24,
         textAlign: 'center',
         color: '#000',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 16,
+                marginHorizontal: 8,
+            },
+        } as any),
     },
     bottomButtonContainer: {
         position: 'absolute',
@@ -138,6 +199,12 @@ const styles = StyleSheet.create<{
         paddingHorizontal: 20,
         paddingTop: 10,
         paddingBottom: 30,
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                paddingHorizontal: 16,
+                paddingBottom: 24,
+            },
+        } as any),
     },
     addToCartButton: {
         paddingVertical: 8,
@@ -163,6 +230,12 @@ const styles = StyleSheet.create<{
         shadowRadius: 10,
         elevation: 10,
         overflow: 'hidden',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                maxWidth: '95%',
+                borderRadius: 16,
+            },
+        } as any),
     },
     scrollContentWeb: {
         flexGrow: 1,
@@ -184,10 +257,23 @@ const styles = StyleSheet.create<{
         height: 400,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                height: 300,
+                borderTopLeftRadius: 16,
+                borderTopRightRadius: 16,
+            },
+        } as any),
     },
     contentContainerWeb: {
         padding: 30,
         paddingBottom: 20,
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                padding: 20,
+                paddingBottom: 16,
+            },
+        } as any),
     },
     addToCartButtonWeb: {
         marginTop: 25,

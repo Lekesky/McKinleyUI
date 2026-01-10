@@ -2,9 +2,9 @@ import { useAuth } from '@/context/AuthContext';
 import createAPIClient from '@/services/api';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Image, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
-import { Button, Icon, Snackbar, Text, TextInput } from 'react-native-paper';
+import { Button, Icon, Text, TextInput } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import styles from '../styles/EditProducts.styles';
@@ -16,21 +16,26 @@ export default function EditProduct() {
     const { product } = useLocalSearchParams(); // Retrieve the product details
     const productString = Array.isArray(product) ? product[0] : product;
     const parsedProduct = JSON.parse(productString);
-    const [id] = React.useState(parsedProduct.id); // Use the id from parsed product or empty string
-    const [name, setName] = React.useState(parsedProduct.name);
-    const [description, setDescription] = React.useState(parsedProduct.description);
-    const [price, setPrice] = React.useState(parsedProduct.price.toString());
-    const [imageURL] = React.useState(parsedProduct.imageURL);
-    const [image, setImage] = React.useState<string | null>(null);
-    const [loading, setLoading] = React.useState(false);
-    const [snackbarVisible, setSnackbarVisible] = React.useState(false);
-    const [snackbarMessage, setSnackbarMessage] = React.useState('');
+    const [id] = useState(parsedProduct.id); // Use the id from parsed product or empty string
+    const [name, setName] = useState(parsedProduct.name);
+    const [description, setDescription] = useState(parsedProduct.description);
+    const [price, setPrice] = useState(parsedProduct.price.toString());
+    const [imageURL] = useState(parsedProduct.imageURL);
+    const [featured, setFeatured] = useState(parsedProduct.featured || false);
+    const [image, setImage] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
     const api = useMemo(() => createAPIClient(), []);
 
     const handleSave = useCallback(() => {
         if (!image) {
-            setSnackbarMessage("Please select an image for menu item.");
-            setSnackbarVisible(true);
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Please select an image for menu item.',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
             return;
         }
 
@@ -64,15 +69,19 @@ export default function EditProduct() {
             },
         })
             .then(() => {
-                setSnackbarMessage('Menu item added successfully!');
-                setSnackbarVisible(true);
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'Menu item added successfully!',
+                    position: 'top',
+                    backgroundColor: '#4CAF50',
+                    textColor: '#FFFFFF',
+                });
                 setTimeout(() => router.back(), 1500);
             })
             .catch((error) => {
                 const errorMessage = error.response?.data || error.message || 'Error adding menu item';
                 const displayMessage = typeof errorMessage === 'string' ? errorMessage : 'Error adding menu item. Please try again.';
-                setSnackbarMessage(displayMessage);
-                setSnackbarVisible(true);
                 Toast.show({
                     type: 'error',
                     text1: 'Error',
@@ -89,8 +98,14 @@ export default function EditProduct() {
 
     const handleSaveEdit = useCallback(() => {
         if (!image && !imageURL) {
-            setSnackbarMessage("Please select an image for menu item.");
-            setSnackbarVisible(true);
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Please select an image for menu item.',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
             return;
         }
 
@@ -127,15 +142,19 @@ export default function EditProduct() {
             },
         })
             .then(() => {
-                setSnackbarMessage('Menu item updated successfully!');
-                setSnackbarVisible(true);
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'Menu item updated successfully!',
+                    position: 'top',
+                    backgroundColor: '#4CAF50',
+                    textColor: '#FFFFFF',
+                });
                 setTimeout(() => router.back(), 1500);
             })
             .catch((error) => {
                 const errorMessage = error.response?.data || error.message || 'Error updating menu item';
                 const displayMessage = typeof errorMessage === 'string' ? errorMessage : 'Error updating menu item. Please try again.';
-                setSnackbarMessage(displayMessage);
-                setSnackbarVisible(true);
                 Toast.show({
                     type: 'error',
                     text1: 'Error',
@@ -155,15 +174,19 @@ export default function EditProduct() {
         
         api.delete(`menu/${id}`)
             .then(() => {
-                setSnackbarMessage('Menu item deleted successfully!');
-                setSnackbarVisible(true);
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'Menu item deleted successfully!',
+                    position: 'top',
+                    backgroundColor: '#4CAF50',
+                    textColor: '#FFFFFF',
+                });
                 setTimeout(() => router.back(), 1500);
             })
             .catch((error) => {
                 const errorMessage = error.response?.data || error.message || 'Error deleting menu item';
                 const displayMessage = typeof errorMessage === 'string' ? errorMessage : 'Error deleting menu item. Please try again.';
-                setSnackbarMessage(displayMessage);
-                setSnackbarVisible(true);
                 Toast.show({
                     type: 'error',
                     text1: 'Error',
@@ -177,6 +200,39 @@ export default function EditProduct() {
                 setLoading(false);
             });
     }, [api, id, router]);
+
+    const handleToggleFeatured = useCallback(() => {
+        setLoading(true);
+        
+        api.patch(`menu/featured/${id}`)
+            .then(() => {
+                setFeatured(!featured);
+                const successMessage = `Menu item ${!featured ? 'marked as featured' : 'removed from featured'}!`;
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: successMessage,
+                    position: 'top',
+                    backgroundColor: '#4CAF50',
+                    textColor: '#FFFFFF',
+                });
+            })
+            .catch((error) => {
+                const errorMessage = error.response?.data || error.message || 'Error updating featured status';
+                const displayMessage = typeof errorMessage === 'string' ? errorMessage : 'Error updating featured status. Please try again.';
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: displayMessage,
+                    position: 'top',
+                    backgroundColor: '#871919ff',
+                    textColor: '#FFFFFF',
+                });
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, [api, id, featured]);
 
     const handleSelectImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -210,7 +266,7 @@ export default function EditProduct() {
                     {/* Header with Back Button */}
                     <View style={styles.header}>
                         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                            <Icon source="arrow-left" size={24} color="#3c3c3cff" />
+                            <Icon source="arrow-left" size={24} color="#fff" />
                         </TouchableOpacity>
                         <Text style={styles.headerTitle}>
                             {parsedProduct.id !== "" ? "Edit Menu Item" : "Add Menu Item"}
@@ -224,6 +280,7 @@ export default function EditProduct() {
                     <Text style={styles.inputLabel}>Product Name</Text>
                     <TextInput
                         mode="outlined"
+                        textColor='#2e2e2eff'
                         style={styles.input}
                         value={name}
                         onChangeText={setName}
@@ -237,6 +294,7 @@ export default function EditProduct() {
                     <Text style={styles.inputLabel}>Description</Text>
                     <TextInput
                         mode="outlined"
+                        textColor='#2e2e2eff'
                         multiline={true}
                         numberOfLines={4}
                         style={styles.descriptionInput}
@@ -252,6 +310,7 @@ export default function EditProduct() {
                     <Text style={styles.inputLabel}>Price ($)</Text>
                     <TextInput
                         mode="outlined"
+                        textColor='#2e2e2eff'
                         style={styles.input}
                         value={price}
                         onChangeText={setPrice}
@@ -298,11 +357,12 @@ export default function EditProduct() {
                                 onPress={handleSelectImage}
                                 style={styles.imageButton}
                                 buttonColor="#871919ff"
+                                textColor="#fff"
                                 disabled={loading}
                                 labelStyle={{ fontFamily: 'Helvetica', fontWeight: 'bold', fontSize: 16 }}
                                 contentStyle={{ height: 58 }}
                             >
-                                Select Image
+                                <Text style={styles.buttonText}>Select Image</Text>
                             </Button>
                             
                             <Button 
@@ -311,14 +371,36 @@ export default function EditProduct() {
                                 onPress={handleTakePhoto}
                                 style={styles.imageButton}
                                 buttonColor="#871919ff"
+                                textColor="#fff"
                                 disabled={loading}
                                 labelStyle={{ fontFamily: 'Helvetica', fontWeight: 'bold', fontSize: 16 }}
                                 contentStyle={{ height: 58 }}
                             >
-                                Take Photo
+                                <Text style={styles.buttonText}>Take Photo</Text>
                             </Button>
                         </View>
                     </View>
+
+                    {parsedProduct.id !== "" && (
+                        <View style={styles.featuredSection}>
+                            <Text style={styles.sectionTitle}>Featured Status</Text>
+                            <Button 
+                                mode="contained" 
+                                icon={featured ? "star" : "star-outline"}
+                                onPress={handleToggleFeatured}
+                                style={styles.featuredButton}
+                                buttonColor={featured ? "#FFD700" : "#871919ff"}
+                                textColor={featured ? "#000" : "#fff"}
+                                disabled={loading}
+                                labelStyle={{ fontFamily: 'Helvetica', fontWeight: 'bold', fontSize: 16 }}
+                                contentStyle={{ height: 58 }}
+                            >
+                                <Text style={[styles.buttonText, featured && { color: '#000' }]}>
+                                    {featured ? "Remove from Featured" : "Mark as Featured"}
+                                </Text>
+                            </Button>
+                        </View>
+                    )}
 
                     <View style={styles.actionButtonsContainer}>
                         {parsedProduct.id !== "" && (
@@ -327,11 +409,12 @@ export default function EditProduct() {
                                 mode="contained" 
                                 onPress={handleDelete}
                                 icon="delete"
+                                textColor="#fff"
                                 disabled={loading}
                                 labelStyle={{ fontFamily: 'Helvetica', fontWeight: 'bold', fontSize: 16 }}
                                 contentStyle={{ height: 58 }}
                             >
-                                Delete Item
+                                <Text style={styles.buttonText}>Delete Item</Text>
                             </Button>
                         )}
                         
@@ -341,30 +424,17 @@ export default function EditProduct() {
                             onPress={parsedProduct.id !== "" ? handleSaveEdit : handleSave}
                             icon="content-save"
                             buttonColor="#871919ff"
+                            textColor="#fff"
                             disabled={loading}
                             loading={loading}
                             labelStyle={{ fontFamily: 'Helvetica', fontWeight: 'bold', fontSize: 16 }}
                             contentStyle={{ height: 58 }}
                         >
-                            Save
+                            <Text style={styles.buttonText}>Save</Text>
                         </Button>
                     </View>
                 </View>
             </ScrollView>
-
-            {/* Snackbar for showing messages */}
-            <Snackbar
-                visible={snackbarVisible}
-                onDismiss={() => setSnackbarVisible(false)}
-                duration={3000}
-                style={styles.snackbar}
-                action={{
-                    label: 'OK',
-                    onPress: () => setSnackbarVisible(false),
-                }}
-            >
-                {snackbarMessage}
-            </Snackbar>
         </View>
     );
 }

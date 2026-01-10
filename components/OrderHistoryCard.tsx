@@ -2,7 +2,7 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
-import styles from '../styles/Components/OrderHistoryCard.styles';
+import styles from '../styles/components/OrderHistoryCard.styles';
 
 interface OrderedItem {
     id: string;

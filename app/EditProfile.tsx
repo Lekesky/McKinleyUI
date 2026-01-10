@@ -1,17 +1,41 @@
-import { Platform, TouchableOpacity, View } from "react-native";
+import { Alert, Platform, ScrollView, TouchableOpacity, View } from "react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import createAPIClient from "@/services/api";
 import { router } from "expo-router";
 import parsePhoneNumberFromString from "libphonenumber-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Icon, Text, TextInput } from "react-native-paper";
+import { Icon, Menu, Text, TextInput } from "react-native-paper";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import styles from "../styles/EditProfile.styles";
 
+// Common country dialing codes
+const DIALING_CODES = [
+    { code: '+1', country: 'US/Canada' },
+    { code: '+44', country: 'UK' },
+    { code: '+91', country: 'India' },
+    { code: '+86', country: 'China' },
+    { code: '+81', country: 'Japan' },
+    { code: '+49', country: 'Germany' },
+    { code: '+33', country: 'France' },
+    { code: '+39', country: 'Italy' },
+    { code: '+34', country: 'Spain' },
+    { code: '+61', country: 'Australia' },
+    { code: '+55', country: 'Brazil' },
+    { code: '+52', country: 'Mexico' },
+    { code: '+7', country: 'Russia' },
+    { code: '+82', country: 'South Korea' },
+    { code: '+31', country: 'Netherlands' },
+    { code: '+46', country: 'Sweden' },
+    { code: '+47', country: 'Norway' },
+    { code: '+41', country: 'Switzerland' },
+    { code: '+65', country: 'Singapore' },
+    { code: '+64', country: 'New Zealand' },
+];
+
 export default function EditProfile() {
-    const { uid, accessToken } = useAuth();
+    const { uid } = useAuth();
     const api = useMemo(() => createAPIClient(), []);
     const insets = useSafeAreaInsets();
     const [firstName, setFirstName] = useState('');
@@ -19,6 +43,7 @@ export default function EditProfile() {
     const [email, setEmail] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [dialingCode, setDialingCode] = useState('+1');
+    const [menuVisible, setMenuVisible] = useState(false);
     const [firstNameError, setFirstNameError] = useState(false);
     const [lastNameError, setLastNameError] = useState(false);
     const [phoneNumberError, setPhoneNumberError] = useState(false);
@@ -133,40 +158,118 @@ export default function EditProfile() {
             )}
 
             <View style={styles.updateProfileForm}>
-                {firstNameError && <Text style={styles.errorText}>First Name is required</Text>}
-                <TextInput mode="outlined" placeholder="First Name" value={firstName} onChangeText={setFirstName} style={styles.textInput} outlineStyle={styles.textInputOutline} error={firstNameError} outlineColor={firstNameError ? '#871919ff' : 'rgba(135, 25, 25, 0)'} activeOutlineColor="#871919ff"/>
-                {lastNameError && <Text style={styles.errorText}>Last Name is required</Text>}
-                <TextInput mode="outlined" placeholder="Last Name" value={lastName} onChangeText={setLastName} style={styles.textInput} outlineStyle={styles.textInputOutline} error={lastNameError} outlineColor={lastNameError ? '#871919ff' : 'rgba(135, 25, 25, 0)'} activeOutlineColor="#871919ff"/>
-                <TextInput mode="outlined" placeholder="Email" value={email} onChangeText={setEmail} style={styles.textInputDisable} outlineStyle={styles.textInputOutline} editable={false} outlineColor={'rgba(135, 25, 25, 0)'} activeOutlineColor="#871919ff" textColor="#6e6e6eff"/>
-                {/* Phone Number with Dialing Code */}
-                {phoneNumberError && <Text style={styles.errorText}>Phone Number is invalid</Text>}
-                <View style={styles.phoneNumberContainer}>
-                    <TextInput
-                        mode="outlined"
-                        placeholder="+1"
-                        value={dialingCode}
-                        onChangeText={setDialingCode}
-                        style={[styles.textInput, styles.dialingCodeInput]}
-                        outlineStyle={styles.textInputOutline}
-                        outlineColor={'rgba(135, 25, 25, 0)'}
-                        activeOutlineColor="#871919ff"
-                    />
-                    <TextInput
-                        mode="outlined"
-                        placeholder="Phone Number"
-                        value={phoneNumber}
-                        onChangeText={setPhoneNumber}
-                        style={[styles.textInput, styles.phoneNumberInput]}
-                        outlineStyle={styles.textInputOutline}
-                        error={phoneNumberError}
-                        keyboardType="phone-pad"
-                        outlineColor={phoneNumberError ? 'red' : 'rgba(135, 25, 25, 0)'}
-                        activeOutlineColor="#871919ff"
-                    />
+                {/* Avatar Section */}
+                <View style={styles.avatarSection}>
+                    <View style={styles.avatarContainer}>
+                        <Icon source="account" size={60} color="#871919ff" />
+                    </View>
+                    <Text style={styles.avatarLabel}>Profile Information</Text>
                 </View>
-                <View>
+
+                {/* Form Card */}
+                <View style={styles.formCard}>
+                    {/* Personal Information Section */}
+                    <Text style={styles.sectionTitle}>Personal Information</Text>
+                    
+                    {firstNameError && <Text style={styles.errorText}>First Name is required</Text>}
+                    <TextInput 
+                        mode="outlined" 
+                        placeholder="First Name" 
+                        value={firstName} 
+                        onChangeText={setFirstName} 
+                        style={styles.textInput} 
+                        outlineStyle={styles.textInputOutline} 
+                        error={firstNameError} 
+                        outlineColor={firstNameError ? '#871919ff' : 'rgba(135, 25, 25, 0)'} 
+                        activeOutlineColor="#871919ff" 
+                        textColor='#333'
+                        left={<TextInput.Icon icon="account" color="#871919ff" />}
+                    />
+                    
+                    {lastNameError && <Text style={styles.errorText}>Last Name is required</Text>}
+                    <TextInput 
+                        mode="outlined" 
+                        placeholder="Last Name" 
+                        value={lastName} 
+                        onChangeText={setLastName} 
+                        style={styles.textInput} 
+                        outlineStyle={styles.textInputOutline} 
+                        error={lastNameError} 
+                        outlineColor={lastNameError ? '#871919ff' : 'rgba(135, 25, 25, 0)'} 
+                        activeOutlineColor="#871919ff" 
+                        textColor='#333'
+                        left={<TextInput.Icon icon="account-outline" color="#871919ff" />}
+                    />
+                    
+                    {/* Contact Information Section */}
+                    <Text style={styles.sectionTitle}>Contact Information</Text>
+                    
+                    <TextInput 
+                        mode="outlined" 
+                        placeholder="Email" 
+                        value={email} 
+                        onChangeText={setEmail} 
+                        style={styles.textInputDisable} 
+                        outlineStyle={styles.textInputOutline} 
+                        editable={false} 
+                        outlineColor={'rgba(135, 25, 25, 0)'} 
+                        activeOutlineColor="#871919ff" 
+                        textColor="#333"
+                        left={<TextInput.Icon icon="email" color="#999" />}
+                    />
+                    {/* Phone Number with Dialing Code */}
+                    {phoneNumberError && <Text style={styles.errorText}>Phone Number is invalid</Text>}
+                    <View style={styles.phoneNumberContainer}>
+                        <Menu
+                            visible={menuVisible}
+                            onDismiss={() => setMenuVisible(false)}
+                            anchor={
+                                <TouchableOpacity 
+                                    onPress={() => setMenuVisible(true)}
+                                    style={styles.dialingCodeButton}
+                                >
+                                    <Icon source="phone" size={20} color="#871919ff" />
+                                    <Text style={styles.dialingCodeText}>{dialingCode}</Text>
+                                    <Icon source="chevron-down" size={20} color="#871919ff" />
+                                </TouchableOpacity>
+                            }
+                            contentStyle={styles.menuContent}
+                        >
+                            <ScrollView style={styles.menuScrollView}>
+                                {DIALING_CODES.map((item) => (
+                                    <Menu.Item
+                                        key={item.code}
+                                        onPress={() => {
+                                            setDialingCode(item.code);
+                                            setMenuVisible(false);
+                                        }}
+                                        title={`${item.code} (${item.country})`}
+                                        titleStyle={dialingCode === item.code ? styles.selectedMenuItem : styles.menuItemText}
+                                    />
+                                ))}
+                            </ScrollView>
+                        </Menu>
+                        <TextInput
+                            mode="outlined"
+                            placeholder="Phone Number"
+                            value={phoneNumber}
+                            onChangeText={setPhoneNumber}
+                            style={[styles.textInput, styles.phoneNumberInput]}
+                            outlineStyle={styles.textInputOutline}
+                            error={phoneNumberError}
+                            keyboardType="phone-pad"
+                            outlineColor={phoneNumberError ? 'red' : 'rgba(135, 25, 25, 0)'}
+                            activeOutlineColor="#871919ff"
+                            textColor="#333"
+                        />
+                    </View>
+                </View>
+                
+                {/* Update Button */}
+                <View style={styles.buttonContainer}>
                     <TouchableOpacity onPress={handleEditProfile} style={styles.updatePasswordButton}>
-                        <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>Update Profile</Text>
+                        <Icon source="check-circle" size={20} color="#ffffff" />
+                        <Text style={styles.buttonText}>Update Profile</Text>
                     </TouchableOpacity>
                 </View>
             </View>

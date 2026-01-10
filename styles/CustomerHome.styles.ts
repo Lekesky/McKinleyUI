@@ -1,7 +1,18 @@
 import { Dimensions, Platform, StyleSheet } from 'react-native';
 const isWeb = Platform.OS === 'web';
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffffff', paddingHorizontal: isWeb ? 80 : 40, alignItems: isWeb ? 'center' : 'stretch' },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#ffffffff', 
+    paddingHorizontal: isWeb ? 80 : 40, 
+    alignItems: isWeb ? 'center' : 'stretch',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        paddingHorizontal: 16,
+      },
+    }),
+  },
   disabledInput: {
     // This ensures the input is visually disabled
     color: 'transparent',
@@ -23,6 +34,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     alignSelf: isWeb ? 'center' : 'auto',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        height: 80,
+        paddingHorizontal: 10,
+        marginTop: 10,
+      },
+    }),
   },
   searchButton: {
     backgroundColor: '#e8e8e8ff', 
@@ -30,22 +49,53 @@ const styles = StyleSheet.create({
     height: 50, 
     borderRadius: 25, 
     justifyContent: 'center', 
-    alignItems: 'center' 
+    alignItems: 'center',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+      },
+    }),
   },
   greetingText: { 
     fontSize: 32, 
     fontWeight: '700', 
     color: '#871919ff', 
     fontFamily: 'Helvetica',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        fontSize: 24,
+      },
+      // @ts-ignore
+      '@media (max-width: 480px)': {
+        fontSize: 20,
+      },
+    }),
   },
   buttonSegment: { 
     marginHorizontal: 5,
     marginVertical: 20, 
-    backgroundColor: '#871919ff' 
+    backgroundColor: '#871919ff',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        marginVertical: 10,
+      },
+    }),
   },
   pillContainer: { 
     flexDirection: 'row',
     alignSelf: isWeb ? 'center' : 'auto',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+      },
+    }),
   },
   selectedButton: {
     backgroundColor: '#600e0eff',
@@ -57,12 +107,25 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: isWeb ? 1800 : "auto",
     alignSelf: 'center',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        paddingHorizontal: 10,
+        marginBottom: 20,
+      },
+    }),
   },
   sectionTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     marginVertical: 10,
     color: '#333',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        fontSize: 20,
+      },
+    }),
   },
   menuItemsGrid: {
     flexDirection: 'row',
@@ -71,6 +134,13 @@ const styles = StyleSheet.create({
     justifyContent: isWeb ? 'flex-start' : 'center',
     alignItems: 'flex-start',
     gap: isWeb ? 25 : 0,
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        justifyContent: 'center',
+        gap: 15,
+      },
+    }),
   },
   searchContainer: {
     height: 56,
@@ -80,7 +150,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingLeft: 20,
     justifyContent: 'flex-end',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        height: 48,
+        borderRadius: 10,
+        paddingLeft: 15,
+      },
+    }),
   },
   searchIcon: {
     width: 50,
@@ -89,6 +167,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 0, 
     position: 'relative',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        width: 40,
+        height: 40,
+      },
+    }),
   },
   inputContainer: {
     flex: 1,
@@ -102,16 +187,34 @@ const styles = StyleSheet.create({
     color: '#333',
     paddingVertical: 0,
     textAlignVertical: 'center',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        fontSize: 14,
+      },
+    }),
   },
   emptyState: {
     padding: 40,
     alignItems: 'center',
     justifyContent: 'center',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        padding: 20,
+      },
+    }),
   },
   emptyStateText: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        fontSize: 14,
+      },
+    }),
   },
   waitressContainerWrapper: {
     flex: 1,
@@ -119,6 +222,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: Dimensions.get('window').height - 190,
     paddingVertical: 20,
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        paddingVertical: 10,
+      },
+    }),
   },
   waitressContainer: {
     width: '90%',
@@ -126,6 +235,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     backgroundColor: '#ffffff',
     alignItems: 'center',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        width: '95%',
+        paddingVertical: 20,
+        paddingHorizontal: 10,
+      },
+    }),
   },
   waitressTitle: {
     fontSize: 28,
@@ -133,16 +250,35 @@ const styles = StyleSheet.create({
     color: '#871919ff',
     marginBottom: 30,
     fontFamily: 'Helvetica',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        fontSize: 22,
+        marginBottom: 20,
+      },
+    }),
   },
   tableLayout: {
     width: '100%',
     marginVertical: 20,
     alignItems: 'center',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        marginVertical: 10,
+      },
+    }),
   },
   tableRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginBottom: 15,
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        marginBottom: 10,
+      },
+    }),
   },
   tableButton: {
     width: 70,
@@ -162,6 +298,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        width: 60,
+        height: 60,
+        marginHorizontal: 6,
+      },
+      // @ts-ignore
+      '@media (max-width: 480px)': {
+        width: 50,
+        height: 50,
+        marginHorizontal: 4,
+      },
+    }),
   },
   selectedTableButton: {
     backgroundColor: '#871919ff',
@@ -171,6 +321,16 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        fontSize: 20,
+      },
+      // @ts-ignore
+      '@media (max-width: 480px)': {
+        fontSize: 18,
+      },
+    }),
   },
   selectedTableText: {
     color: '#fff',
@@ -190,6 +350,14 @@ const styles = StyleSheet.create({
     width: 220,
     borderRadius: 30,
     marginTop: 20,
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        height: 50,
+        width: 180,
+        marginTop: 15,
+      },
+    }),
   },
   disabledButton: {
     backgroundColor: '#cccccc',
@@ -201,6 +369,12 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
     fontSize: 18,
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        fontSize: 16,
+      },
+    }),
   },
 });
 

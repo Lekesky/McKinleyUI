@@ -1,4 +1,6 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create({
     loadingMore: {
@@ -13,7 +15,12 @@ const styles = StyleSheet.create({
     container: { 
         flex: 1, 
         padding: 20,
-        backgroundColor: '#ffffffff' 
+        backgroundColor: '#ffffffff',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                padding: 16,
+            },
+        } as any),
     },
     header: {
         marginTop: 30,
@@ -21,12 +28,23 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 20,
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                gap: 12,
+                marginTop: 20,
+            },
+        } as any),
     },
     headerTitle: {
         fontSize: 24,
         color: '#871919ff',
         fontWeight: 'bold',
         fontFamily: 'Helvetica',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 20,
+            },
+        } as any),
     },
     backButton: { 
         backgroundColor: '#e8e8e8ff', 
@@ -34,7 +52,14 @@ const styles = StyleSheet.create({
         height: 50, 
         borderRadius: 25, 
         justifyContent: 'center', 
-        alignItems: 'center' 
+        alignItems: 'center',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+            },
+        } as any),
     },
     filterContainer: {
         flexDirection: 'row',

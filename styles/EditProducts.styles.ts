@@ -1,9 +1,11 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create({
     container: { 
         flex: 1, 
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
     },
     header: {
         flexDirection: 'row',
@@ -11,7 +13,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingBottom: 20,
         backgroundColor: '#ffffff',
-        marginBottom: 0
+        marginBottom: 0,
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                paddingHorizontal: 16,
+                paddingBottom: 16,
+            },
+        }),
     },
     backButton: { 
         backgroundColor: '#e8e8e8ff', 
@@ -20,17 +29,37 @@ const styles = StyleSheet.create({
         borderRadius: 25, 
         justifyContent: 'center', 
         alignItems: 'center',
-        marginRight: 16
+        marginRight: 16,
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                width: 44,
+                height: 44,
+                marginRight: 12,
+            },
+        }),
     },
     headerTitle: {
         fontSize: 24,
         fontWeight: 'bold',
         color: '#871919ff',
-        fontFamily: 'Helvetica'
+        fontFamily: 'Helvetica',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                fontSize: 20,
+            },
+        }),
     },
     formContainer: {
         padding: 20,
-        paddingTop: 20
+        paddingTop: 20,
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                padding: 16,
+            },
+        }),
     },
     inputLabel: {
         fontSize: 14,
@@ -50,7 +79,8 @@ const styles = StyleSheet.create({
         borderColor: '#e0e0e0'
     },
     descriptionInput: {
-        marginBottom: 20,
+        marginBottom: 20,  
+        // color: '#4e4e4eff',
         borderRadius: 15,
         backgroundColor: '#ffffff',
         textAlignVertical: 'top',
@@ -134,6 +164,13 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         gap: 12
     },
+    buttonText :{
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: '600',
+        textAlign: 'center',
+        fontFamily: 'Helvetica'
+    },
     imageButton: {
         flex: 1,
         marginHorizontal: 0,
@@ -166,6 +203,21 @@ const styles = StyleSheet.create({
     saveButton: { 
         marginTop: 0,
         marginBottom: 10,
+        borderRadius: 30,
+        height: 56,
+        justifyContent: 'center',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 3
+    },
+    featuredSection: {
+        marginTop: 20,
+        marginBottom: 20
+    },
+    featuredButton: {
+        marginTop: 8,
         borderRadius: 30,
         height: 56,
         justifyContent: 'center',

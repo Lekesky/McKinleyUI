@@ -35,7 +35,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     CUSTOMER: [],
     WAITRESS: []
   });
-  const { accessToken, refreshAccessToken } = useAuth();
+  const { accessToken, refreshAccessToken, isAuthenticated } = useAuth();
   const [isCartPaused, setIsCartPaused] = useState<boolean>(false);
 
   const loadCart = useCallback(() => {
@@ -66,6 +66,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+      // Only establish SSE connection if user is authenticated
+      if (!isAuthenticated) {
+        return;
+      }
+      
       const url = `${API_URL}/orders/stream?streamMessage=FULFILLMENT_STATUS`;
       
       if (Platform.OS === 'web') {
@@ -119,7 +124,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         });
 
         sse.addEventListener('error', (error) => {
-          if(JSON.stringify(error).includes('403')){
+          // Only attempt refresh if still authenticated
+          if(isAuthenticated && JSON.stringify(error).includes('403')){
             refreshAccessToken();
           }
         });
@@ -128,7 +134,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           sse.close();
         };
       }
-  },[accessToken, refreshAccessToken]);
+  },[isAuthenticated, accessToken, refreshAccessToken]);
 
 
   const addToCart = useCallback((item: MenuItem, quantity: number, type: CartType = 'CUSTOMER') => {

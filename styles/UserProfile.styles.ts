@@ -1,10 +1,18 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create({
     scrollContainer: {
         flex: 1,
         backgroundColor: '#f8f8f8',
         paddingHorizontal: 18,
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                paddingHorizontal: 16,
+            },
+        }),
     },
     centeredContainer: {
         flex: 1,
@@ -19,6 +27,12 @@ const styles = StyleSheet.create({
         borderRadius: 25,
         alignSelf: 'center',
         width: '50%',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                width: '70%',
+            },
+        }),
     },
     profileCard: {
         backgroundColor: '#fff',
@@ -32,6 +46,14 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         borderWidth: 1,
         borderColor: '#e0e0e0',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                padding: 16,
+                marginBottom: 16,
+                borderRadius: 12,
+            },
+        }),
     },
     profileTitle: {
         fontSize: 24,
@@ -39,6 +61,12 @@ const styles = StyleSheet.create({
         color: '#871919ff',
         marginBottom: 10,
         fontFamily: 'Helvetica',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                fontSize: 20,
+            },
+        }),
     },
     profileDetail: {
         flexDirection: 'row',

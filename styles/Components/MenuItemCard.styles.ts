@@ -4,12 +4,23 @@ const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create({
     cardContainer: {
-    // Use flex-basis and maxWidth for predictable wrapping on web; full-width on mobile
     flexBasis: isWeb ? '30%' : '100%',
     maxWidth: isWeb ? '30%' : '100%',
     flexGrow: 0,
     marginVertical: isWeb ? 10 : 6,
     marginHorizontal: isWeb ? 12 : 0,
+    ...(isWeb && {
+      '@media (max-width: 768px)': {
+        flexBasis: '45%',
+        maxWidth: '45%',
+        marginHorizontal: 8,
+      },
+      '@media (max-width: 480px)': {
+        flexBasis: '100%',
+        maxWidth: '100%',
+        marginHorizontal: 0,
+      },
+    } as any),
   },
   card: {
     borderRadius: 12,
@@ -29,12 +40,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 4,
     color: '#000',
+    ...(isWeb && {
+      '@media (max-width: 768px)': {
+        fontSize: 14,
+      },
+    } as any),
   },
   description: {
     fontSize: 12,
     color: '#666',
     marginBottom: 8,
     lineHeight: 16,
+    ...(isWeb && {
+      '@media (max-width: 768px)': {
+        fontSize: 11,
+        lineHeight: 14,
+      },
+    } as any),
   },
   price: {
     fontSize: 16,

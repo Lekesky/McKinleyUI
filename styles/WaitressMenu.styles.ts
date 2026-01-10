@@ -9,6 +9,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: isWeb ? 80 : 20,
     paddingVertical: 20,
     alignItems: isWeb ? 'center' : 'stretch',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        paddingHorizontal: 16,
+        paddingVertical: 16,
+      },
+    }),
   },
   // Header styles - updated to match Order.tsx
   header: {

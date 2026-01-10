@@ -9,7 +9,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import styles from '../styles/Components/ViewSwitcher.styles';
+import styles from '../styles/components/ViewSwitcher.styles';
 
 interface ViewSwitchProps {
   values: string[];

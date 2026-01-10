@@ -42,10 +42,10 @@ function AuthenticatedLayout() {
 
   // Handle app state changes (mobile only - web doesn't have AppState)
   const handleAppStateChange = useCallback((nextAppState: AppStateStatus) => {
-    if (!isAuthLoading && nextAppState === 'active' && refreshToken) {
+    if (!isAuthLoading && nextAppState === 'active' && isAuthenticated && refreshToken) {
       refreshAccessToken();
     }
-  }, [refreshToken, refreshAccessToken, isAuthLoading]);
+  }, [refreshToken, refreshAccessToken, isAuthLoading, isAuthenticated]);
 
   // Setup app state listener for mobile platforms
   useEffect(() => {
@@ -59,35 +59,36 @@ function AuthenticatedLayout() {
   useEffect(() => {
     if (isAuthLoading) return;
 
-    const inPublicRoute = segments[0] === 'Intro' || segments[0] === 'Login' || segments[0] === 'Signup';
+    const inPublicRoute = segments[0] === 'Intro' || segments[0] === 'Login' || segments[0] === 'Signup' || segments.length === 0;
 
-    if (!isAuthenticated && !inPublicRoute) {
-      // User is not authenticated and not on a public route
-      console.log('Redirecting to public route (not authenticated)');
+    // Redirect logic - only redirect if user explicitly needs to be in a different place
+    // Don't redirect if already on index (landing page)
+    if (!isAuthenticated && !inPublicRoute && segments[0] !== 'index') {
+      // User is not authenticated and trying to access protected route
+      console.log('Redirecting to login (not authenticated)');
       if (Platform.OS !== 'web') {
         router.replace('/Intro');
       } else {
         router.replace('/Login');
       }
-    } else if (isAuthenticated && inPublicRoute) {
-      // User is authenticated but on a public route - send to home
-      console.log('Redirecting to Home (authenticated)');
+    } else if (isAuthenticated && (segments[0] === 'Login' || segments[0] === 'Signup')) {
+      // User is authenticated but on login/signup page - send to home
+      console.log('Redirecting to Home (already authenticated)');
       router.replace('/(tabs)/Home');
     }
   }, [isAuthLoading, isAuthenticated, segments]);
 
-  // Auto-refresh access token
+  // Auto-refresh access token based on TTL
   useEffect(() => {
-    if (isAuthLoading) return;
+    if (isAuthLoading || !isAuthenticated || !refreshToken) return;
     
     const ttl = accessTokenTTL || 5 * 60 * 1000; // Default to 5 minutes if TTL not available
     const interval = setInterval(() => {
-      if (refreshToken) {
-        refreshAccessToken();
-      }
+      refreshAccessToken();
     }, ttl * 0.9); // Refresh at 90% of TTL
+    
     return () => clearInterval(interval);
-  }, [accessTokenTTL, refreshToken, refreshAccessToken, isAuthLoading]);
+  }, [accessTokenTTL, refreshToken, refreshAccessToken, isAuthLoading, isAuthenticated]);
 
   return null;
 }

@@ -18,13 +18,22 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         elevation: 8,
         position: 'relative',
-        minWidth: isWeb ? 1200 : '100%',
-        width: isWeb ? undefined : '100%',
+        maxWidth: isWeb ? 1200 : '100%',
+        width: '100%',
         alignSelf: 'center',
         // Add a subtle background gradient effect for more depth
         ...(isWeb && {
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)',
-        }),
+            '@media (max-width: 768px)': {
+                padding: 16,
+                marginHorizontal: 4,
+                borderRadius: 12,
+            },
+            '@media (max-width: 480px)': {
+                padding: 12,
+                marginHorizontal: 0,
+            },
+        } as any),
     },
     header: {
         flexDirection: 'row',
@@ -36,6 +45,11 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         color: '#871919ff',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 14,
+            },
+        } as any),
     },
     date: {
         fontSize: 12,
@@ -69,16 +83,32 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         width: 30,
         color: '#444',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 13,
+                width: 24,
+            },
+        } as any),
     },
     itemName: {
         fontSize: 14,
         flex: 1,
         color: '#333',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 13,
+            },
+        } as any),
     },
     itemPrice: {
         fontSize: 14,
         fontWeight: '500',
         color: '#333',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 13,
+            },
+        } as any),
     },
     moreItems: {
         fontSize: 12,

@@ -32,7 +32,7 @@ const CATEGORIES = [
   'Drinks'
 ]
 export default function CustomerHome() {
-    const { uid, accessToken, refreshAccessToken } = useAuth();
+    const { uid, accessToken, refreshAccessToken, isAuthenticated } = useAuth();
     const api = useMemo(() => createAPIClient(), []); 
     const [firstName, setFirstName] = useState<string>('');
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -119,6 +119,11 @@ export default function CustomerHome() {
     }, [isSearchExpanded, animatedWidth, animatedOpacity, animatedGreetingOpacity]);
 
     useEffect(() => {
+      // Only establish SSE connection if user is authenticated
+      if (!isAuthenticated) {
+        return;
+      }
+      
       const url = `${API_URL}/orders/stream?streamMessage=FULFILLMENT_STATUS`;
       
       if (Platform.OS === 'web') {
@@ -194,7 +199,8 @@ export default function CustomerHome() {
 
         sse.addEventListener('error', (error) => {
           console.error('SSE error:', error);
-          if(JSON.stringify(error).includes('403')){
+          // Only attempt refresh if still authenticated
+          if(isAuthenticated && JSON.stringify(error).includes('403')){
             refreshAccessToken();
           }
         });
@@ -204,7 +210,7 @@ export default function CustomerHome() {
           sse.close();
         };
       }
-    }, [accessToken, refreshAccessToken]);
+    }, [isAuthenticated, accessToken, refreshAccessToken]);
 
     const handleSearch = useCallback((text: string) => {
         setSearchQuery(text);
@@ -215,6 +221,8 @@ export default function CustomerHome() {
     }, []);
 
     const fetchUserData = useCallback(() => {
+        if (!uid) return Promise.resolve();
+        
         return api.get(`/user/${uid}`)
             .then((res) => setFirstName(res.data.firstName))
             .catch((error) => {

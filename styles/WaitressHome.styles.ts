@@ -1,4 +1,6 @@
-import { Dimensions, StyleSheet } from 'react-native';
+import { Dimensions, Platform, StyleSheet } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create({
     waitressContainerWrapper: {
@@ -16,6 +18,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffffff',
         alignItems: 'center',
         justifyContent: 'center',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                paddingVertical: 24,
+                paddingHorizontal: 12,
+                width: '95%',
+            },
+        } as any),
     },
     waitressTitle: {
         fontSize: 28,
@@ -23,6 +32,12 @@ const styles = StyleSheet.create({
         color: '#871919ff',
         marginBottom: 30,
         fontFamily: 'Helvetica',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 24,
+                marginBottom: 20,
+            },
+        } as any),
     },
     tableLayout: {
         width: '100%',
@@ -52,6 +67,13 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 3,
         elevation: 3,
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                width: 60,
+                height: 60,
+                marginHorizontal: 6,
+            },
+        } as any),
     },
     selectedTableButton: {
         backgroundColor: '#871919ff',

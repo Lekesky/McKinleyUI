@@ -1,11 +1,11 @@
 import { router } from "expo-router";
 import * as jwt from 'jose';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { Platform } from "react-native"; // For web session tracking
+import { Platform } from "react-native";
 import { Toast } from "toastify-react-native";
 
-// Import storage utilities from api.tsx
-import createAPIClient, { deleteStoredItem, getStoredItem, setStoredItem } from "@/services/api";
+// Import storage utilities and logout flag setter from api.tsx
+import createAPIClient, { deleteStoredItem, getStoredItem, setLoggingOut, setStoredItem } from "@/services/api";
 
 type AuthContextType = {
     uid: string | null;
@@ -27,6 +27,22 @@ const REFRESH_TOKEN_KEY = "refresh_token";
 const ACCESS_TOKEN_KEY = "access_token";
 const UID_KEY = "uid";
 const IS_AUTHENTICATED_KEY = "is_authenticated";
+
+// Helper function to check if access token is expired or about to expire
+const isTokenExpired = (token: string, bufferSeconds: number = 30): boolean => {
+    try {
+        const payload = jwt.decodeJwt(token);
+        if (!payload.exp) return true;
+        
+        const currentTime = Math.floor(Date.now() / 1000);
+        return payload.exp < (currentTime + bufferSeconds);
+    } catch {
+        return true; // If we can't decode, consider it expired
+    }
+};
+
+// Export for potential use in other components
+export { isTokenExpired };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const api = useMemo(() => createAPIClient(), []);
@@ -63,8 +79,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     const refreshAccessToken = useCallback(() => {
-        // For web, cookies are sent automatically. For mobile, we need the refresh token
-        if (Platform.OS !== 'web' && !refreshToken) return Promise.resolve();
+        // Don't attempt refresh if no tokens available (mobile) or not authenticated
+        if (Platform.OS !== 'web' && !refreshToken) {
+            return Promise.resolve();
+        }
+        
+        if (!isAuthenticated) {
+            return Promise.resolve();
+        }
         
         // Use a direct axios call to avoid interceptor loops
         // For web, send empty body (cookies are automatically sent)
@@ -99,8 +121,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             })
             .catch((error) => {
                 console.error('Token refresh failed:', error);
+                // On refresh failure, clear auth state
+                deleteRefreshToken();
             });
-    }, [api, refreshToken, deleteRefreshToken]);
+    }, [api, refreshToken, isAuthenticated, deleteRefreshToken]);
 
     const loginTokens = useCallback(async (newAccessToken: string, newRefreshToken: string, newUid: string) => {
         console.log('loginTokens called with:', { 
@@ -149,101 +173,82 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, [fetchUserRole]);
     
     const logout = useCallback(async () => {
-        // For web, also call the logout endpoint to clear HTTP-only cookies
-        if (Platform.OS === 'web') {
-             api.post('/user/logout')
-                .then(async (res) => {
-                    if(res.status === 200){
-                        await deleteRefreshToken();
-                        router.replace('/Intro');
-                    }
-                }).catch((error) => {
-                    const errorMessage = error.response?.data || error.message || 'Failed to logout';
-                    Toast.show({
-                        type: 'error',
-                        text1: 'Logout Error',
-                        text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to logout',
-                        position: 'top',
-                        backgroundColor: '#871919ff',
-                        textColor: '#FFFFFF',
-                    });
+        try {
+            // Set logout flag to prevent refresh attempts during logout
+            setLoggingOut(true);
+            
+            // Clear local state and storage FIRST to prevent interceptor from trying to refresh
+            await deleteRefreshToken();
+            
+            // Then call the API logout endpoint
+            const payload = Platform.OS === 'web' ? {} : { refreshToken };
+            await api.post('/user/logout', payload)
+                .catch((error) => {
+                    // Log error but don't show to user since logout succeeded locally
+                    console.warn('Logout API call failed (already logged out locally):', error);
                 });
-        }else{
-            api.post('/user/logout', { refreshToken: refreshToken })
-                .then(async (res) => {
-                    if(res.status === 200){
-                        await deleteRefreshToken();
-                        router.replace('/Intro');
-                    }
-                }).catch((error) => {
-                    const errorMessage = error.response?.data || error.message || 'Failed to logout';
-                    Toast.show({
-                        type: 'error',
-                        text1: 'Logout Error',
-                        text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to logout',
-                        position: 'top',
-                        backgroundColor: '#871919ff',
-                        textColor: '#FFFFFF',
-                    });
-                });
+            
+            // Navigate to home/login page
+            router.replace('/');
+            
+        } catch (error) {
+            console.error('Logout error:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Logout Error',
+                text2: 'An error occurred during logout',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
+        } finally {
+            // Always reset the logout flag
+            setLoggingOut(false);
         }
-    }, [api, deleteRefreshToken]);
+    }, [api, refreshToken, deleteRefreshToken]);
 
     const deleteAccount = useCallback(async () => {
-        // For web, also call the delete account endpoint to clear HTTP-only cookies
-        if (Platform.OS === 'web') {
-            api.delete(`/user/${uid}`)
-                .then(async (res) => {
-                    if (res.status === 200) {
-                        Toast.show({
-                            type: 'success',
-                            text1: 'Success',
-                            text2: 'Account deleted successfully',
-                            position: 'top',
-                            backgroundColor: '#4CAF50',
-                            textColor: '#FFFFFF',
-                        });
-                        router.replace('/Intro');
-                    }
-                }).catch((error) => {
-                    const errorMessage = error.response?.data || error.message || 'Failed to delete account';
-                    Toast.show({
-                        type: 'error',
-                        text1: 'Error',
-                        text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to delete account',
-                        position: 'top',
-                        backgroundColor: '#871919ff',
-                        textColor: '#FFFFFF',
-                    });
-                });
-        }else{
-            api.delete(`/user/${uid}`)
-                .then(async (res) => {
-                    if (res.status === 200) {
-                        Toast.show({
-                            type: 'success',
-                            text1: 'Success',
-                            text2: 'Account deleted successfully',
-                            position: 'top',
-                            backgroundColor: '#4CAF50',
-                            textColor: '#FFFFFF',
-                        });
-                        router.replace('/Intro');
-                    }
-                }).catch((error) => {
-                    const errorMessage = error.response?.data || error.message || 'Failed to delete account';
-                    Toast.show({
-                        type: 'error',
-                        text1: 'Error',
-                        text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to delete account',
-                        position: 'top',
-                        backgroundColor: '#871919ff',
-                        textColor: '#FFFFFF',
-                    });
-                });
+        if (!uid) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'No user ID found',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
+            return;
         }
-
-        }, [api]);
+        
+        try {
+            await api.delete(`/user/${uid}`);
+            
+            // Clear auth state after successful deletion
+            await deleteRefreshToken();
+            
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: 'Account deleted successfully',
+                position: 'top',
+                backgroundColor: '#4CAF50',
+                textColor: '#FFFFFF',
+            });
+            
+            router.replace('/Intro');
+            
+        } catch (error: any) {
+            const errorMessage = error.response?.data || error.message || 'Failed to delete account';
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to delete account',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
+        }
+    }, [api, uid, deleteRefreshToken]);
 
     //Load tokens from storage (SecureStore for mobile, cookies for web) when the app starts
     useEffect(() => {
@@ -292,6 +297,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setIsAuthLoading(false);
         })();
     }, [fetchUserRole]);
+
+    // Auto-refresh token before it expires
+    useEffect(() => {
+        if (!isAuthenticated || !accessTokenTTL) {
+            return;
+        }
+
+        // Refresh token at 80% of its lifetime to ensure it's refreshed before expiration
+        const refreshTime = accessTokenTTL * 0.8;
+        
+        const timerId = setTimeout(() => {
+            refreshAccessToken();
+        }, refreshTime);
+
+        return () => {
+            clearTimeout(timerId);
+        };
+    }, [isAuthenticated, accessTokenTTL, refreshAccessToken]);
 
     return(
         <AuthContext.Provider value={{ uid, accessToken, accessTokenTTL, refreshToken, isAuthenticated, loginTokens, logout,  deleteAccount, refreshAccessToken, userRole, isAuthLoading }}>

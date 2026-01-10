@@ -141,12 +141,12 @@ export default function Admin() {
           </View>
         )}
 
-        <View style={{ flexWrap: "wrap", flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginVertical: 20, marginHorizontal: 10, gap: 1, maxWidth: "100%" }}>
+        <View style={{ alignItems: 'center', justifyContent: 'center', marginVertical: 20, width: '100%', paddingHorizontal: 10 }}>
           <ViewControl
             values={["Analytics", "Members", "Menu", "Order History"]}
             selectedIndex={selectedIndex}
             onChange={setSelectedIndex}
-            width={Platform.OS === 'web' ? 600 : 410}
+            width={Platform.OS === 'web' ? Math.min(600, typeof window !== 'undefined' ? window.innerWidth - 40 : 600) : 410}
             height={40}
             activeColor="#ffffff"
             inactiveColor="#e8e8e8ff"

@@ -5,19 +5,42 @@ const isWeb = Platform.OS === 'web';
 const styles = StyleSheet.create({
   scrollContainer: {
     paddingBottom: 20,
+    width: '100%',
   },
   menuItemsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: isWeb ? 'flex-start' : 'center',
     paddingHorizontal: isWeb ? 8 : 16,
+    width: '100%',
+    ...(isWeb && {
+      '@media (max-width: 1024px)': {
+        justifyContent: 'center',
+      },
+      '@media (max-width: 768px)': {
+        paddingHorizontal: 8,
+      },
+      '@media (max-width: 480px)': {
+        paddingHorizontal: 4,
+      },
+    } as any),
   },
   cardContainer: {
-    flexBasis: isWeb ? '30%' : '100%',
-    maxWidth: isWeb ? '30%' : '100%',
+    flexBasis: '100%',
+    maxWidth: '100%',
+    minWidth: '100%',
     flexGrow: 0,
+    flexShrink: 0,
     marginVertical: isWeb ? 10 : 6,
-    marginHorizontal: isWeb ? 12 : 0,
+    marginHorizontal: 0,
+    ...(isWeb && {
+      '@media (min-width: 1440px)': {
+        flexBasis: '30%',
+        maxWidth: '30%',
+        minWidth: undefined,
+        marginHorizontal: '1.5%',
+      },
+    } as any),
   },
   menuItemCard: {
     backgroundColor: '#ffffff',
@@ -50,12 +73,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 4,
+    ...(isWeb && {
+      '@media (max-width: 768px)': {
+        fontSize: 14,
+      },
+    } as any),
   },
   menuItemDescription: {
     fontSize: 12,
     color: '#666',
     marginBottom: 8,
     lineHeight: 16,
+    ...(isWeb && {
+      '@media (max-width: 768px)': {
+        fontSize: 11,
+        lineHeight: 14,
+      },
+    } as any),
   },
   menuItemPrice: {
     fontSize: 16,

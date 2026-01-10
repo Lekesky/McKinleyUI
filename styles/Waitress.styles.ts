@@ -1,4 +1,7 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
+
 const styles = StyleSheet.create({
     enterBoxStyle: {
         backgroundColor: "#53c851",
@@ -9,12 +12,27 @@ const styles = StyleSheet.create({
         height: 35,
         width: "auto",
         borderRadius: 20,
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                fontSize: 18,
+                height: 32,
+            },
+        }),
     },
     picker: {
         borderWidth: 2,
         height: 50,
         width: 150,
         marginLeft: 10,
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                height: 44,
+                width: 130,
+                marginLeft: 8,
+            },
+        }),
     },
     textBox: {
         marginLeft: 15,
@@ -22,10 +40,24 @@ const styles = StyleSheet.create({
         width: 50,
         height: 50,
         alignSelf: "center",
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                width: 44,
+                height: 44,
+                marginLeft: 12,
+            },
+        }),
     },
     tableNum: {
         fontSize: 30,
         color: '#000',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                fontSize: 24,
+            },
+        }),
     },
     container: {
         flex: 1,

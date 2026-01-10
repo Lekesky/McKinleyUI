@@ -1,5 +1,4 @@
 import axios, { AxiosInstance } from "axios";
-import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
@@ -59,38 +58,45 @@ const deleteStoredItem = async (key: string) => {
 // Export storage utilities for use in other modules
 export { deleteStoredItem, getStoredItem, setStoredItem };
 
+// Pagination interfaces
+export interface Sort {
+  unsorted: boolean;
+  sorted: boolean;
+  empty: boolean;
+}
+
+export interface Pageable {
+  pageNumber: number;
+  pageSize: number;
+  sort: Sort;
+  offset: number;
+  unpaged: boolean;
+  paged: boolean;
+}
+
 export interface PageableResponse<T> {
   content: T[];
-  pageable: {
-    pageNumber: number;
-    pageSize: number;
-    offset: number;
-    paged: boolean;
-    unpaged: boolean;
-    sort: {
-      unsorted: boolean;
-      sorted: boolean;
-      empty: boolean;
-    };
-  };
+  pageable: Pageable;
   totalPages: number;
   totalElements: number;
   last: boolean;
   numberOfElements: number;
   size: number;
   number: number;
-  sort: {
-    unsorted: boolean;
-    sorted: boolean;
-    empty: boolean;
-  };
+  sort: Sort;
   first: boolean;
   empty: boolean;
 }
 
 // Token refresh state to prevent multiple simultaneous refresh attempts
 let isRefreshing = false;
+let isLoggingOut = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
+
+// Helper to set logout state from AuthContext
+export const setLoggingOut = (value: boolean) => {
+  isLoggingOut = value;
+};
 
 const subscribeTokenRefresh = (callback: (token: string) => void) => {
   refreshSubscribers.push(callback);
@@ -107,7 +113,6 @@ const clearTokensAndLogout = async () => {
     deleteStoredItem(REFRESH_TOKEN_KEY),
     deleteStoredItem('uid')
   ]);
-  router.replace('/Intro');
 };
 
 export default function createAPIClient(): AxiosInstance {
@@ -139,9 +144,15 @@ export default function createAPIClient(): AxiosInstance {
     async (error) => { 
       const originalRequest = error.config;
       
-      // Check if this is a 401/403 error and not already retrying
+      // Don't attempt refresh if:
+      // 1. Not an auth error (401/403)
+      // 2. Already retrying
+      // 3. Currently logging out
+      // 4. Request is to logout or refresh-token endpoints
       const isAuthError = error.response?.status === 401 || error.response?.status === 403;
-      if (!isAuthError || originalRequest._retry) {
+      const isLogoutEndpoint = originalRequest.url?.includes('/logout') || originalRequest.url?.includes('/refresh-token');
+      
+      if (!isAuthError || originalRequest._retry || isLoggingOut || isLogoutEndpoint) {
         return Promise.reject(error);
       }
 

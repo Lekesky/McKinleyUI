@@ -1,4 +1,6 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create({
   // Section header styling
@@ -51,6 +53,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
+    ...(isWeb && {
+      '@media (max-width: 768px)': {
+        padding: 12,
+        marginHorizontal: 12,
+      },
+    } as any),
   },
 
   // Avatar styling
@@ -74,6 +82,11 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     color: '#222',
+    ...(isWeb && {
+      '@media (max-width: 768px)': {
+        fontSize: 15,
+      },
+    } as any),
   },
 
   // Role container

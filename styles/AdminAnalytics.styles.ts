@@ -36,6 +36,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginBottom: 20,
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                flexDirection: 'column',
+                gap: 10,
+            },
+        } as any),
     },
     metricCard: {
         backgroundColor: 'white',
@@ -55,6 +61,11 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
         marginVertical: 8,
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 18,
+            },
+        } as any),
     },
     metricLabel: {
         fontSize: 12,
@@ -93,6 +104,11 @@ const styles = StyleSheet.create({
         color: '#333',
         marginLeft: 10,
         flex: 1,
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 16,
+            },
+        } as any),
     },
     cardPeriod: {
         fontSize: 12,

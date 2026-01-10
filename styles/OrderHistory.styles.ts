@@ -1,22 +1,43 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
+
+const isWeb = Platform.OS === 'web';
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
         backgroundColor: '#ffffffff',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                padding: 16,
+            },
+        }),
     },
     header: {
         marginBottom: "10%",
         flexDirection: 'row',
         alignItems: 'center',
         gap: 20,
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                marginBottom: '5%',
+                gap: 12,
+            },
+        }),
     },
     headerTitle: {
         fontSize: 24,
         color: '#871919ff',
         fontWeight: 'bold',
         fontFamily: 'Helvetica',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                fontSize: 20,
+            },
+        }),
     },
     backButton: { 
         backgroundColor: '#e8e8e8ff', 
@@ -24,7 +45,14 @@ const styles = StyleSheet.create({
         height: 50, 
         borderRadius: 25, 
         justifyContent: 'center', 
-        alignItems: 'center' 
+        alignItems: 'center',
+        ...(isWeb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                width: 44,
+                height: 44,
+            },
+        }),
     },
     orderList: {
         paddingHorizontal: 16,

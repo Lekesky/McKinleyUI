@@ -4,6 +4,12 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: '#ffffffff',
+    ...(isWeb && {
+      // @ts-ignore
+      '@media (max-width: 768px)': {
+        padding: 0,
+      },
+    }),
   },
   viewController: {
       alignSelf: "center",

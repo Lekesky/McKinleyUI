@@ -8,6 +8,11 @@ const styles = (isCartPaused: boolean) => StyleSheet.create({
         padding: 20,
         backgroundColor: '#ffffffff',
         borderWidth: 1,
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                padding: 16,
+            },
+        } as any),
     },
     header: {
         marginTop: 30,
@@ -15,6 +20,12 @@ const styles = (isCartPaused: boolean) => StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 20,
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                gap: 12,
+                marginTop: 20,
+            },
+        } as any),
     },
     headerTitle: {
         fontSize: 24,
@@ -23,6 +34,12 @@ const styles = (isCartPaused: boolean) => StyleSheet.create({
         color: '#871919ff',
         fontWeight: 'bold',
         fontFamily: 'Helvetica',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 20,
+                marginTop: 16,
+            },
+        } as any),
     },
     backButton: { 
         backgroundColor: '#e8e8e8ff', 
@@ -53,12 +70,20 @@ const styles = (isCartPaused: boolean) => StyleSheet.create({
         justifyContent: 'space-between',
     },
     checkoutContainer: {
-        minWidth: isWeb ? 1200 : "100%",
+        maxWidth: isWeb ? 1200 : "100%",
+        width: '100%',
         alignSelf: 'center',
         marginTop: 20,
         marginBottom: 20, 
         flexDirection: 'column', 
-        gap: 10 
+        gap: 10,
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                marginTop: 16,
+                marginBottom: 16,
+                gap: 8,
+            },
+        } as any),
     },
     menuItemContainer: {
         flexDirection: 'row',

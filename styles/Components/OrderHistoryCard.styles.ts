@@ -4,7 +4,8 @@ const isWeb = Platform.OS === 'web';
 const styles = StyleSheet.create({
     orderCard: {
         alignSelf: 'center',
-        minWidth: isWeb ? 1200 : '100%',
+        maxWidth: isWeb ? 1200 : '100%',
+        width: '100%',
         backgroundColor: '#ffffff',
         borderRadius: 16,
         padding: 20,
@@ -18,6 +19,17 @@ const styles = StyleSheet.create({
         elevation: 4,
         borderWidth: 1,
         borderColor: '#f0f0f0',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                padding: 16,
+                marginHorizontal: 4,
+                borderRadius: 12,
+            },
+            '@media (max-width: 480px)': {
+                padding: 12,
+                marginHorizontal: 0,
+            },
+        } as any),
     },
     orderHeader: {
         flexDirection: 'row',
@@ -33,12 +45,22 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#1f2937',
         letterSpacing: -0.3,
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 16,
+            },
+        } as any),
     },
     orderDate: {
         fontSize: 13,
         color: '#6b7280',
         marginTop: 4,
         fontWeight: '500',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                fontSize: 12,
+            },
+        } as any),
     },
     orderStatus: {
         fontSize: 12,

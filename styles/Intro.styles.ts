@@ -1,7 +1,8 @@
-import { Dimensions, StyleSheet } from 'react-native';
+import { Dimensions, Platform, StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 const screenWidth = Math.min(width, height);
+const isWeb = Platform.OS === 'web';
 
 // Calculate responsive font size
 const responsiveFontSize = (size : number) => {
@@ -37,7 +38,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold', 
         fontFamily: 'Helvetica', 
         fontSize: responsiveFontSize(6.5), 
-        marginHorizontal: '2%'
+        marginHorizontal: '2%',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                marginTop: 40,
+                fontSize: responsiveFontSize(5.5),
+            },
+        } as any),
     },
     subheading: { 
         textAlign: 'center', 
@@ -45,7 +52,13 @@ const styles = StyleSheet.create({
         marginTop: 20, 
         fontFamily: 'Helvetica', 
         fontSize: responsiveFontSize(4), 
-        marginHorizontal: '2%'
+        marginHorizontal: '2%',
+        ...(isWeb && {
+            '@media (max-width: 768px)': {
+                marginTop: 16,
+                fontSize: responsiveFontSize(3.5),
+            },
+        } as any),
     },
     buttonContainer: { 
         flex: 1, 

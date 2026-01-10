@@ -6,7 +6,14 @@ const styles = StyleSheet.create({
         flex: 1, 
         justifyContent: isweb ? 'center' : 'flex-start',
         padding: 20,
-        backgroundColor: '#ffffffff' 
+        backgroundColor: '#ffffffff',
+        ...(isweb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                padding: 16,
+                justifyContent: 'flex-start',
+            },
+        }),
     },
     header: {
         marginBottom: "30%",
@@ -36,11 +43,19 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         alignSelf: 'center',
-        minWidth: isweb ? 800 : "100%",
+        width: isweb ? '100%' : '100%',
+        maxWidth: isweb ? 600 : undefined,
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
         gap: 20,
+        ...(isweb && {
+            // @ts-ignore
+            '@media (max-width: 768px)': {
+                maxWidth: '100%',
+                paddingHorizontal: 16,
+            },
+        }),
     },
     button: {
         height: 50,

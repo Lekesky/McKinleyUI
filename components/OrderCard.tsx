@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
-import styles from '../styles/Components/OrderCard.styles';
+import styles from '../styles/components/OrderCard.styles';
 
 interface OrderedItem {
     id: string;
@@ -21,7 +21,7 @@ interface OrderCardProps {
     onPress: () => void;
 }
 
-const OrderCard = React.memo(({
+const OrderCard = memo(({
     id,
     orderNumber,
     orderedItems,
@@ -131,5 +131,7 @@ const OrderCard = React.memo(({
         </TouchableOpacity>
     );
 });
+
+OrderCard.displayName = 'OrderCard';
 
 export default OrderCard;

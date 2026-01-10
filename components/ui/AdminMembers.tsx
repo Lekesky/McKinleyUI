@@ -52,124 +52,144 @@ export default function AdminMembers({ userSearch }: MembersProps) {
     const handleStaffFetch = useCallback((page = 0) => {
         if (loadingMoreStaff) return Promise.resolve();
 
-        if (page > 0 && (!hasMoreStaff || (staff && staff.length < PAGE_SIZE))) {
-            setHasMoreStaff(false);
-            setLoadingMoreStaff(false);
-            return Promise.resolve();
-        }
+        setStaff(prevStaff => {
+            if (page > 0 && (!hasMoreStaff || (prevStaff && prevStaff.length < PAGE_SIZE))) {
+                setHasMoreStaff(false);
+                setLoadingMoreStaff(false);
+                return prevStaff;
+            }
 
-        setLoadingMoreStaff(true);
+            setLoadingMoreStaff(true);
 
-        return api.get('user/staff', {
-            params: { page, size: PAGE_SIZE }
-        })
-        .then((response) => {
-            if (!response?.data?.content) {
+            api.get('user/staff', {
+                params: { page: Number(page), size: PAGE_SIZE }
+            })
+            .then((response) => {
+                if (!response?.data?.content) {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Error',
+                        text2: 'No valid data received from API',
+                        position: 'top',
+                        backgroundColor: '#871919ff',
+                        textColor: '#FFFFFF',
+                    });
+                    setHasMoreStaff(false);
+                    return;
+                }
+
+                const newContent: Users[] = response.data.content;
+                
+                if (newContent.length < PAGE_SIZE) {
+                    setHasMoreStaff(false);
+                } else {
+                    setHasMoreStaff(!response.data.last);
+                }
+
+                setStaff(prev => updateStaffList(prev, newContent, page === 0));
+                setStaffPageNumber(page);
+            })
+            .catch((error) => {
+                const errorMessage = error.response?.data || error.message || 'Failed to fetch staff';
                 Toast.show({
                     type: 'error',
                     text1: 'Error',
-                    text2: 'No valid data received from API',
+                    text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch staff',
                     position: 'top',
                     backgroundColor: '#871919ff',
                     textColor: '#FFFFFF',
                 });
                 setHasMoreStaff(false);
-                return;
-            }
-
-            const newContent: Users[] = response.data.content;
-            
-            if (newContent.length < PAGE_SIZE) {
-                setHasMoreStaff(false);
-            } else {
-                setHasMoreStaff(!response.data.last);
-            }
-
-            setStaff(prev => updateStaffList(prev, newContent, page === 0));
-            setStaffPageNumber(response.data.number);
-        })
-        .catch((error) => {
-            const errorMessage = error.response?.data || error.message || 'Failed to fetch staff';
-            Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch staff',
-                position: 'top',
-                backgroundColor: '#871919ff',
-                textColor: '#FFFFFF',
+            })
+            .finally(() => {
+                setLoadingMoreStaff(false);
             });
-            setHasMoreStaff(false);
-        })
-        .finally(() => {
-            setLoadingMoreStaff(false);
+
+            return prevStaff;
         });
-    }, [api, hasMoreStaff, loadingMoreStaff, updateStaffList, staff]);
+
+        return Promise.resolve();
+    }, [api, hasMoreStaff, loadingMoreStaff, updateStaffList]);
 
     const handleCustomersFetch = useCallback((page = 0) => {
         if (loadingMoreCustomers) return Promise.resolve();
 
-        if (page > 0 && (!hasMoreCustomers || (customers && customers.length < PAGE_SIZE))) {
-            setHasMoreCustomers(false);
-            setLoadingMoreCustomers(false);
-            return Promise.resolve();
-        }
+        setCustomers(prevCustomers => {
+            if (page > 0 && (!hasMoreCustomers || (prevCustomers && prevCustomers.length < PAGE_SIZE))) {
+                setHasMoreCustomers(false);
+                setLoadingMoreCustomers(false);
+                return prevCustomers;
+            }
 
-        setLoadingMoreCustomers(true);
+            setLoadingMoreCustomers(true);
 
-        return api.get('user/customers', {
-            params: { page, size: PAGE_SIZE }
-        })
-        .then((response) => {
-            if (!response?.data?.content) {
+            api.get('user/customers', {
+                params: { page: Number(page), size: PAGE_SIZE }
+            })
+            .then((response) => {
+                if (!response?.data?.content) {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Error',
+                        text2: 'No data received from API',
+                        position: 'top',
+                        backgroundColor: '#871919ff',
+                        textColor: '#FFFFFF',
+                    });
+                    setHasMoreCustomers(false);
+                    return;
+                }
+
+                const newContent = response.data.content || [];
+
+                if (newContent.length < PAGE_SIZE) {
+                    setHasMoreCustomers(false);
+                } else {
+                    setHasMoreCustomers(!response.data.last);
+                }
+
+                if (page === 0) {
+                    setCustomers(newContent);
+                } else {
+                    setCustomers(prev => [...(prev || []), ...newContent]);
+                }
+                setCustomerPageNumber(page);
+            })
+            .catch((error) => {
+                const errorMessage = error.response?.data || error.message || 'Failed to fetch customers';
                 Toast.show({
                     type: 'error',
                     text1: 'Error',
-                    text2: 'No data received from API',
+                    text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch customers',
                     position: 'top',
                     backgroundColor: '#871919ff',
                     textColor: '#FFFFFF',
                 });
                 setHasMoreCustomers(false);
-                return;
-            }
-
-            const newContent = response.data.content || [];
-
-            if (newContent.length < PAGE_SIZE) {
-                setHasMoreCustomers(false);
-            } else {
-                setHasMoreCustomers(!response.data.last);
-            }
-
-            if (page === 0) {
-                setCustomers(newContent);
-            } else {
-                setCustomers(prev => [...(prev || []), ...newContent]);
-            }
-            setCustomerPageNumber(response.data.number);
-        })
-        .catch((error) => {
-            const errorMessage = error.response?.data || error.message || 'Failed to fetch customers';
-            Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch customers',
-                position: 'top',
-                backgroundColor: '#871919ff',
-                textColor: '#FFFFFF',
+            })
+            .finally(() => {
+                setLoadingMoreCustomers(false);
             });
-            setHasMoreCustomers(false);
-        })
-        .finally(() => {
-            setLoadingMoreCustomers(false);
+
+            return prevCustomers;
         });
-    }, [api, hasMoreCustomers, loadingMoreCustomers, customers]);
+
+        return Promise.resolve();
+    }, [api, hasMoreCustomers, loadingMoreCustomers]);
 
     // Initial data fetch
     useEffect(() => {
-        handleStaffFetch(0);
-        handleCustomersFetch(0);
-    }, [handleStaffFetch, handleCustomersFetch]);
+        let mounted = true;
+        
+        if (mounted) {
+            handleStaffFetch(0);
+            handleCustomersFetch(0);
+        }
+        
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     // Filtered users for dropdown
     const filteredUsers = useMemo(() => {

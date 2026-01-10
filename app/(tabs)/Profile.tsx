@@ -28,6 +28,8 @@ export default function Profile() {
 
 
     useEffect(() => {
+        if (!uid) return;
+        
         api.get(`/user/${uid}`)
             .then((res) => {
                 setFirstName(res.data.firstName)
@@ -66,6 +68,7 @@ export default function Profile() {
         showTabBar();
     };
     const showDeleteDialog = () => {
+        setDeleteModalVisible(!deleteModalVisible);
         setDeleteDialogVisible(true);
         hideTabBar();
     };

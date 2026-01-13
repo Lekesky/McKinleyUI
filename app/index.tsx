@@ -1,9 +1,12 @@
 import { useAuth } from '@/context/AuthContext';
+import { useAuthModal } from '@/context/AuthModalContext';
 import createAPIClient, { PageableResponse } from '@/services/api';
 import { Redirect, router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Dimensions, Image, Linking, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Icon } from 'react-native-paper';
+import LoginModal from '../components/LoginModal';
+import SignupModal from '../components/SignupModal';
 import styles from '../styles/index.styles';
 
 const { width } = Dimensions.get('window');
@@ -36,6 +39,7 @@ export default function Index() {
   const slideAnim = useRef(new Animated.Value(0)).current;
   const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { isAuthenticated } = useAuth();
+  const { showLoginModal, setShowLoginModal, showSignupModal, setShowSignupModal } = useAuthModal();
   
   // Featured items pagination state
   const [featuredItems, setFeaturedItems] = useState<MenuItem[]>([]);
@@ -152,7 +156,8 @@ export default function Index() {
 
   // Web homepage
   return (
-    <ScrollView style={styles.container}>
+    <>
+      <ScrollView style={styles.container}>
       {/* Hero Section */}
       <View style={styles.hero}>
         {/* Background Image Collage - All images side by side */}
@@ -188,7 +193,7 @@ export default function Index() {
                 if (isAuthenticated) {
                   router.push('/(tabs)/Home' as any);
                 } else {
-                  router.push('/Login' as any);
+                  setShowLoginModal(true);
                 }
               }}
             >
@@ -200,7 +205,7 @@ export default function Index() {
                 if (isAuthenticated) {
                   router.push('/(tabs)/Order' as any);
                 } else {
-                  router.push('/Login' as any);
+                  setShowLoginModal(true);
                 }
               }}
             >
@@ -387,7 +392,7 @@ export default function Index() {
             if (isAuthenticated) {
               router.push('/(tabs)/Order' as any);
             } else {
-              router.push('/Login' as any);
+              setShowLoginModal(true);
             }
           }}
         >
@@ -399,7 +404,26 @@ export default function Index() {
       <View style={styles.footer}>
         <Text style={styles.footerText}>&copy; 2026 McKinley&apos;s Grill. All rights reserved.</Text>
       </View>
-    </ScrollView>
+      </ScrollView>
+
+      {/* Login and Signup Modals */}
+      <LoginModal 
+        visible={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSwitchToSignup={() => {
+          setShowLoginModal(false);
+          setShowSignupModal(true);
+        }}
+      />
+      <SignupModal 
+        visible={showSignupModal}
+        onClose={() => setShowSignupModal(false)}
+        onSwitchToLogin={() => {
+          setShowSignupModal(false);
+          setShowLoginModal(true);
+        }}
+      />
+    </>
   );
 }
 

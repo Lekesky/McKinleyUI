@@ -9,7 +9,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   iconContainer: {
-    marginRight: 12,
     width: 24,
     height: 24,
     justifyContent: 'center',

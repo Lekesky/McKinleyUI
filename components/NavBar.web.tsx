@@ -1,5 +1,6 @@
 import { Tabs } from '@/constants/Tabs';
 import { useAuth } from '@/context/AuthContext';
+import { useAuthModal } from '@/context/AuthModalContext';
 import { useMobileTabBar } from '@/context/TabBarContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import { router, useSegments } from 'expo-router';
@@ -9,6 +10,7 @@ import { Icon } from 'react-native-paper';
 import styles from '../styles/NavBar.web.styles';
 
 export default function NavBar() {
+    const { setShowLoginModal, setShowSignupModal } = useAuthModal();
     const { hideTabBar } = useMobileTabBar();
     const { isAuthenticated } = useAuth();
     const segments = useSegments() as string[];
@@ -99,10 +101,10 @@ export default function NavBar() {
                             </View>
                         ) : (
                             <>
-                                <TouchableOpacity onPress={() => handleNavigation('/Login')} style={styles.actionButton}>
+                                <TouchableOpacity onPress={() => setShowLoginModal(true)} style={styles.actionButton}>
                                     <Text style={styles.actionText}>Login</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={() => handleNavigation('/Signup')} style={styles.actionButtonPrimary}>
+                                <TouchableOpacity onPress={() => setShowSignupModal(true)} style={styles.actionButtonPrimary}>
                                     <Text style={styles.actionTextPrimary}>Sign up</Text>
                                 </TouchableOpacity>
                             </>
@@ -171,13 +173,19 @@ export default function NavBar() {
                                 ) : (
                                     <>
                                         <TouchableOpacity 
-                                            onPress={() => handleNavigation('/Login')} 
+                                            onPress={() => {
+                                                setMobileMenuOpen(false);
+                                                setShowLoginModal(true);
+                                            }} 
                                             style={styles.mobileActionButton}
                                         >
                                             <Text style={styles.mobileActionText}>Login</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity 
-                                            onPress={() => handleNavigation('/Signup')} 
+                                            onPress={() => {
+                                                setMobileMenuOpen(false);
+                                                setShowSignupModal(true);
+                                            }} 
                                             style={styles.mobileActionButtonPrimary}
                                         >
                                             <Text style={styles.mobileActionTextPrimary}>Sign up</Text>

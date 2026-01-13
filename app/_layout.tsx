@@ -1,6 +1,7 @@
 import NavBar from '@/components/NavBar.web';
 import StripeWrapper from '@/components/StripeWrapper';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { AuthModalProvider } from '@/context/AuthModalContext';
 import { TabBarProvider } from '@/context/TabBarContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
@@ -65,16 +66,19 @@ function AuthenticatedLayout() {
     // Don't redirect if already on index (landing page)
     if (!isAuthenticated && !inPublicRoute && segments[0] !== 'index') {
       // User is not authenticated and trying to access protected route
-      console.log('Redirecting to login (not authenticated)');
+      console.log('Redirecting to landing page (not authenticated)');
       if (Platform.OS !== 'web') {
         router.replace('/Intro');
       } else {
-        router.replace('/Login');
+        router.replace('/');
       }
     } else if (isAuthenticated && (segments[0] === 'Login' || segments[0] === 'Signup')) {
       // User is authenticated but on login/signup page - send to home
+      // Use a small delay to ensure state has propagated
       console.log('Redirecting to Home (already authenticated)');
-      router.replace('/(tabs)/Home');
+      setTimeout(() => {
+        router.replace('/(tabs)/Home');
+      }, 50);
     }
   }, [isAuthLoading, isAuthenticated, segments]);
 
@@ -146,13 +150,14 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DefaultTheme : DarkTheme}>
-          <GestureHandlerRootView>
-            <PaperProvider>
-              <StripeWrapper>
-                <TabBarProvider>
-                  {(Platform.OS === 'web' ? <NavBar /> : null) as any}
-                  <TableProvider>
+        <AuthModalProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DefaultTheme : DarkTheme}>
+            <GestureHandlerRootView>
+              <PaperProvider>
+                <StripeWrapper>
+                  <TabBarProvider>
+                    {(Platform.OS === 'web' ? <NavBar /> : null) as any}
+                    <TableProvider>
                     <CartProvider>
                       <Stack screenOptions={{ headerShown: false }}>
                         <Stack.Screen name="(tabs)" />
@@ -178,6 +183,7 @@ export default function RootLayout() {
             </PaperProvider>
           </GestureHandlerRootView>
         </ThemeProvider>
+        </AuthModalProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

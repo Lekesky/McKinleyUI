@@ -170,7 +170,7 @@ export default function Profile() {
                                     <Text style={styles.modalTextHeader}>Delete Account?</Text>
                                     <Text style={styles.modalText}>Are you sure you want to delete your account? This process cannot be undone.</Text>
                                     <View style={styles.modalButtonContainer}>
-                                        {/* Logout and Cancel Buttons */}
+                                        {/* Delete and Cancel Buttons */}
                                         <TouchableOpacity
                                             style={[styles.modalButton, styles.modalButtonCancel]}
                                             onPress={() => setDeleteModalVisible(!deleteModalVisible)}>
@@ -178,8 +178,8 @@ export default function Profile() {
                                         </TouchableOpacity>
                                         <TouchableOpacity
                                             style={[styles.modalButton, styles.modalButtonLogout]}
-                                            onPress={handleLogout}>
-                                            <Text style={styles.modalTextStyle}>Logout</Text>
+                                            onPress={handleDeleteAccount}>
+                                            <Text style={styles.modalTextStyle}>Delete</Text>
                                         </TouchableOpacity>
                                     </View>
                                     </View>

@@ -363,7 +363,7 @@ export default function SignupModal({ visible, onClose, onSwitchToLogin }: Signu
                     style={styles.linkText}
                     onPress={onSwitchToLogin}
                   >
-                    Login here
+                    Login
                   </Text>
                 </Text>
               </View>

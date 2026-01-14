@@ -1,7 +1,7 @@
 import { memo } from "react";
-import { Image, TouchableOpacity, View } from "react-native";
+import { Image, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { Card, Text } from "react-native-paper";
-import styles from "../styles/components/MenuItemCard.styles";
+import { getStyles } from "../styles/components/MenuItemCard.styles";
 
 interface MenuItemCardProps {
     id: string;
@@ -14,6 +14,9 @@ interface MenuItemCardProps {
 }
 
 export const MenuItemCard = memo(({ id, name, price, imageURL, description, tags, onPress } : MenuItemCardProps) => {
+    const { width } = useWindowDimensions();
+    const styles = getStyles(width);
+    
     return (
         <TouchableOpacity onPress={() => onPress(id)} style={styles.cardContainer}>
             <Card style={styles.card}>

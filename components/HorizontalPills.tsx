@@ -11,11 +11,6 @@ interface HorizontalPillsProps {
 export default function HorizontalPills({ categories, selectedCategory, setSelectedCategory }: HorizontalPillsProps) {
     return (
         <View style={styles.pillContainer}>
-            <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
-            contentContainerStyle={{paddingLeft: 35, paddingRight: 15}}
-            >
             {categories.map((category) => (
                 <Button
                 key={category}
@@ -30,7 +25,6 @@ export default function HorizontalPills({ categories, selectedCategory, setSelec
                 {category}
                 </Button>
             ))}
-            </ScrollView>
         </View>
     );
 }

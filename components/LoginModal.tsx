@@ -21,7 +21,7 @@ export default function LoginModal({ visible, onClose, onSwitchToSignup }: Login
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const {loginTokens} = useAuth();
+  const {loginTokens, checkProfileComplete} = useAuth();
   const api = useMemo(() => createAPIClient(), []);
   
   const { width } = useWindowDimensions();
@@ -103,12 +103,21 @@ export default function LoginModal({ visible, onClose, onSwitchToSignup }: Login
           return Promise.reject(new Error('Invalid response from server'));
         }
         
-        return loginTokens(response.data.accessToken, response.data.refreshToken, response.data.uid);
+        return loginTokens(response.data.accessToken, response.data.refreshToken, response.data.uid)
+          .then(() => response.data.uid);
       })
-      .then(() => {
+      .then((uid) => {
         console.log('Google sign-in successful');
+        // Check if profile is complete
+        return checkProfileComplete(uid);
+      })
+      .then((isComplete) => {
         onClose();
-        router.replace('/(tabs)/Home');
+        if (isComplete) {
+          router.replace('/(tabs)/Home');
+        } else {
+          router.replace('/completeProfile');
+        }
       })
       .catch((error: any) => {
         console.error('Google sign-in error:', error);
@@ -122,7 +131,7 @@ export default function LoginModal({ visible, onClose, onSwitchToSignup }: Login
           textColor: '#FFFFFF',
         });
       });
-  }, [api, loginTokens, onClose]);
+  }, [api, loginTokens, checkProfileComplete, onClose]);
 
   const trySilentSignIn = useCallback(() => {
     if (Platform.OS === 'web') return Promise.resolve();

@@ -19,6 +19,7 @@ type AuthContextType = {
     logout: () => Promise<void>;
     deleteAccount: () => Promise<void>;
     refreshAccessToken: () => Promise<void>;
+    checkProfileComplete: (uid: string) => Promise<boolean>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -62,6 +63,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             })
             .catch(() => {
                 // Silent error - user role fetch failed
+            });
+    }, [api]);
+
+    const checkProfileComplete = useCallback((uid: string): Promise<boolean> => {
+        return api.get(`/user/${uid}`)
+            .then((response) => {
+                const { firstName, lastName, email, phoneNumber } = response.data;
+                // Check if all required fields are present and not empty
+                return !!(firstName && lastName && email && phoneNumber);
+            })
+            .catch((error) => {
+                console.error('Failed to check profile completeness:', error);
+                // Default to false if check fails
+                return false;
             });
     }, [api]);
 
@@ -317,7 +332,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, [isAuthenticated, accessTokenTTL, refreshAccessToken]);
 
     return(
-        <AuthContext.Provider value={{ uid, accessToken, accessTokenTTL, refreshToken, isAuthenticated, loginTokens, logout,  deleteAccount, refreshAccessToken, userRole, isAuthLoading }}>
+        <AuthContext.Provider value={{ uid, accessToken, accessTokenTTL, refreshToken, isAuthenticated, loginTokens, logout,  deleteAccount, refreshAccessToken, userRole, isAuthLoading, checkProfileComplete }}>
             {children}
         </AuthContext.Provider>
     );

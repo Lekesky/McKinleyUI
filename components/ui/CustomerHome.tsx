@@ -4,13 +4,11 @@ import { useAuth } from "@/context/AuthContext";
 import createAPIClient, { API_URL } from "@/services/api";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Dimensions, Keyboard, Platform, RefreshControl, ScrollView, TextInput, TouchableOpacity, View } from "react-native";
+import { Animated, Keyboard, Platform, RefreshControl, ScrollView, TextInput, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { IconButton, Text } from "react-native-paper";
 import RNEventSource from 'react-native-sse';
 import { Toast } from 'toastify-react-native';
-import styles from '../../styles/CustomerHome.styles';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+import { getStyles } from '../../styles/CustomerHome.styles';
 
 interface MenuItem {
   id: string;
@@ -32,6 +30,8 @@ const CATEGORIES = [
   'Drinks'
 ]
 export default function CustomerHome() {
+    const { width: SCREEN_WIDTH } = useWindowDimensions();
+    const styles = getStyles(SCREEN_WIDTH);
     const { uid, accessToken, refreshAccessToken, isAuthenticated } = useAuth();
     const api = useMemo(() => createAPIClient(), []); 
     const [firstName, setFirstName] = useState<string>('');
@@ -359,27 +359,33 @@ export default function CustomerHome() {
                     />
                 </Animated.View>
                 
-                <TouchableOpacity
-                    style={styles.searchIcon}
-                    onPress={toggleSearch}
-                >
-                    <IconButton
-                    icon={isSearchExpanded ? "close" : "magnify"}
-                    size={24}
-                    iconColor="#3c3c3cff"
-                    style={{ margin: 0 }}
-                    />
-                </TouchableOpacity>
+                  <TouchableOpacity
+                      style={styles.searchIcon}
+                      onPress={toggleSearch}
+                  >
+                      <IconButton
+                      icon={isSearchExpanded ? "close" : "magnify"}
+                      size={24}
+                      iconColor="#3c3c3cff"
+                      style={{ margin: 0 }}
+                      />
+                  </TouchableOpacity>
                 </Animated.View>
             </View>
 
             {/* Category Pills */}
-            <View style={styles.pillContainer}>
-              <HorizontalPills 
-                categories={CATEGORIES}
-                selectedCategory={selectedCategory}
-                setSelectedCategory={setSelectedCategory}
-              />
+            <View style={styles.pillsWrapper}>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{paddingHorizontal: 20}}
+              >
+                <HorizontalPills 
+                  categories={CATEGORIES}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
+                />
+              </ScrollView>
             </View>
 
             <ScrollView

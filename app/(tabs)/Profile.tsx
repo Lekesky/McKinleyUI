@@ -12,7 +12,7 @@ import { Toast } from 'toastify-react-native';
 import styles from "../../styles/Profile.styles";
 
 export default function Profile() {
-    const { accessToken, logout, deleteAccount, uid } = useAuth();
+    const { accessToken, logout, deleteAccount, uid, userRole } = useAuth();
     const { hideTabBar, showTabBar } = useMobileTabBar();
     const api = useMemo(() => createAPIClient(), []);
     const insets = useSafeAreaInsets();
@@ -209,20 +209,23 @@ export default function Profile() {
                     <Text style={styles.timeJoined}>Joined: {timeCreated.toLocaleDateString()}</Text>
                 </View>
 
-                <View style={[styles.buttonContainer, { marginBottom: "5%" }]}>
-                    {/* Admin Button */}
-                    <TouchableOpacity style={styles.adminButton} onPress={handleAdminView}>
-                        <View style ={styles.edgeIcons}>
-                            <MaterialIcons name="admin-panel-settings" size={20} color="black"/>
-                        </View>
-                        <View style={styles.buttonContent}>
-                            <Text variant="bodyLarge" style={styles.buttonText}>Admin</Text>
-                        </View>
-                        <View style ={styles.edgeIcons}>
-                            <MaterialIcons name="arrow-forward-ios" size={20} color="black"/>
-                        </View>
-                    </TouchableOpacity>
-                </View>
+                {userRole === 'ADMIN' && (
+                    <View style={[styles.buttonContainer, { marginBottom: "5%" }]}>
+                        {/* Admin Button */}
+                        <TouchableOpacity style={styles.adminButton} onPress={handleAdminView}>
+                            <View style ={styles.edgeIcons}>
+                                <MaterialIcons name="admin-panel-settings" size={20} color="black"/>
+                            </View>
+                            <View style={styles.buttonContent}>
+                                <Text variant="bodyLarge" style={styles.buttonText}>Admin</Text>
+                            </View>
+                            <View style ={styles.edgeIcons}>
+                                <MaterialIcons name="arrow-forward-ios" size={20} color="black"/>
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                )}
+                
                 
                 
                 

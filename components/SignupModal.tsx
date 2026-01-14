@@ -1,6 +1,7 @@
 import { useAuth } from '@/context/AuthContext';
 import createAPIClient from '@/services/api';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image, Modal, Platform, Pressable, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { Icon, Text, TextInput } from 'react-native-paper';
@@ -26,7 +27,7 @@ export default function SignupModal({ visible, onClose, onSwitchToLogin }: Signu
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const {loginTokens} = useAuth();
+  const {loginTokens, checkProfileComplete} = useAuth();
   const api = useMemo(() => createAPIClient(), []);
   
   const { width, height } = useWindowDimensions();
@@ -57,10 +58,20 @@ export default function SignupModal({ visible, onClose, onSwitchToLogin }: Signu
         if(Platform.OS !== 'web'){
           return loginTokens(response.data.accessToken, response.data.refreshToken, response.data.uid);
         }
+        return response.data.uid;
       })
-      .then(() => {
+      .then((uid) => {
         console.log('Google sign-in successful');
+        // Check if profile is complete
+        return checkProfileComplete(uid || response.data.uid);
+      })
+      .then((isComplete) => {
         onClose();
+        if (isComplete) {
+          router.replace('/(tabs)');
+        } else {
+          router.replace('/completeProfile');
+        }
       })
       .catch((error) => {
         const errorMessage = error.response?.data || error.message || 'Google sign-in failed';
@@ -73,7 +84,7 @@ export default function SignupModal({ visible, onClose, onSwitchToLogin }: Signu
           textColor: '#FFFFFF',
         });
       });
-  }, [api, loginTokens, onClose]);
+  }, [api, loginTokens, checkProfileComplete, onClose]);
 
   const trySilentSignIn = useCallback(() => {
     if (Platform.OS === 'web') return Promise.resolve();

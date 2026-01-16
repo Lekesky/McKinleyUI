@@ -6,6 +6,7 @@ export const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const ACCESS_TOKEN_KEY = "access_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
+const API_TIMEOUT = 95000;
 
 // Cookie helper for web
 const getCookie = (name: string): string | null => {
@@ -118,7 +119,7 @@ const clearTokensAndLogout = async () => {
 export default function createAPIClient(): AxiosInstance {
   const apiClient = axios.create({
     baseURL: API_URL,
-    timeout: 10000,
+    timeout: API_TIMEOUT,
     withCredentials: true,
   });
 
@@ -132,6 +133,11 @@ export default function createAPIClient(): AxiosInstance {
         console.log(accessToken);
       }
       config.headers['X-Client-Type'] = Platform.OS === 'web' ? 'WEB' : 'MOBILE';
+      
+      // Set longer timeout for PSA endpoint since processing can take a while
+      if (config.url?.includes('/sendPSA')) {
+        config.timeout = 300000; // 5 minutes for PSA endpoint
+      }
       
       return config;
     }, 
@@ -187,7 +193,7 @@ export default function createAPIClient(): AxiosInstance {
           { 
             headers: { 'X-Client-Type': Platform.OS === 'web' ? 'WEB' : 'MOBILE' },
             withCredentials: true, // Important for web to send cookies
-            timeout: 10000 
+            timeout: API_TIMEOUT
           }
         );
         

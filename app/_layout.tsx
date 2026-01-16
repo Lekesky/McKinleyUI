@@ -175,7 +175,6 @@ export default function RootLayout() {
                   position='bottom'
                   bottomOffset={Platform.OS === 'web' ? 0 : 100}
                   showProgressBar={false}
-                  showCloseIcon={true}
                   animationStyle="fade"
                   useModal={false}
                 />

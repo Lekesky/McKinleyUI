@@ -22,14 +22,16 @@ export default function UpdatePassword() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const hasCharMin = newPassword.length >= 8 ? <Ionicons name="checkmark-circle-outline" size={24} color="green" /> : <Ionicons name="close-circle-outline" size={24} color="red"/>;
     const hasUppercase = /[A-Z]/.test(newPassword) ? <Ionicons name="checkmark-circle-outline" size={24} color="green" /> : <Ionicons name="close-circle-outline" size={24} color="red"/>;
+    const hasLowercase = /[a-z]/.test(newPassword) ? <Ionicons name="checkmark-circle-outline" size={24} color="green" /> : <Ionicons name="close-circle-outline" size={24} color="red"/>;
     const hasNumber = /[0-9]/.test(newPassword) ? <Ionicons name="checkmark-circle-outline" size={24} color="green" /> : <Ionicons name="close-circle-outline" size={24} color="red"/>;
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? <Ionicons name="checkmark-circle-outline" size={24} color="green" /> : <Ionicons name="close-circle-outline" size={24} color="red"/>;
+    const hasSpecialChar = /[!@#$%^&*()]/.test(newPassword) ? <Ionicons name="checkmark-circle-outline" size={24} color="green" /> : <Ionicons name="close-circle-outline" size={24} color="red"/>;
     const [oldPasswordError, setOldPasswordError] = useState(false);
     const passwordMeetsRequirements =
         newPassword.length >= 8 &&
         /[A-Z]/.test(newPassword) &&
+        /[a-z]/.test(newPassword) &&
         /[0-9]/.test(newPassword) &&
-        /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
+        /[!@#$%^&*()]/.test(newPassword);
 
     const newPasswordError =
         newPassword !== confirmPassword &&
@@ -175,12 +177,16 @@ export default function UpdatePassword() {
                                 <Text style={styles.requirementText}>At least 1 uppercase letter</Text>
                             </View>
                             <View style={styles.requirementRow}>
+                                <View style={styles.requirementIcon}>{hasLowercase}</View>
+                                <Text style={styles.requirementText}>At least 1 lowercase letter</Text>
+                            </View>
+                            <View style={styles.requirementRow}>
                                 <View style={styles.requirementIcon}>{hasNumber}</View>
                                 <Text style={styles.requirementText}>At least 1 number</Text>
                             </View>
                             <View style={styles.requirementRow}>
                                 <View style={styles.requirementIcon}>{hasSpecialChar}</View>
-                                <Text style={styles.requirementText}>At least 1 special character</Text>
+                                <Text style={styles.requirementText}>At least 1 special character (!@#$%^&*())</Text>
                             </View>
                         </View>
                     )}

@@ -2,9 +2,10 @@ import { useAuth } from "@/context/AuthContext";
 import createAPIClient from "@/services/api";
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 import { Text } from "react-native-paper";
+import { useCart } from "@/context/CartContext";
 
 interface WebStripeCheckoutProps {
     customerCart: any[];
@@ -23,6 +24,7 @@ function CheckoutForm({
     const stripe = useStripe();
     const elements = useElements();
     const { uid } = useAuth();
+    const { isCartPaused } = useCart();
     const api = useMemo(() => createAPIClient(), []);
     const [loading, setLoading] = useState(false);
 
@@ -110,7 +112,7 @@ function CheckoutForm({
             <TouchableOpacity 
                 onPress={handleWebCheckout} 
                 style={buttonStyle}
-                disabled={loading || !stripe || !elements}
+                disabled={loading || !stripe || !elements || isCartPaused}
             >
                 {loading ? (
                     <ActivityIndicator color="#ffffff" />
@@ -139,6 +141,15 @@ export default function StripeCheckout({
     const [taxAmount, setTaxAmount] = useState<number>(0);
     const [total, setTotal] = useState<number>(0);
 
+    // Use refs for callbacks to prevent recreating payment intent when they change
+    const onErrorRef = useRef(onError);
+    const onAmountsCalculatedRef = useRef(onAmountsCalculated);
+    
+    useEffect(() => {
+        onErrorRef.current = onError;
+        onAmountsCalculatedRef.current = onAmountsCalculated;
+    }, [onError, onAmountsCalculated]);
+
     useEffect(() => {
         const initializePayment = async () => {
             try {
@@ -164,8 +175,8 @@ export default function StripeCheckout({
                 setTaxAmount(taxAmount);
                 setTotal(totalAmount);
 
-                if (onAmountsCalculated) {
-                    onAmountsCalculated({
+                if (onAmountsCalculatedRef.current) {
+                    onAmountsCalculatedRef.current({
                         subTotal: subtotal / 100,
                         taxAmount: taxAmount / 100,
                         total: totalAmount / 100
@@ -175,12 +186,12 @@ export default function StripeCheckout({
                 setClientSecret(paymentIntent);
             } catch (error: any) {
                 console.error('Error initializing payment:', error);
-                onError('Failed to initialize payment');
+                onErrorRef.current('Failed to initialize payment');
             }
         };
 
         initializePayment();
-    }, [uid, api, onError, customerCart, onAmountsCalculated]);
+    }, [uid, api, customerCart]);
 
     if (!clientSecret || !stripePromise) {
         return (

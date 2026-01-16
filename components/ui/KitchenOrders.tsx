@@ -1,9 +1,9 @@
 import OrderCardKitchen from '@/components/OrderCardKitchen';
 import createAPIClient, { PageableResponse } from '@/services/api';
 import { router } from 'expo-router';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, TouchableOpacity, View } from "react-native";
-import { ActivityIndicator, Text } from "react-native-paper";
+import { ActivityIndicator, Icon, Text } from "react-native-paper";
 import { Toast } from 'toastify-react-native';
 import styles from '../../styles/KitchenOrder.styles';
 
@@ -15,7 +15,7 @@ interface OrderedItem {
 }
 
 interface User {
-    id: string;
+    uid: string;
     firstName: string;
     lastName: string;
     phoneNumber: string;
@@ -27,9 +27,9 @@ type Order = {
     waitress: User;
     orderNumber: string;
     orderedItems: OrderedItem[];
-    totalPrice: number;
     status: string;
     paymentStatus: string;
+    totalPrice: number;
     orderStartTime: string;
     orderEndTime: string | null;
 };
@@ -41,31 +41,35 @@ export default function KitchenOrders() {
     const [kitchenSelectedCategory, setKitchenSelectedCategory] = useState<string>('All');
     const lastRefreshAt = useRef<number>(0);
     const lastEndReachedAt = useRef<number>(0);
+    const [canRefresh, setCanRefresh] = useState(true);
+    const [refreshTimer, setRefreshTimer] = useState(0);
 
     const PAGE_SIZE = 10;
-    const [kitchenPageNumber, setKitchenPageNumber] = useState(0);
+    const [kitchenPageNumber, setKitchenPageNumber] = useState(-1);
     const [kitchenHasMore, setKitchenHasMore] = useState(true);
     const [loadingMoreKitchen, setLoadingMoreKitchen] = useState(false);
+    const REFRESH_COOLDOWN = 10; // 10 seconds cooldown between refreshes
 
 
-    const fetchKitchenOrders = useCallback(async(page = 0) => {
+    const fetchKitchenOrders = useCallback((page = 0) => {
         if (page > 0 && (!kitchenHasMore || loadingMoreKitchen)) {
-            return;
+            return Promise.resolve();
         }
 
-        try {
-            if (page > 0) {
-                setLoadingMoreKitchen(true);
+        if (page > 0) {
+            setLoadingMoreKitchen(true);
+        }
+
+        return api.get<PageableResponse<Order>>(`/orders/kitchen`, {
+            params: {
+                page,
+                size: PAGE_SIZE
             }
-
-            const response = await api.get<PageableResponse<Order>>(`/orders/kitchen`, {
-                params: {
-                    page,
-                    size: PAGE_SIZE
-                }
-            });
-
+        })
+        .then(response => {
             const content = response.data.content || [];
+            console.log('Fetched kitchen orders:', response.data);
+            
             if (page === 0) {
                 setKitchenOrders(content);
             } else {
@@ -80,7 +84,8 @@ export default function KitchenOrders() {
             const more = typeof response.data.last === 'boolean' ? !response.data.last : (content.length === PAGE_SIZE);
             setKitchenHasMore(more);
             setKitchenPageNumber(typeof response.data.number === 'number' ? response.data.number : page);
-        } catch (error : any) {
+        })
+        .catch((error: any) => {
             const errorMessage = error.response?.data || error.message || 'Failed to fetch kitchen orders';
             Toast.show({
                 type: 'error',
@@ -90,12 +95,54 @@ export default function KitchenOrders() {
                 backgroundColor: '#871919ff',
                 textColor: '#FFFFFF',
             });
-        } finally {
+        })
+        .finally(() => {
             if (page > 0) {
                 setLoadingMoreKitchen(false);
             }
-        }
+        });
     }, [api, kitchenHasMore, loadingMoreKitchen]);
+
+    // Timer countdown effect
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (!canRefresh && refreshTimer > 0) {
+            interval = setInterval(() => {
+                setRefreshTimer(prev => {
+                    if (prev <= 1) {
+                        setCanRefresh(true);
+                        // Trigger refresh immediately when timer hits 0
+                        setTimeout(() => {
+                            lastRefreshAt.current = Date.now();
+                            setRefreshing(true);
+                            setKitchenPageNumber(0);
+                            setKitchenHasMore(true);
+                            setCanRefresh(false);
+                            setRefreshTimer(REFRESH_COOLDOWN);
+                            fetchKitchenOrders(0).finally(() => setRefreshing(false));
+                        }, 0);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [canRefresh, refreshTimer, fetchKitchenOrders, REFRESH_COOLDOWN]);
+
+    // Initial load and start auto-refresh cycle
+    useEffect(() => {
+        // Trigger initial fetch and start the timer
+        setRefreshing(true);
+        setKitchenPageNumber(0);
+        setKitchenHasMore(true);
+        setCanRefresh(false);
+        setRefreshTimer(REFRESH_COOLDOWN);
+        fetchKitchenOrders(0).finally(() => setRefreshing(false));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Run only once on mount
 
     const handleOrderPress = (orderId: string) => {
         router.push({
@@ -103,7 +150,19 @@ export default function KitchenOrders() {
             params: { orderId }
         });
     };
-    const orderCategories = ['All', 'In-Progress', 'Completed', 'Canceled'];
+
+    const handleStatusChange = useCallback((orderId: string, newStatus: string) => {
+        // Optimistically update the order status in the local state
+        setKitchenOrders(prev => 
+            prev.map(order => 
+                order.id === orderId 
+                    ? { ...order, status: newStatus }
+                    : order
+            )
+        );
+    }, []);
+
+    const orderCategories = ['All', 'In-Progress'];
     const filteredKitchenOrders = kitchenOrders.filter(order => {
         if (kitchenSelectedCategory === 'All') return true;
         const status = order.status.toUpperCase();
@@ -115,27 +174,52 @@ export default function KitchenOrders() {
 
     return(
         <>
-            {/* Filter Tabs */}
+            {/* Filter Tabs with Refresh Button */}
             <View style={styles.filterContainer}>
-                {orderCategories.map((category) => (
-                    <TouchableOpacity
-                        key={category}
-                        style={[
-                            styles.filterTab,
-                            kitchenSelectedCategory === category && styles.activeFilterTab
-                        ]}
-                        onPress={() => setKitchenSelectedCategory(category)}
-                    >
-                        <Text
+                <View style={{ flexDirection: 'row', flex: 1, gap: 8 }}>
+                    {orderCategories.map((category) => (
+                        <TouchableOpacity
+                            key={category}
                             style={[
-                                styles.filterTabText,
-                                kitchenSelectedCategory === category && styles.activeFilterTabText
+                                styles.filterTab,
+                                kitchenSelectedCategory === category && styles.activeFilterTab
                             ]}
+                            onPress={() => setKitchenSelectedCategory(category)}
                         >
-                            {category}
-                        </Text>
+                            <Text
+                                style={[
+                                    styles.filterTabText,
+                                    kitchenSelectedCategory === category && styles.activeFilterTabText
+                                ]}
+                            >
+                                {category}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+                
+                {/* Refresh Button */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <TouchableOpacity
+                        style={styles.refreshButton}
+                        onPress={() => {
+                            lastRefreshAt.current = Date.now();
+                            setRefreshing(true);
+                            setKitchenPageNumber(0);
+                            setKitchenHasMore(true);
+                            setCanRefresh(false);
+                            setRefreshTimer(REFRESH_COOLDOWN);
+                            fetchKitchenOrders(0).finally(() => setRefreshing(false));
+                        }}
+                    >
+                        {refreshing ? (
+                            <ActivityIndicator size="small" color="#ffffff" />
+                        ) : (
+                            <Icon source="refresh" size={20} color="#ffffff" />
+                        )}
                     </TouchableOpacity>
-                ))}
+                    <Text style={styles.refreshTimerText}>{refreshTimer}s</Text>
+                </View>
             </View>
 
             {/* Kitchen Order List (FlatList with infinite scroll) */}
@@ -154,18 +238,21 @@ export default function KitchenOrders() {
                         paymentStatus={order.paymentStatus}
                         orderDate={order.orderStartTime}
                         onPress={() => handleOrderPress(order.id)}
+                        onStatusChange={handleStatusChange}
                     />
                 )}
                 contentContainerStyle={styles.flatListContainer}
                 showsVerticalScrollIndicator={false}
                 refreshing={refreshing}
                 onRefresh={() => {
-                        // mark refresh time to prevent onEndReached from firing immediately
-                        lastRefreshAt.current = Date.now();
-                        setRefreshing(true);
-                        setKitchenPageNumber(0);
-                        setKitchenHasMore(true);
-                        fetchKitchenOrders(0).finally(() => setRefreshing(false));
+                    // mark refresh time to prevent onEndReached from firing immediately
+                    lastRefreshAt.current = Date.now();
+                    setRefreshing(true);
+                    setKitchenPageNumber(0);
+                    setKitchenHasMore(true);
+                    setCanRefresh(false);
+                    setRefreshTimer(REFRESH_COOLDOWN);
+                    fetchKitchenOrders(0).finally(() => setRefreshing(false));
                 }}
                 // Automatically fetch next page when reaching the end (footer).
                     onEndReached={() => {
@@ -180,6 +267,13 @@ export default function KitchenOrders() {
                         }
                     }}
                 onEndReachedThreshold={0.5}
+                ListEmptyComponent={!refreshing ? (
+                    <View style={styles.emptyContainer}>
+                        <Icon source="chef-hat" size={120} color="#d0d0d0" />
+                        <Text style={{ fontSize: 18, color: '#666', marginTop: 20, fontFamily: 'Helvetica' }}>Queue is empty</Text>
+                        <Text style={{ fontSize: 14, color: '#999', marginTop: 8, fontFamily: 'Helvetica' }}>No orders in the kitchen right now</Text>
+                    </View>
+                ) : null}
                 ListFooterComponent={loadingMoreKitchen ? (
                     <View style={styles.loadingMore}>
                         <ActivityIndicator size="small" color="#871919ff" />

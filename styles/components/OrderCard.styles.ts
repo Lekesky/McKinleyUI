@@ -130,6 +130,7 @@ const styles = StyleSheet.create({
     },
     totalPrice: {
         fontSize: 16,
+        fontFamily: 'Helvetica',
         fontWeight: 'bold',
         color: '#871919ff',
     },
@@ -143,8 +144,10 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     paymentText: {
+        color: '#148223',
         fontSize: 10,
         fontWeight: 'bold',
+        fontFamily: 'Helvetica',
     }
 });
 

@@ -1,6 +1,7 @@
 import { useAuth } from '@/context/AuthContext';
 import createAPIClient from '@/services/api';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image, Modal, Platform, Pressable, TouchableOpacity, useWindowDimensions, View } from 'react-native';
@@ -29,6 +30,20 @@ export default function SignupModal({ visible, onClose, onSwitchToLogin }: Signu
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const {loginTokens, checkProfileComplete} = useAuth();
   const api = useMemo(() => createAPIClient(), []);
+  
+  // Password validation
+  const hasCharMin = password.length >= 8 ? <Ionicons name="checkmark-circle-outline" size={24} color="green" /> : <Ionicons name="close-circle-outline" size={24} color="red"/>;
+  const hasUppercase = /[A-Z]/.test(password) ? <Ionicons name="checkmark-circle-outline" size={24} color="green" /> : <Ionicons name="close-circle-outline" size={24} color="red"/>;
+  const hasLowercase = /[a-z]/.test(password) ? <Ionicons name="checkmark-circle-outline" size={24} color="green" /> : <Ionicons name="close-circle-outline" size={24} color="red"/>;
+  const hasNumber = /[0-9]/.test(password) ? <Ionicons name="checkmark-circle-outline" size={24} color="green" /> : <Ionicons name="close-circle-outline" size={24} color="red"/>;
+  const hasSpecialChar = /[!@#$%^&*()]/.test(password) ? <Ionicons name="checkmark-circle-outline" size={24} color="green" /> : <Ionicons name="close-circle-outline" size={24} color="red"/>;
+  const passwordMeetsRequirements =
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[!@#$%^&*()]/.test(password);
+  const hideRequirements = password.length === 0;
   
   const { width, height } = useWindowDimensions();
   const isMobile = width < 768;
@@ -144,6 +159,18 @@ export default function SignupModal({ visible, onClose, onSwitchToLogin }: Signu
   }, [visible]);
 
   const signupHandler = useCallback(() => {
+    if (!passwordMeetsRequirements) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Password',
+        text2: 'Password must meet all requirements',
+        position: 'top',
+        backgroundColor: '#871919ff',
+        textColor: '#FFFFFF',
+      });
+      return;
+    }
+    
     if (password !== confirmPassword) {
       Toast.show({
         type: 'error',
@@ -321,21 +348,47 @@ export default function SignupModal({ visible, onClose, onSwitchToLogin }: Signu
                 />
 
                 <Text style={[styles.inputLabel, !isMobile && { marginTop: 4, marginBottom: 4 }]}>Password</Text>
-                <TextInput
-                  mode="outlined"
-                  placeholder="Password"
-                  secureTextEntry={!showPassword}
-                  value={password}
-                  onChangeText={setPassword}
-                  style={[styles.textInput, !isMobile && { marginBottom: 4 }]}
-                  outlineStyle={styles.textInputOutline}
-                  right={
-                    <TextInput.Icon
-                      icon={showPassword ? "eye" : "eye-off"}
-                      onPress={() => setShowPassword(!showPassword)}
-                    />
-                  }
-                />
+                <View>
+                  <TextInput
+                    mode="outlined"
+                    placeholder="Password"
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onChangeText={setPassword}
+                    style={[styles.textInput, !isMobile && { marginBottom: 4 }]}
+                    outlineStyle={styles.textInputOutline}
+                    right={
+                      <TextInput.Icon
+                        icon={showPassword ? "eye" : "eye-off"}
+                        onPress={() => setShowPassword(!showPassword)}
+                      />
+                    }
+                  />
+                  {!hideRequirements && (
+                    <View style={styles.requirements}>
+                      <View style={styles.requirementRow}>
+                        <View style={styles.requirementIcon}>{hasCharMin}</View>
+                        <Text style={styles.requirementText}>At least 8 characters</Text>
+                      </View>
+                      <View style={styles.requirementRow}>
+                        <View style={styles.requirementIcon}>{hasUppercase}</View>
+                        <Text style={styles.requirementText}>At least 1 uppercase letter</Text>
+                      </View>
+                      <View style={styles.requirementRow}>
+                        <View style={styles.requirementIcon}>{hasLowercase}</View>
+                        <Text style={styles.requirementText}>At least 1 lowercase letter</Text>
+                      </View>
+                      <View style={styles.requirementRow}>
+                        <View style={styles.requirementIcon}>{hasNumber}</View>
+                        <Text style={styles.requirementText}>At least 1 number</Text>
+                      </View>
+                      <View style={styles.requirementRow}>
+                        <View style={styles.requirementIcon}>{hasSpecialChar}</View>
+                        <Text style={styles.requirementText}>At least 1 special character (!@#$%^&*())</Text>
+                      </View>
+                    </View>
+                  )}
+                </View>
 
                 <Text style={[styles.inputLabel, !isMobile && { marginTop: 4, marginBottom: 4 }]}>Confirm Password</Text>
                 <TextInput

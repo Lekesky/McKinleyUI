@@ -90,7 +90,7 @@ export default function OrderDetails() {
                 return '#4CAF50';
             case 'COMPLETED':
                 return '#4CAF50';
-            case 'CANCELLED':
+            case 'CANCELED':
                 return '#F44336';
             default:
                 return '#9E9E9E';

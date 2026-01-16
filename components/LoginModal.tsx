@@ -79,6 +79,7 @@ export default function LoginModal({ visible, onClose, onSwitchToSignup }: Login
       console.error('No idToken provided to handleGoogleSignInSuccess');
       return Promise.resolve();
     }
+    console.log('Handling Google sign-in with idToken:', idToken);
     
     const user = {
       loginToken: idToken,
@@ -139,6 +140,7 @@ export default function LoginModal({ visible, onClose, onSwitchToSignup }: Login
     return GoogleSignin.signInSilently()
       .then((userInfo) => {
         const idToken = (userInfo as any)?.idToken;
+        console.log('Silent sign-in successful, idToken:', idToken);
         if (idToken) {
           handleGoogleSignInSuccess(idToken);
         }
@@ -156,6 +158,7 @@ export default function LoginModal({ visible, onClose, onSwitchToSignup }: Login
 
     const handleCredentialResponse = (response: any) => {
       const idToken = response?.credential;
+      console.log('Google One Tap credential response received, idToken:', idToken);
       if (idToken) {
         handleGoogleSignInSuccess(idToken);
       }
@@ -201,6 +204,7 @@ export default function LoginModal({ visible, onClose, onSwitchToSignup }: Login
       .then(() => GoogleSignin.signIn())
       .then((userInfo) => {
         const idToken = (userInfo as any)?.data?.idToken;
+        console.log('Google Sign-In successful, idToken:', idToken);
         
         if (idToken) {
           return handleGoogleSignInSuccess(idToken);

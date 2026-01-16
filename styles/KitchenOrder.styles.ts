@@ -68,6 +68,7 @@ const styles = StyleSheet.create({
         gap: 20,
         alignSelf: 'center',
         justifyContent: 'space-between',
+        alignItems: 'center',
     },
     filterTab: {
         paddingVertical: 8,
@@ -86,6 +87,22 @@ const styles = StyleSheet.create({
     },
     activeFilterTabText: {
         color: '#fff',
+        fontWeight: 'bold',
+    },
+    refreshButton: {
+        backgroundColor: '#871919ff',
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    refreshButtonDisabled: {
+        backgroundColor: '#b8b8b8',
+    },
+    refreshTimerText: {
+        color: '#666',
+        fontSize: 14,
         fontWeight: 'bold',
     },
     emptyMessage: {
@@ -113,6 +130,12 @@ const styles = StyleSheet.create({
         paddingBottom: 80,
         alignSelf: 'center',
         width: '100%',
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 100,
     },
 });
 

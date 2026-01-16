@@ -47,6 +47,7 @@ export default function NotificationScreen() {
   const PAGE_SIZE = 10; // Small sample size for testing pagination
   const [bottomSheetIsOpen, setBottomSheetIsOpen] = useState(false);
   const [webModalVisible, setWebModalVisible] = useState(false);
+  const [sendingPSA, setSendingPSA] = useState(false);
   
   // Bottom sheet configuration
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -169,17 +170,8 @@ export default function NotificationScreen() {
   };
   
   const submitNotification = () => {
-    // Reset form and close bottom sheet
-    setNotificationTitle('');
-    setNotificationMessage('');
-
-    if(Platform.OS !== 'web'){
-      closeBottomSheet();
-    }else{
-      setWebModalVisible(false);
-    }
+    setSendingPSA(true);
     
-
     const data = {
       authorId: uid,
       title: notificationTitle,
@@ -188,6 +180,16 @@ export default function NotificationScreen() {
     
     api.post('/notifications/sendPSA', data)
       .then(() => {
+        // Reset form and close bottom sheet
+        setNotificationTitle('');
+        setNotificationMessage('');
+
+        if(Platform.OS !== 'web'){
+          closeBottomSheet();
+        }else{
+          setWebModalVisible(false);
+        }
+        
         Toast.show({
           type: 'success',
           text1: 'Success',
@@ -208,6 +210,9 @@ export default function NotificationScreen() {
           backgroundColor: '#871919ff',
           textColor: '#FFFFFF',
         });
+      })
+      .finally(() => {
+        setSendingPSA(false);
       });
   };
 
@@ -367,6 +372,9 @@ export default function NotificationScreen() {
       >
         <BottomSheetView style={styles.bottomSheetContent}>
           <Text style={styles.bottomSheetTitle}>Send New Notification</Text>
+          <Text style={{ fontSize: 13, color: '#666', marginBottom: 16, fontStyle: 'italic' }}>
+            Note: Processing may take a moment as the notification gone through content moderation.
+          </Text>
           
           <View style={styles.formGroup}>
             <TextInput
@@ -402,8 +410,13 @@ export default function NotificationScreen() {
             <TouchableOpacity 
               style={styles.submitButton} 
               onPress={submitNotification}
+              disabled={sendingPSA}
             >
-              <Text style={styles.submitButtonText}>Send</Text>
+              {sendingPSA ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.submitButtonText}>Send</Text>
+              )}
             </TouchableOpacity>
           </View>
         </BottomSheetView>
@@ -420,6 +433,9 @@ export default function NotificationScreen() {
           <View style={styles.webModalOverlay}>
             <View style={styles.webModalContent}>
               <Text style={styles.webModalTitle}>Send New Notification</Text>
+              <Text style={{ fontSize: 13, color: '#666', marginBottom: 16, fontStyle: 'italic', textAlign: 'center' }}>
+                Note: Processing may take a moment as the notification is sent through content moderation.
+              </Text>
               
               <View style={styles.webFormGroup}>
                 <TextInput
@@ -455,8 +471,13 @@ export default function NotificationScreen() {
                 <TouchableOpacity 
                   style={styles.webSubmitButton} 
                   onPress={submitNotification}
+                  disabled={sendingPSA}
                 >
-                  <Text style={styles.webSubmitButtonText}>Send</Text>
+                  {sendingPSA ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.webSubmitButtonText}>Send</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>

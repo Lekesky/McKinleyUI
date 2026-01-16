@@ -5,8 +5,8 @@ import { useAuth } from "@/context/AuthContext";
 import createAPIClient, { PageableResponse } from "@/services/api";
 import { router } from "expo-router";
 
-import { useCallback, useMemo, useRef, useState } from "react";
-import { Text } from "react-native-paper";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Icon, Text } from "react-native-paper";
 import { Toast } from 'toastify-react-native';
 import styles from "../../styles/CustomerOrder.styles";
 
@@ -45,11 +45,14 @@ export default function CustomerOrders() {
     const [userOrders, setUserOrders] = useState<Order[]>([]);
     const lastRefreshAt = useRef<number>(0);
     const lastEndReachedAt = useRef<number>(0);
+    const [canRefresh, setCanRefresh] = useState(true);
+    const [refreshTimer, setRefreshTimer] = useState(0);
 
     const PAGE_SIZE = 10;
     const [userHasMore, setUserHasMore] = useState(true);
     const [loadingMoreUser, setLoadingMoreUser] = useState(false);
     const [userPageNumber, setUserPageNumber] = useState(0);
+    const REFRESH_COOLDOWN = 10; // 10 seconds cooldown between refreshes
 
     const handleOrderPress = (orderId: string) => {
         router.push({
@@ -58,58 +61,98 @@ export default function CustomerOrders() {
         });
     };
 
-    const fetchUserOrders = useCallback(async(page = 0) => {
-            if (page > 0 && (!userHasMore || loadingMoreUser)) {
-                return;
+    const fetchUserOrders = useCallback((page = 0) => {
+        if (page > 0 && (!userHasMore || loadingMoreUser)) {
+            return Promise.resolve();
+        }
+        
+        if (page > 0) {
+            setLoadingMoreUser(true);
+        }
+        
+        return api.get<PageableResponse<Order>>(`/orders/all/${uid}`, {
+            params: {
+                page,
+                size: PAGE_SIZE
             }
-            
-            try {
-                if (page > 0) {
-                    setLoadingMoreUser(true);
-                }
-                
-                const response = await api.get<PageableResponse<Order>>(`/orders/all/${uid}`, {
-                    params: {
-                        page,
-                        size: PAGE_SIZE
-                    }
+        })
+        .then(response => {
+            const content = response.data.content || [];
+            if (page === 0) {
+                setUserOrders(content);
+            } else {
+                setUserOrders(prev => {
+                    const existingIds = new Set(prev.map(p => p.id));
+                    const newItems = content.filter(c => c && !existingIds.has(c.id));
+                    if (newItems.length === 0) return prev;
+                    return [...prev, ...newItems];
                 });
-                
-                const content = response.data.content || [];
-                if (page === 0) {
-                    setUserOrders(content);
-                } else {
-                    setUserOrders(prev => {
-                        const existingIds = new Set(prev.map(p => p.id));
-                        const newItems = content.filter(c => c && !existingIds.has(c.id));
-                        if (newItems.length === 0) return prev;
-                        return [...prev, ...newItems];
-                    });
-                }
-    
-                // Prefer explicit server 'last' flag. If absent, fall back to page size check.
-                const more = typeof response.data.last === 'boolean' ? !response.data.last : (content.length === PAGE_SIZE);
-                setUserHasMore(more);
-                // Use server-provided page number when available, otherwise use requested page
-                setUserPageNumber(typeof response.data.number === 'number' ? response.data.number : page);
-            } catch (error: any) {
-                const errorMessage = error.response?.data || error.message || 'Failed to fetch order history';
-                Toast.show({
-                    type: 'error',
-                    text1: 'Error',
-                    text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch order history',
-                    position: 'top',
-                    backgroundColor: '#871919ff',
-                    textColor: '#FFFFFF',
-                });
-            } finally {
-                if (page > 0) {
-                    setLoadingMoreUser(false);
-                }
             }
-        }, [uid, api, userHasMore, loadingMoreUser]);
 
-        const filteredUserOrders = userOrders.filter(order => {
+            const more = typeof response.data.last === 'boolean' ? !response.data.last : (content.length === PAGE_SIZE);
+            setUserHasMore(more);
+            setUserPageNumber(typeof response.data.number === 'number' ? response.data.number : page);
+        })
+        .catch((error: any) => {
+            const errorMessage = error.response?.data || error.message || 'Failed to fetch order history';
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch order history',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
+        })
+        .finally(() => {
+            if (page > 0) {
+                setLoadingMoreUser(false);
+            }
+        });
+    }, [uid, api, userHasMore, loadingMoreUser]);
+
+    // Timer countdown effect
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (!canRefresh && refreshTimer > 0) {
+            interval = setInterval(() => {
+                setRefreshTimer(prev => {
+                    if (prev <= 1) {
+                        setCanRefresh(true);
+                        // Trigger refresh immediately when timer hits 0
+                        setTimeout(() => {
+                            lastRefreshAt.current = Date.now();
+                            setRefreshing(true);
+                            setUserPageNumber(0);
+                            setUserHasMore(true);
+                            setCanRefresh(false);
+                            setRefreshTimer(REFRESH_COOLDOWN);
+                            fetchUserOrders(0).finally(() => setRefreshing(false));
+                        }, 0);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [canRefresh, refreshTimer, fetchUserOrders, REFRESH_COOLDOWN]);
+
+    // Initial load and start auto-refresh cycle
+    useEffect(() => {
+        // Trigger initial fetch and start the timer
+        setRefreshing(true);
+        setUserPageNumber(0);
+        setUserHasMore(true);
+        setCanRefresh(false);
+        setRefreshTimer(REFRESH_COOLDOWN);
+        fetchUserOrders(0).finally(() => setRefreshing(false));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Run only once on mount
+
+    const filteredUserOrders = userOrders.filter(order => {
             if (userSelectedCategory === 'All') return true;
             const status = order.status.toUpperCase();
             if (userSelectedCategory === 'In-Progress' && status === 'IN-PROGRESS') return true;
@@ -122,27 +165,52 @@ export default function CustomerOrders() {
     
     return (
         <>
-            {/* Filter Tabs */}
+            {/* Filter Tabs with Refresh Button */}
             <View style={styles.filterContainer}>
-                {orderCategories.map((category) => (
-                    <TouchableOpacity
-                        key={category}
-                        style={[
-                            styles.filterTab,
-                            userSelectedCategory === category && styles.activeFilterTab
-                        ]}
-                        onPress={() => setUserSelectedCategory(category)}
-                    >
-                        <Text
+                <View style={{ flexDirection: 'row', flex: 1, gap: 8 }}>
+                    {orderCategories.map((category) => (
+                        <TouchableOpacity
+                            key={category}
                             style={[
-                                styles.filterTabText,
-                                userSelectedCategory === category && styles.activeFilterTabText
+                                styles.filterTab,
+                                userSelectedCategory === category && styles.activeFilterTab
                             ]}
+                            onPress={() => setUserSelectedCategory(category)}
                         >
-                            {category}
-                        </Text>
+                            <Text
+                                style={[
+                                    styles.filterTabText,
+                                    userSelectedCategory === category && styles.activeFilterTabText
+                                ]}
+                            >
+                                {category}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+                
+                {/* Refresh Button */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <TouchableOpacity
+                        style={styles.refreshButton}
+                        onPress={() => {
+                            lastRefreshAt.current = Date.now();
+                            setRefreshing(true);
+                            setUserPageNumber(0);
+                            setUserHasMore(true);
+                            setCanRefresh(false);
+                            setRefreshTimer(REFRESH_COOLDOWN);
+                            fetchUserOrders(0).finally(() => setRefreshing(false));
+                        }}
+                    >
+                        {refreshing ? (
+                            <ActivityIndicator size="small" color="#ffffff" />
+                        ) : (
+                            <Icon source="refresh" size={20} color="#ffffff" />
+                        )}
                     </TouchableOpacity>
-                ))}
+                    <Text style={styles.refreshTimerText}>{refreshTimer}s</Text>
+                </View>
             </View>
 
             {/* Order List (FlatList with infinite scroll) */}
@@ -168,9 +236,10 @@ export default function CustomerOrders() {
                     // mark refresh time to prevent onEndReached from firing immediately
                     lastRefreshAt.current = Date.now();
                     setRefreshing(true);
-                    // reset page number and fetch first page
                     setUserPageNumber(0);
                     setUserHasMore(true);
+                    setCanRefresh(false);
+                    setRefreshTimer(REFRESH_COOLDOWN);
                     fetchUserOrders(0).finally(() => setRefreshing(false));
                 }}
                 // Automatically fetch next page when reaching the end (footer).

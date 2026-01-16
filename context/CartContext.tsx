@@ -85,6 +85,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           try {
             if (event.data == null) return;
             const data = JSON.parse(event.data);
+            if(data?.paused === undefined) return;
             setIsCartPaused(data.paused);
           } catch (parseError) {
             console.warn('SSE: Failed to parse message', parseError);

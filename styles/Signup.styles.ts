@@ -172,6 +172,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textDecorationLine: 'underline',
   },
+  
+  // Password requirements
+  requirements: {
+    marginTop: 8,
+    marginBottom: 8,
+    padding: 12,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  requirementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  requirementIcon: {
+    marginRight: 8,
+  },
+  requirementText: {
+    fontSize: 13,
+    color: '#333',
+  },
 });
 
 export default styles;

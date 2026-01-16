@@ -206,7 +206,7 @@ export default function Profile() {
                     <Text style={styles.firstLastName}>{firstName} {lastName}</Text>
                     <Text style={styles.email}>{email}</Text>
                     <Text style={styles.email}>UID: {uid}</Text>
-                    <Text style={styles.timeJoined}>Joined: {timeCreated.toLocaleDateString()}</Text>
+                    <Text style={styles.timeJoined}>Joined: {timeCreated.toLocaleDateString('en-us', {timeZone: "UTC"})}</Text>
                 </View>
 
                 {userRole === 'ADMIN' && (

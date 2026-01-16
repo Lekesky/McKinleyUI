@@ -142,7 +142,7 @@ export default function CustomerHome() {
               Toast.show({
                 type: 'info',
                 text1: 'Order Fulfillment Paused',
-                text2: 'We have put a pause on accepting new orders in the meantime. Please check back later.',
+                text2: 'We have put a pause on accepting new orders for the meantime. Please check back later.',
                 autoHide: false,
                 position: 'bottom',
                 backgroundColor: '#871919ff',
@@ -184,7 +184,7 @@ export default function CustomerHome() {
               Toast.show({
                 type: 'info',
                 text1: 'Order Fulfillment Paused',
-                text2: 'We have put a pause on accepting new orders in the meantime. Please check back later.',
+                text2: 'We have put a pause on accepting new orders for the meantime. Please check back later.',
                 autoHide: false,
                 position: 'bottom',
                 backgroundColor: '#871919ff',

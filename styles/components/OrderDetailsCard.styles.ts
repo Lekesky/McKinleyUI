@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
         color: '#2563eb',
         backgroundColor: '#dbeafe',
     },
-    cancelled: {
+    canceled: {
         color: '#dc2626',
         backgroundColor: '#fee2e2',
     },

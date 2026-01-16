@@ -29,7 +29,7 @@ export default function StripeCheckout({
     const [total, setTotal] = useState<number>(0);
     const [loading, setLoading] = useState(false);
 
-    const placeOrder = async (paymentIntentId: string) => {
+    const placeOrder = (paymentIntentId: string) => {
         const orderData = {
             userID: uid,
             orderItems: customerCart.map((item) => ({
@@ -39,29 +39,30 @@ export default function StripeCheckout({
             paymentIntentId
         };
         
-        try {
-            const response = await api.post(`/orders`, orderData);
-            return true;
-        } catch (error: any) {
-            let errorMessage = "Failed to place order. Try again later.";
-            
-            if (error.response?.data) {
-                if (error.response.data.message) {
-                    errorMessage = error.response.data.message;
-                } else if (error.response.data.error) {
-                    errorMessage = error.response.data.error;
-                } else if (typeof error.response.data === 'string') {
-                    errorMessage = error.response.data;
+        return api.post(`/orders`, orderData)
+            .then(response => {
+                return true;
+            })
+            .catch((error: any) => {
+                let errorMessage = "Failed to place order. Try again later.";
+                
+                if (error.response?.data) {
+                    if (error.response.data.message) {
+                        errorMessage = error.response.data.message;
+                    } else if (error.response.data.error) {
+                        errorMessage = error.response.data.error;
+                    } else if (typeof error.response.data === 'string') {
+                        errorMessage = error.response.data;
+                    }
                 }
-            }
-            
-            console.error("Order failed:", errorMessage);
-            onError(errorMessage);
-            return false;
-        }
+                
+                console.error("Order failed:", errorMessage);
+                onError(errorMessage);
+                return false;
+            });
     };
 
-    const initializePaymentSheet = useCallback(async () => {
+    const initializePaymentSheet = useCallback(() => {
             const stripeData = {
                 customerId: uid,
                 orderItems: customerCart.map((item) => ({
@@ -70,74 +71,82 @@ export default function StripeCheckout({
                 })),
             };
             
-            try {
-                const resPaymentIntent = await api.post('/payments', stripeData);
-                const { paymentIntentId, paymentIntent, ephemeralKey, customer, taxAmount, subtotal, totalAmount } = resPaymentIntent.data;
-                setSubTotal(subtotal);
-                setTaxAmount(taxAmount);
-                setTotal(totalAmount);
+            return api.post('/payments', stripeData)
+                .then(resPaymentIntent => {
+                    const { paymentIntentId, paymentIntent, ephemeralKey, customer, taxAmount, subtotal, totalAmount } = resPaymentIntent.data;
+                    setSubTotal(subtotal);
+                    setTaxAmount(taxAmount);
+                    setTotal(totalAmount);
 
-                if (onAmountsCalculated) {
-                    onAmountsCalculated({
-                        subTotal: subtotal / 100,
-                        taxAmount: taxAmount / 100,
-                        total: totalAmount / 100
-                    });
-                }
-                
-                const resSetupIntent = await api.post('/payments/setup-intent', { customerId: customer });
-                
-                const { setupIntentClientSecret } = resSetupIntent.data;
-                
-                const { error } = await initPaymentSheet({
-                    merchantDisplayName: 'Mckinley Grill',
-                    customerId: customer,
-                    setupIntentClientSecret: setupIntentClientSecret,
-                    customerEphemeralKeySecret: ephemeralKey,
-                    paymentIntentClientSecret: paymentIntent,
-                    allowsDelayedPaymentMethods: false,
-                });
-
-                if (error) {
+                    if (onAmountsCalculated) {
+                        onAmountsCalculated({
+                            subTotal: subtotal / 100,
+                            taxAmount: taxAmount / 100,
+                            total: totalAmount / 100
+                        });
+                    }
+                    
+                    return api.post('/payments/setup-intent', { customerId: customer })
+                        .then(resSetupIntent => {
+                            const { setupIntentClientSecret } = resSetupIntent.data;
+                            
+                            return initPaymentSheet({
+                                merchantDisplayName: 'Mckinley Grill',
+                                customerId: customer,
+                                setupIntentClientSecret: setupIntentClientSecret,
+                                customerEphemeralKeySecret: ephemeralKey,
+                                paymentIntentClientSecret: paymentIntent,
+                                allowsDelayedPaymentMethods: false,
+                            }).then(result => {
+                                if (result.error) {
+                                    return false;
+                                } else {
+                                    return paymentIntentId;
+                                }
+                            });
+                        });
+                })
+                .catch((err: any) => {
+                    console.error('Error initializing payment sheet:', err.response?.data);
                     return false;
-                } else {
-                    return paymentIntentId;
-                }
-            } catch (err : any) {
-                console.error('Error initializing payment sheet:', err.response.data);
-                return false;
-            }
+                });
         },[api, customerCart, onAmountsCalculated, uid]);
 
-    useEffect(() => {
-        initializePaymentSheet();
-    },[initializePaymentSheet]);
-    
-    const handleMobileCheckout = async () => {
+    const handleMobileCheckout = () => {
         setLoading(true);
-        const paymentIntentID = await initializePaymentSheet();
-        
-        if (paymentIntentID === false) {
-            onError('Could not initialize payment.');
-            setLoading(false);
-            return;
-        }
+        initializePaymentSheet()
+            .then(paymentIntentID => {
+                if (paymentIntentID === false) {
+                    onError('Could not initialize payment.');
+                    setLoading(false);
+                    return;
+                }
 
-        const { error } = await presentPaymentSheet();
-
-        if (error) {
-            onError(error.message || 'Payment failed');
-            setLoading(false);
-        } else {
-            const result = await placeOrder(paymentIntentID);
-            if (result) {
-                onSuccess();
-            } else {
-                onError('Payment succeeded but order placement failed');
-            }
-            setLoading(false);
-        }
+                return presentPaymentSheet()
+                    .then(({ error }) => {
+                        if (error) {
+                            onError(error.message || 'Payment failed');
+                            setLoading(false);
+                        } else {
+                            return placeOrder(paymentIntentID)
+                                .then(result => {
+                                    if (result) {
+                                        onSuccess();
+                                    } else {
+                                        onError('Payment succeeded but order placement failed');
+                                    }
+                                    setLoading(false);
+                                });
+                        }
+                    });
+            })
+            .catch(error => {
+                onError('An unexpected error occurred');
+                setLoading(false);
+            });
     };
+
+
 
     return (
         <TouchableOpacity 

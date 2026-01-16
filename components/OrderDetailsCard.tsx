@@ -28,9 +28,8 @@ const OrderDetailsCard: FC<OrderCardProps> = ({ orderNumber, orderedItems, total
             case 'IN-PROGRESS':
             case 'IN_PROGRESS':
                 return styles.inProgress;
-            case 'CANCELLED':
             case 'CANCELED':
-                return styles.cancelled;
+                return styles.canceled;
             case 'PAID':
                 return styles.paid;
             default:

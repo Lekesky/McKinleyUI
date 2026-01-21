@@ -21,7 +21,7 @@ interface MenuItem {
 
 
 const CATEGORIES = [
-  'entree',
+  'Entree',
   'Breakfast',
   'Lunch', 
   'Dinner', 
@@ -292,10 +292,11 @@ export default function CustomerHome() {
           );
           setFilteredItems(searchResults);
         } else {
-          // Filter by selected category
+          // Filter by selected category (case-insensitive)
+          const target = selectedCategory.toLowerCase();
           const categoryResults = menuItems.filter(item => {
             if (item.tags && Array.isArray(item.tags)) {
-              return item.tags.includes(selectedCategory);
+              return item.tags.some(tag => String(tag).toLowerCase() === target);
             }
             return false;
           });

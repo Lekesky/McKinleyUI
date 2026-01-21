@@ -125,9 +125,9 @@ export default function createAPIClient(): AxiosInstance {
 
   // Request interceptor - Add token to headers if exists
   apiClient.interceptors.request.use(
-    async (config) => {
+    async (config: any) => {
       const accessToken = await getStoredItem(ACCESS_TOKEN_KEY);
-    
+
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
         console.log(accessToken);
@@ -137,11 +137,13 @@ export default function createAPIClient(): AxiosInstance {
       // Set longer timeout for PSA endpoint since processing can take a while
       if (config.url?.includes('/sendPSA')) {
         config.timeout = 300000; // 5 minutes for PSA endpoint
+      }else if (config.url?.includes('/menu/')) {
+        config.timeout = 300000; // 5 minutes for report generation
       }
-      
+
       return config;
     }, 
-    (error) => Promise.reject(error)
+    (error: any) => Promise.reject(error)
   );
 
   // Response interceptor - Handle 401/403 errors with token refresh

@@ -26,7 +26,7 @@ export default function EditProduct() {
     const [loading, setLoading] = useState(false);
     const api = useMemo(() => createAPIClient(), []);
 
-    const handleSave = useCallback(() => {
+    const handleSave = useCallback(async () => {
         if (!image) {
             Toast.show({
                 type: 'error',
@@ -50,53 +50,54 @@ export default function EditProduct() {
             description,
             price: parseFloat(price),
         };
-        
         formData.append('menuItem', JSON.stringify(menuItem));
 
         const filename = image.split('/').pop() || 'photo.jpg';
         const match = /\.(\w+)$/.exec(filename);
         const type = match ? `image/${match[1]}` : `image`;
 
-        formData.append('image', {
-            uri: image,
-            name: filename,
-            type
-        } as any);
+        try {
+            if (Platform.OS === 'web') {
+                const res = await fetch(image);
+                const blob = await res.blob();
+                const file = new File([blob], filename, { type });
+                formData.append('image', file as any);
+            } else {
+                formData.append('image', {
+                    uri: image,
+                    name: filename,
+                    type,
+                } as any);
+            }
 
-        api.post('menu', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        })
-            .then(() => {
-                Toast.show({
-                    type: 'success',
-                    text1: 'Success',
-                    text2: 'Menu item added successfully!',
-                    position: 'top',
-                    backgroundColor: '#4CAF50',
-                    textColor: '#FFFFFF',
-                });
-                setTimeout(() => router.back(), 1500);
-            })
-            .catch((error) => {
-                const errorMessage = error.response?.data || error.message || 'Error adding menu item';
-                const displayMessage = typeof errorMessage === 'string' ? errorMessage : 'Error adding menu item. Please try again.';
-                Toast.show({
-                    type: 'error',
-                    text1: 'Error',
-                    text2: displayMessage,
-                    position: 'top',
-                    backgroundColor: '#871919ff',
-                    textColor: '#FFFFFF',
-                });
-            })
-            .finally(() => {
-                setLoading(false);
+            await api.post('menu', formData);
+
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: 'Menu item added successfully!',
+                position: 'top',
+                backgroundColor: '#4CAF50',
+                textColor: '#FFFFFF',
             });
+            setTimeout(() => router.back(), 1500);
+        } catch (error: any) {
+            const errorMessage = error.response?.data || error.message || 'Error adding menu item';
+            const displayMessage = typeof errorMessage === 'string' ? errorMessage : 'Error adding menu item. Please try again.';
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: displayMessage,
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
+        } finally {
+            setLoading(false);
+        }
     }, [image, uid, name, description, price, api, router]);
 
-    const handleSaveEdit = useCallback(() => {
+    const handleSaveEdit = useCallback(async () => {
         if (!image && !imageURL) {
             Toast.show({
                 type: 'error',
@@ -108,7 +109,6 @@ export default function EditProduct() {
             });
             return;
         }
-
         setLoading(true);
         const formData = new FormData();
 
@@ -123,50 +123,52 @@ export default function EditProduct() {
         };
         formData.append('menuItem', JSON.stringify(menuItem));
 
-        // Only append image if a new one was selected
-        if (image) {
-            const filename = image.split('/').pop() || 'photo.jpg';
-            const match = /\.(\w+)$/.exec(filename);
-            const type = match ? `image/${match[1]}` : `image`;
+        try {
+            // Only append image if a new one was selected
+            if (image) {
+                const filename = image.split('/').pop() || 'photo.jpg';
+                const match = /\.(\w+)$/.exec(filename);
+                const type = match ? `image/${match[1]}` : `image`;
 
-            formData.append('image', {
-                uri: image,
-                name: filename,
-                type
-            } as any);
-        }
+                if (Platform.OS === 'web') {
+                    const res = await fetch(image);
+                    const blob = await res.blob();
+                    const file = new File([blob], filename, { type });
+                    formData.append('image', file as any);
+                } else {
+                    formData.append('image', {
+                        uri: image,
+                        name: filename,
+                        type,
+                    } as any);
+                }
+            }
 
-        api.patch(`menu/${id}`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        })
-            .then(() => {
-                Toast.show({
-                    type: 'success',
-                    text1: 'Success',
-                    text2: 'Menu item updated successfully!',
-                    position: 'top',
-                    backgroundColor: '#4CAF50',
-                    textColor: '#FFFFFF',
-                });
-                setTimeout(() => router.back(), 1500);
-            })
-            .catch((error) => {
-                const errorMessage = error.response?.data || error.message || 'Error updating menu item';
-                const displayMessage = typeof errorMessage === 'string' ? errorMessage : 'Error updating menu item. Please try again.';
-                Toast.show({
-                    type: 'error',
-                    text1: 'Error',
-                    text2: displayMessage,
-                    position: 'top',
-                    backgroundColor: '#871919ff',
-                    textColor: '#FFFFFF',
-                });
-            })
-            .finally(() => {
-                setLoading(false);
+            await api.patch(`menu/${id}`, formData);
+
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: 'Menu item updated successfully!',
+                position: 'top',
+                backgroundColor: '#4CAF50',
+                textColor: '#FFFFFF',
             });
+            setTimeout(() => router.back(), 1500);
+        } catch (error: any) {
+            const errorMessage = error.response?.data || error.message || 'Error updating menu item';
+            const displayMessage = typeof errorMessage === 'string' ? errorMessage : 'Error updating menu item. Please try again.';
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: displayMessage,
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
+        } finally {
+            setLoading(false);
+        }
     }, [image, imageURL, uid, id, name, description, price, api, router]);
 
     const handleDelete = useCallback(() => {

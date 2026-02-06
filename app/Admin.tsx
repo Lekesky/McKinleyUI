@@ -46,7 +46,7 @@ export default function Admin() {
 
   const handlePauseOrders = () => {
     hidePauseDialog();
-    api.post('orders/pause')
+    api.post('/orders/pause')
       .then((res) => {
         if(JSON.stringify(res.data).includes('false')){
           Toast.success('Orders have been resumed successfully.');
@@ -59,7 +59,7 @@ export default function Admin() {
         Toast.show({
           type: 'error',
           text1: 'Error',
-          text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to fetch menu performance',
+          text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to pause orders',
           position: 'top',
           backgroundColor: '#871919ff',
           textColor: '#FFFFFF',
@@ -69,13 +69,21 @@ export default function Admin() {
 
   useEffect(() => {
     let mounted = true;
-    api.get('menu')
+    const param = { page: 0, size: 200 };
+    api.get('/menu', { params: param })
       .then((res) => {
         if (!mounted) return;
         setMenuItems(res?.data?.content || []);
       })
       .catch(() => {
-        // Silent error
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Failed to fetch menu items',
+          position: 'top',
+          backgroundColor: '#871919ff',
+          textColor: '#FFFFFF',
+      });
       });
     return () => {
       mounted = false;

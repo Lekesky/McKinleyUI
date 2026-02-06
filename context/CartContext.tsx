@@ -13,15 +13,16 @@ type MenuItem = {
   imageURL: string;
 };
 
-type CartItem = MenuItem & { quantity: number };
+type CartItem = MenuItem & { quantity: number; selectedSideIds?: string[] };
 
 type CartType = 'CUSTOMER' | 'WAITRESS';
 
 type CartContextType = {
   cart: Record<CartType, CartItem[]>;
   isCartPaused: boolean
-  addToCart: (item: MenuItem, quantity: number, type?: CartType) => void;
+  addToCart: (item: MenuItem, quantity: number, selectedSideIds?: string[], type?: CartType) => void;
   removeFromCart: (itemId: string, type?: CartType) => void;
+  removeSideFromItem: (itemId: string, sideId: string, type?: CartType) => void;
   clearCart: (type?: CartType) => void;
   getActiveCart: (type?: CartType) => CartItem[];
   getTotal: (type?: CartType) => string;
@@ -138,15 +139,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   },[isAuthenticated, accessToken, refreshAccessToken]);
 
 
-  const addToCart = useCallback((item: MenuItem, quantity: number, type: CartType = 'CUSTOMER') => {
+  const addToCart = useCallback((item: MenuItem, quantity: number, selectedSideIds: string[] = [], type: CartType = 'CUSTOMER') => {
     setCart(prevCart => {
       const currentCart = [...prevCart[type]];
       const existingItemIndex = currentCart.findIndex(cartItem => cartItem.id === item.id);
 
       if (existingItemIndex !== -1) {
         currentCart[existingItemIndex].quantity += quantity;
+        if (selectedSideIds.length > 0) {
+          currentCart[existingItemIndex].selectedSideIds = selectedSideIds;
+        }
       } else {
-        currentCart.push({ ...item, quantity });
+        currentCart.push({ ...item, quantity, selectedSideIds: selectedSideIds.length > 0 ? selectedSideIds : undefined });
       }
 
       const newCart = {
@@ -197,6 +201,40 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
+  const removeSideFromItem = useCallback((itemId: string, sideId: string, type: CartType = 'CUSTOMER') => {
+    setCart(prevCart => {
+      const currentCart = [...prevCart[type]];
+      const itemIndex = currentCart.findIndex(item => item.id === itemId);
+      
+      if (itemIndex === -1) {
+        return prevCart; // Item not found, return unchanged cart
+      }
+      
+      const item = currentCart[itemIndex];
+      if (!item.selectedSideIds || item.selectedSideIds.length === 0) {
+        return prevCart; // No sides to remove
+      }
+      
+      // Remove the specific side from the item
+      const updatedSideIds = item.selectedSideIds.filter(id => id !== sideId);
+      currentCart[itemIndex] = {
+        ...item,
+        selectedSideIds: updatedSideIds.length > 0 ? updatedSideIds : undefined
+      };
+
+      // Save to AsyncStorage
+      AsyncStorage.setItem('cart_' + type, JSON.stringify(currentCart))
+        .catch(() => {
+          // Silent error - failed to save cart
+        });
+      
+      return {
+        ...prevCart,
+        [type]: currentCart
+      };
+    });
+  }, []);
+
   const clearCart = useCallback((type?: CartType) => {
     if (type) {
       setCart(prevCart => ({
@@ -239,6 +277,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       isCartPaused,
       addToCart, 
       removeFromCart,
+      removeSideFromItem,
       clearCart, 
       getActiveCart,
       getTotal, 

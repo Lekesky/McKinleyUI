@@ -1,8 +1,8 @@
 import { useAuth } from '@/context/AuthContext';
-import createAPIClient from '@/services/api';
+import createAPIClient, { MenuItem } from '@/services/api';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Button, Icon, Text, TextInput } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,9 +22,156 @@ export default function EditProduct() {
     const [price, setPrice] = useState(parsedProduct.price.toString());
     const [imageURL] = useState(parsedProduct.imageURL);
     const [featured, setFeatured] = useState(parsedProduct.featured || false);
+    const [tags, setTags] = useState<string[]>(parsedProduct.tags || []);
+    const [newTag, setNewTag] = useState('');
     const [image, setImage] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [availableSides, setAvailableSides] = useState<any[]>([]);
+    const [selectedSides, setSelectedSides] = useState<MenuItem[]>([]);
+    const [sidesLoading, setSidesLoading] = useState(false);
+    const [showSidePicker, setShowSidePicker] = useState(false);
+    const [sidesDisplayCount, setSidesDisplayCount] = useState(10);
+    const [sidesSearchQuery, setSidesSearchQuery] = useState('');
+    const SIDES_DISPLAY_INCREMENT = 10;
     const api = useMemo(() => createAPIClient(), []);
+
+    const loadSidesData = useCallback(async () => {
+        if (!id) return;
+        // Clear selected sides before reload
+        setSelectedSides([]);
+        
+        setSidesLoading(true);
+        try {
+            // Fetch all available sides with pageNumber=0 and pageSize=200
+            const sidesResponse = await api.get('/menu/sides?pageNumber=0&size=200');
+            const sidesData = sidesResponse.data;
+            
+            // Handle both direct array and paginated response
+            let sides = [];
+            
+            if (Array.isArray(sidesData)) {
+                sides = sidesData;
+            } else if (sidesData.content) {
+                sides = sidesData.content;
+            }
+            
+            setAvailableSides(sides);
+            setSidesDisplayCount(10); // Reset display count to initial value
+
+            // Fetch current sides for this menu item
+            const menuItemResponse = await api.get(`/menu/${id}`);
+            const currentSides : string[] = menuItemResponse.data.availableSidesIds || [];
+            if(Array.isArray(currentSides)){
+                for(const sideId of currentSides){
+                    const side : MenuItem = await api.get(`/menu/${sideId}`).then(res => res.data);
+                    setSelectedSides(prevSides => [...prevSides, side]);
+                }
+            }
+        } catch (error: any) {
+            console.error('Error loading sides:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Failed to load sides',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
+        } finally {
+            setSidesLoading(false);
+        }
+    }, [api, id]);
+
+    const loadMoreSides = useCallback(() => {
+        setSidesDisplayCount(prevCount => prevCount + SIDES_DISPLAY_INCREMENT);
+    }, []);
+
+    useEffect(() => {
+        if (id) {
+            loadSidesData();
+        }
+    }, [id, loadSidesData]);
+
+    const handleAddSide = useCallback(async (sideId: string) => {
+        if (!id) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Cannot add sides to a new item. Save the item first.',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
+            return;
+        }
+
+        setSidesLoading(true);
+        try {
+            await api.post(`/menu/${id}/sides/${sideId}`);
+            
+            // Add the side to selectedSides if not already present
+            const side = availableSides.find(s => s.id === sideId);
+            if (side && !selectedSides.find(s => s.id === sideId)) {
+                setSelectedSides([...selectedSides, side]);
+            }
+
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: 'Side added successfully!',
+                position: 'top',
+                backgroundColor: '#4CAF50',
+                textColor: '#FFFFFF',
+            });
+        } catch (error: any) {
+            const errorMessage = error.response?.data || error.message || 'Error adding side';
+            const displayMessage = typeof errorMessage === 'string' ? errorMessage : 'Error adding side. Please try again.';
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: displayMessage,
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
+        } finally {
+            setSidesLoading(false);
+        }
+    }, [api, id, availableSides, selectedSides]);
+
+    const handleRemoveSide = useCallback(async (sideId: string) => {
+        if (!id) return;
+
+        setSidesLoading(true);
+        try {
+            await api.delete(`/menu/${id}/sides/${sideId}`);
+            
+            // Remove the side from selectedSides
+            setSelectedSides(selectedSides.filter(s => s.id !== sideId));
+
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: 'Side removed successfully!',
+                position: 'top',
+                backgroundColor: '#4CAF50',
+                textColor: '#FFFFFF',
+            });
+        } catch (error: any) {
+            const errorMessage = error.response?.data || error.message || 'Error removing side';
+            const displayMessage = typeof errorMessage === 'string' ? errorMessage : 'Error removing side. Please try again.';
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: displayMessage,
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
+        } finally {
+            setSidesLoading(false);
+        }
+    }, [api, id, selectedSides]);
 
     const handleSave = useCallback(async () => {
         if (!image) {
@@ -236,6 +383,69 @@ export default function EditProduct() {
             });
     }, [api, id, featured]);
 
+    const handleAddTag = useCallback(() => {
+        const trimmedTag = newTag.trim().toLowerCase();
+        if (trimmedTag && !tags.includes(trimmedTag)) {
+            setTags([...tags, trimmedTag]);
+            setNewTag('');
+        } else if (tags.includes(trimmedTag)) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Tag already exists',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
+        }
+    }, [newTag, tags]);
+
+    const handleRemoveTag = useCallback((tagToRemove: string) => {
+        setTags(tags.filter(tag => tag !== tagToRemove));
+    }, [tags]);
+
+    const handleSaveTags = useCallback(async () => {
+        if (!id) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Cannot save tags for a new item. Save the item first.',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // Send all tags in lowercase to the API
+            await api.patch(`menu/tags/${id}`, tags.map(t => t.toLowerCase()));
+
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: 'Tags updated successfully!',
+                position: 'top',
+                backgroundColor: '#4CAF50',
+                textColor: '#FFFFFF',
+            });
+        } catch (error: any) {
+            const errorMessage = error.response?.data || error.message || 'Error updating tags';
+            const displayMessage = typeof errorMessage === 'string' ? errorMessage : 'Error updating tags. Please try again.';
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: displayMessage,
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
+        } finally {
+            setLoading(false);
+        }
+    }, [api, id, tags]);
+
     const handleSelectImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -401,6 +611,205 @@ export default function EditProduct() {
                                     {featured ? "Remove from Featured" : "Mark as Featured"}
                                 </Text>
                             </Button>
+                        </View>
+                    )}
+
+                    {parsedProduct.id !== "" && (
+                        <View style={styles.tagsSection}>
+                            <Text style={styles.sectionTitle}>Menu Item Tags</Text>
+                            
+                            {/* Display existing tags */}
+                            <View style={styles.tagsContainer}>
+                                {tags.length > 0 ? (
+                                    tags.map((tag, index) => (
+                                        <View key={index} style={styles.tagChip}>
+                                            <Text style={styles.tagText}>{tag}</Text>
+                                            <TouchableOpacity 
+                                                onPress={() => handleRemoveTag(tag)}
+                                                disabled={loading}
+                                            >
+                                                <Icon source="close-circle" size={18} color="#fff" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    ))
+                                ) : (
+                                    <Text style={styles.noTagsText}>No tags added yet</Text>
+                                )}
+                            </View>
+
+                            {/* Add new tag input */}
+                            <View style={styles.addTagContainer}>
+                                <TextInput
+                                    mode="outlined"
+                                    textColor='#2e2e2eff'
+                                    style={styles.tagInput}
+                                    value={newTag}
+                                    onChangeText={setNewTag}
+                                    placeholder="Enter new tag"
+                                    outlineStyle={{ borderRadius: 30, borderWidth: 0 }}
+                                    theme={{ colors: { primary: '#871919ff' } }}
+                                    disabled={loading}
+                                    contentStyle={{ fontFamily: 'Helvetica' }}
+                                    onSubmitEditing={handleAddTag}
+                                />
+                                <Button 
+                                    mode="contained" 
+                                    icon="plus"
+                                    onPress={handleAddTag}
+                                    style={styles.addTagButton}
+                                    buttonColor="#871919ff"
+                                    textColor="#fff"
+                                    disabled={loading || !newTag.trim()}
+                                    labelStyle={{ fontFamily: 'Helvetica', fontWeight: 'bold' }}
+                                    contentStyle={{ height: 48 }}
+                                >
+                                    Add
+                                </Button>
+                            </View>
+
+                            {/* Save tags button */}
+                            <Button 
+                                mode="contained" 
+                                icon="content-save"
+                                onPress={handleSaveTags}
+                                style={styles.saveTagsButton}
+                                buttonColor="#4CAF50"
+                                textColor="#fff"
+                                disabled={loading}
+                                labelStyle={{ fontFamily: 'Helvetica', fontWeight: 'bold', fontSize: 16 }}
+                                contentStyle={{ height: 58 }}
+                            >
+                                <Text style={styles.buttonText}>Save Tags</Text>
+                            </Button>
+                        </View>
+                    )}
+
+                    {parsedProduct.id !== "" && (
+                        <View style={styles.sidesSection}>
+                            <Text style={styles.sectionTitle}>Menu Item Sides</Text>
+                            
+                            {/* Display selected sides */}
+                            <View style={styles.sidesContainer}>
+                                {selectedSides.length > 0 ? (
+                                    selectedSides.map((side: any) => (
+                                        <View key={side.id} style={styles.sideChip}>
+                                            <View style={styles.sideChipContent}>
+                                                <Text style={styles.sideText}>{side.name}</Text>
+                                                <Text style={styles.sidePrice}>${side.price?.toFixed(2)}</Text>
+                                            </View>
+                                            <TouchableOpacity 
+                                                onPress={() => handleRemoveSide(side.id)}
+                                                disabled={sidesLoading}
+                                            >
+                                                <Icon source="close-circle" size={18} color="#fff" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    ))
+                                ) : (
+                                    <Text style={styles.noSidesText}>No sides added yet</Text>
+                                )}
+                            </View>
+
+                            {/* Add side button */}
+                            <Button 
+                                mode="contained" 
+                                icon={showSidePicker ? "chevron-up" : "plus"}
+                                onPress={() => setShowSidePicker(!showSidePicker)}
+                                style={styles.addSideButton}
+                                buttonColor="#871919ff"
+                                textColor="#fff"
+                                disabled={sidesLoading}
+                                labelStyle={{ fontFamily: 'Helvetica', fontWeight: 'bold' }}
+                                contentStyle={{ height: 48 }}
+                            >
+                                {showSidePicker ? 'Hide Available Sides' : 'Add Side'}
+                            </Button>
+
+                            {/* Available sides picker */}
+                            {showSidePicker && (
+                                <View style={styles.availableSidesContainer}>
+                                    <Text style={styles.availableSidesLabel}>Available Sides:</Text>
+                                    
+                                    {/* Search input */}
+                                    <TextInput
+                                        mode="outlined"
+                                        textColor='#2e2e2eff'
+                                        style={styles.sidesSearchInput}
+                                        value={sidesSearchQuery}
+                                        onChangeText={setSidesSearchQuery}
+                                        placeholder="Search sides..."
+                                        outlineStyle={{ borderRadius: 20, borderWidth: 0 }}
+                                        theme={{ colors: { primary: '#871919ff' } }}
+                                        disabled={sidesLoading}
+                                        contentStyle={{ fontFamily: 'Helvetica' }}
+                                        left={<TextInput.Icon icon="magnify" />}
+                                    />
+                                    
+                                    {sidesLoading ? (
+                                        <Text style={styles.loadingText}>Loading sides...</Text>
+                                    ) : availableSides.length > 0 ? (
+                                        <>
+                                            {(() => {
+                                                const filteredSides = availableSides
+                                                    .filter((side: any) => !selectedSides.find(s => s.id === side.id))
+                                                    .filter((side: any) => 
+                                                        sidesSearchQuery.trim() === '' || 
+                                                        side.name.toLowerCase().includes(sidesSearchQuery.toLowerCase())
+                                                    );
+                                                
+                                                return filteredSides.length > 0 ? (
+                                                    <>
+                                                        {filteredSides.slice(0, sidesDisplayCount).map((side: any) => (
+                                                            <TouchableOpacity
+                                                                key={side.id}
+                                                                style={styles.availableSideItem}
+                                                                onPress={() => {
+                                                                    handleAddSide(side.id);
+                                                                    setShowSidePicker(false);
+                                                                }}
+                                                                disabled={sidesLoading}
+                                                            >
+                                                                <View style={styles.availableSideContent}>
+                                                                    <Text style={styles.availableSideName}>{side.name}</Text>
+                                                                    <Text style={styles.availableSidePrice}>${side.price?.toFixed(2)}</Text>
+                                                                </View>
+                                                                <Icon source="plus-circle" size={20} color="#871919ff" />
+                                                            </TouchableOpacity>
+                                                        ))}
+                                                        
+                                                        {/* View More button to show more from page 0 */}
+                                                        {sidesDisplayCount < filteredSides.length && sidesSearchQuery.trim() === '' && (
+                                                            <Button
+                                                                mode="contained"
+                                                                icon="chevron-down"
+                                                                onPress={loadMoreSides}
+                                                                disabled={sidesLoading}
+                                                                style={styles.viewMoreButton}
+                                                                buttonColor="#871919ff"
+                                                                textColor="#fff"
+                                                                labelStyle={{ fontFamily: 'Helvetica', fontWeight: 'bold' }}
+                                                                contentStyle={{ height: 44 }}
+                                                            >
+                                                                View More
+                                                            </Button>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <Text style={styles.noAvailableSidesText}>
+                                                        No sides match your search
+                                                    </Text>
+                                                );
+                                            })()}
+                                        </>
+                                    ) : (
+                                        <Text style={styles.noAvailableSidesText}>
+                                            {selectedSides.length > 0 && availableSides.length > 0 
+                                                ? 'All sides already added' 
+                                                : 'No sides available'}
+                                        </Text>
+                                    )}
+                                </View>
+                            )}
                         </View>
                     )}
 

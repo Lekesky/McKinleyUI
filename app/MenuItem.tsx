@@ -15,6 +15,13 @@ interface MenuItem {
     description: string;
     price: string;
     imageURL: string;
+    availableSideIds?: string[];
+}
+
+interface Side {
+    id: string;
+    name: string;
+    price: string;
 }
 
 export default function MenuItemScreen() {
@@ -23,11 +30,16 @@ export default function MenuItemScreen() {
     const insets = useSafeAreaInsets();
     const [menuItem, setMenuItem] = useState<MenuItem | null>(null);
     const [quantity, setQuantity] = useState(1);
+    const [sides, setSides] = useState<MenuItem[]>([]);
+    const [selectedSideIds, setSelectedSideIds] = useState<string[]>([]);
     const { addToCart } = useCart();
 
     useEffect(() => {
         api.get(`/menu/${id}`)
-            .then((res) => setMenuItem(res.data))
+            .then((res) => {
+                setMenuItem(res.data);
+                fetchSides();
+            })
             .catch((error) => {
                 const errorMessage = error.response?.data || error.message || 'Failed to fetch menu item';
                 Toast.show({
@@ -41,6 +53,29 @@ export default function MenuItemScreen() {
             });
     }, [api, id]);
 
+    const fetchSides = async () => {
+        try {
+            const res = await api.get(`/menu/sides?pageNumber=0&pageSize=200`);
+            setSides(res.data.content || []);
+            console.log('Fetched sides:', sides);
+        } catch (error) {
+            console.error('Failed to fetch sides:', error);
+        }
+    };
+
+    const getAvailableSides = () => {
+        if (!menuItem?.availableSidesIds) return [];
+        return sides;
+    };
+
+    const toggleSideSelection = (sideId: string) => {
+        setSelectedSideIds(prev => 
+            prev.includes(sideId) 
+                ? prev.filter(id => id !== sideId)
+                : [...prev, sideId]
+        );
+    };
+
     const handleDecrement = () => {
         if (quantity > 1) setQuantity(quantity - 1);
     };
@@ -51,7 +86,15 @@ export default function MenuItemScreen() {
 
     const handleAddToCart = () => {
         if (menuItem) {
-            addToCart(menuItem, quantity);
+            addToCart(menuItem, quantity, selectedSideIds);
+            Toast.show({
+                type: 'success',
+                text1: 'Success',
+                text2: `${menuItem.name} added to cart!`,
+                position: 'top',
+                backgroundColor: '#4CAF50',
+                textColor: '#FFFFFF',
+            });
             router.back();
         }
     };
@@ -69,6 +112,7 @@ export default function MenuItemScreen() {
     }
 
     const isWeb = Platform.OS === 'web';
+    const availableSides = getAvailableSides();
     
     const content = (
         <>
@@ -114,6 +158,42 @@ export default function MenuItemScreen() {
                         />
                     </View>
                 </View>
+
+                {/* Sides Selector */}
+                {availableSides.length > 0 && (
+                    <>
+                        <Divider style={styles.divider} />
+                        <Text style={styles.descriptionTitle}>Add Sides</Text>
+                        <View style={{ gap: 8 }}>
+                            {availableSides.map(side => (
+                                <TouchableOpacity
+                                    key={side.id}
+                                    style={{
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        paddingVertical: 8,
+                                        paddingHorizontal: 12,
+                                        borderRadius: 8,
+                                        backgroundColor: selectedSideIds.includes(side.id) ? '#f0f0f0' : '#fff',
+                                        borderWidth: selectedSideIds.includes(side.id) ? 2 : 1,
+                                        borderColor: selectedSideIds.includes(side.id) ? '#871919ff' : '#e0e0e0',
+                                    }}
+                                    onPress={() => toggleSideSelection(side.id)}
+                                >
+                                    <Icon 
+                                        source={selectedSideIds.includes(side.id) ? "checkbox-marked" : "checkbox-blank-outline"} 
+                                        size={20} 
+                                        color="#871919ff"
+                                    />
+                                    <View style={{ flex: 1, marginLeft: 12 }}>
+                                        <Text style={{ fontSize: 14, fontWeight: '500', color: '#555' }}>{side.name}</Text>
+                                    </View>
+                                    <Text style={{ fontSize: 12, color: '#666' }}>+ ${side.price.toFixed(2)}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </>
+                )}
 
                 {/* Add to Cart Button - For Web */}
                 {isWeb && (

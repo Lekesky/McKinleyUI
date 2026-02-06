@@ -11,9 +11,10 @@ interface MenuItemCardProps {
     imageURL: string;
     tags: string[];
     onPress: (id: string) => void;
+    hasSides?: boolean;
 }
 
-export const MenuItemCard = memo(({ id, name, price, imageURL, description, tags, onPress } : MenuItemCardProps) => {
+export const MenuItemCard = memo(({ id, name, price, imageURL, description, tags, hasSides, onPress } : MenuItemCardProps) => {
     const { width } = useWindowDimensions();
     const styles = getStyles(width);
     
@@ -25,6 +26,13 @@ export const MenuItemCard = memo(({ id, name, price, imageURL, description, tags
                     <Text style={styles.name}>{name}</Text>
                     <Text style={styles.description}>{description}</Text>
                     <Text style={styles.price}>${price}</Text>
+                    {hasSides && (
+                        <View style={{ marginTop: 4, paddingHorizontal: 8 }}>
+                            <Text style={{ fontSize: 12, color: '#666', fontStyle: 'italic' }}>
+                                + Sides available
+                            </Text>
+                        </View>
+                    )}
                     <View style={styles.tagsContainer}>
                         {tags.map((tag, index) => (
                             <View key={index} style={styles.tag}>

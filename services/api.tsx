@@ -137,7 +137,7 @@ export default function createAPIClient(): AxiosInstance {
       // Set longer timeout for PSA endpoint since processing can take a while
       if (config.url?.includes('/sendPSA')) {
         config.timeout = 300000; // 5 minutes for PSA endpoint
-      }else if (config.url?.includes('/menu/')) {
+      }else if (config.url?.includes('/menu')) {
         config.timeout = 300000; // 5 minutes for report generation
       }
 
@@ -230,4 +230,14 @@ export default function createAPIClient(): AxiosInstance {
   );
 
   return apiClient;
+}
+
+// Types for side management
+export interface MenuItem {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  imageURL: string;
+  availableSideIds?: string[];
 }

@@ -31,10 +31,17 @@ function CheckoutForm({
     const placeOrder = async (paymentIntentId: string) => {
         const orderData = {
             userID: uid,
-            orderItems: customerCart.map((item) => ({
-                menuItemId: item.id,
-                quantity: item.quantity
-            })),
+            orderItems: customerCart.flatMap((item) => {
+                const mainItem = {
+                    menuItemId: item.id,
+                    quantity: item.quantity
+                };
+                const sideItems = (item.selectedSideIds || []).map((sideId: string) => ({
+                    menuItemId: sideId,
+                    quantity: item.quantity
+                }));
+                return [mainItem, ...sideItems];
+            }),
             paymentIntentId
         };
 
@@ -118,7 +125,7 @@ function CheckoutForm({
                     <ActivityIndicator color="#ffffff" />
                 ) : (
                     <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>
-                        Proceed to Checkout
+                        Place Order
                     </Text>
                 )}
             </TouchableOpacity>
@@ -163,10 +170,17 @@ export default function StripeCheckout({
                 // Create payment intent
                 const stripeData = {
                     customerId: uid,
-                    orderItems: customerCart.map((item) => ({
-                        menuItemId: item.id, 
-                        quantity: item.quantity
-                    })),
+                    orderItems: customerCart.flatMap((item) => {
+                        const mainItem = {
+                            menuItemId: item.id, 
+                            quantity: item.quantity
+                        };
+                        const sideItems = (item.selectedSideIds || []).map((sideId: string) => ({
+                            menuItemId: sideId,
+                            quantity: item.quantity
+                        }));
+                        return [mainItem, ...sideItems];
+                    }),
                 };
 
                 const response = await api.post('/payments', stripeData);

@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import React from 'react';
+import React, { memo } from 'react';
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Icon } from 'react-native-paper';
 import styles from '../../styles/AdminMenu.styles';
@@ -7,9 +7,10 @@ import styles from '../../styles/AdminMenu.styles';
 type MenuItems = {
     id: string;
     name: string;
-    description: string;
+    description: string | null;
     price: number;
     imageURL: string;
+    availableSideIds?: string[];
 };
 
 interface ProductSearchProps {
@@ -17,7 +18,7 @@ interface ProductSearchProps {
     readonly menuItems: MenuItems[];
 }
 
-export default React.memo(function AdminMenu({ productSearch, menuItems } : ProductSearchProps) {
+export default memo(function AdminMenu({ productSearch, menuItems } : ProductSearchProps) {
     return (
         <ScrollView contentContainerStyle={styles.scrollContainer}>
             {menuItems && menuItems.length > 0 ? (
@@ -40,6 +41,11 @@ export default React.memo(function AdminMenu({ productSearch, menuItems } : Prod
                                                 <Text style={styles.menuItemName}>{item.name}</Text>
                                                 <Text style={styles.menuItemDescription}>{item.description}</Text>
                                                 <Text style={styles.menuItemPrice}>${item.price.toFixed(2)}</Text>
+                                                {item.availableSideIds && item.availableSideIds.length > 0 && (
+                                                    <Text style={{ color: '#871919ff', fontSize: 12, marginTop: 4, fontWeight: '500' }}>
+                                                        {item.availableSideIds.length} side{item.availableSideIds.length !== 1 ? 's' : ''} available
+                                                    </Text>
+                                                )}
                                             </View>
                                             <TouchableOpacity
                                                 style={styles.editButton}

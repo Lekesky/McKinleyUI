@@ -183,7 +183,7 @@ export default function Index() {
           <View style={styles.heroTextBackdrop}>
             <Text style={styles.heroTitle}>McKinley&apos;s Grill</Text>
             <Text style={styles.heroSubtitle}>
-              Experience the finest dining with authentic flavors and warm hospitality
+              A local favorite serving the best breakfast and lunch in Marysville!
             </Text>
           </View>
           <View style={styles.heroButtons}>
@@ -209,7 +209,7 @@ export default function Index() {
                 }
               }}
             >
-              <Text style={styles.secondaryButtonText}>Reserve Table</Text>
+              <Text style={styles.secondaryButtonText}>View Your Orders</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -244,9 +244,7 @@ export default function Index() {
       <View style={styles.welcomeSection}>
         <Text style={styles.sectionTitle}>Welcome to Our Table</Text>
         <Text style={styles.welcomeText}>
-          At McKinley&apos;s Grill, we believe in creating memorable dining experiences through 
-          quality ingredients, exceptional service, and a warm atmosphere. Join us for a meal 
-          that feels like home.
+          From our grill to the Marysville community fresh, made-to-order breakfast and lunch, just the way you like it!
         </Text>
       </View>
 

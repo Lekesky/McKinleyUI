@@ -17,6 +17,7 @@ interface MenuItem {
   price: number;
   imageURL: string;
   tags: string[];
+  availableSideIds?: string[];
 }
 
 
@@ -239,14 +240,12 @@ export default function CustomerHome() {
     }, [api, uid]);
 
     const fetchMenuItems = useCallback(() => {
-        const params: any = { page: 0, size: 15 };
-        return api.get('/menu', params)
-            .then((res) => {
-                // If paginated, use res.data.content; else fallback
-                if (Array.isArray(res.data)) {
-                    setMenuItems(res.data);
-                } else if (res.data && Array.isArray(res.data.content)) {
+        const params: any = { page: 0, size: 100 };
+        return api.get('/menu', { params })
+            .then((res) => {      
+                if (res.data && Array.isArray(res.data.content)) {
                     setMenuItems(res.data.content);
+                    console.log(res.data.content);
                 } else {
                     setMenuItems([]);
                 }
@@ -425,6 +424,7 @@ export default function CustomerHome() {
                         imageURL={item.imageURL}
                         description={item.description}
                         tags={item.tags}
+                        hasSides={!!(item.availableSideIds?.length)}
                         onPress={handleItemPress}
                     />
                     ))}

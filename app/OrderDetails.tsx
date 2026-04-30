@@ -52,12 +52,12 @@ export default function OrderDetails() {
         const fetchOrderDetails = () => {
             api.get(`/orders/${orderId}`)
                 .then((response) => {
-                    console.log('Order details fetched:', response.data);
+
                     setOrder(response.data);
                 })
                 .catch((error: any) => {
                     const errorMessage = error.response?.data || error.message || 'Failed to fetch order details';
-                    console.error('Error fetching order details:', errorMessage);
+
                 })
                 .finally(() => {
                     setLoading(false);

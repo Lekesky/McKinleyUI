@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>0/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>11/11</span>
+                <span class='fraction'>0/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>0/5</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -112,7 +112,8 @@
 <a name='L47'></a><a href='#L47'>47</a>
 <a name='L48'></a><a href='#L48'>48</a>
 <a name='L49'></a><a href='#L49'>49</a>
-<a name='L50'></a><a href='#L50'>50</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -120,14 +121,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -167,17 +169,18 @@ import ViewControl from "@/components/ViewSwitcher";
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 import { View } from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import styles from "../../styles/Home.styles";
 &nbsp;
-const VIEWS = ["Customer", "Waitress"];
+const VIEWS = <span class="cstat-no" title="statement not covered" >["Customer", "Waitress"];</span>
 &nbsp;
-export default function HomeScreen() {
-  const { userRole } = useAuth();
-  const [selectedIndex, setSelectedIndex] = useState&lt;number&gt;(userRole === 'CUSTOMER' ? 0 : 1);
+export default function <span class="fstat-no" title="function not covered" >HomeScreen(</span>) {
+  const { userRole } = <span class="cstat-no" title="statement not covered" >useAuth();</span>
+  const [selectedIndex, setSelectedIndex] = <span class="cstat-no" title="statement not covered" >useState&lt;number&gt;(userRole === 'CUSTOMER' ? 0 : 1);</span>
+  const insets = <span class="cstat-no" title="statement not covered" >useSafeAreaInsets();</span>
   
-  return (
-    &lt;View style={styles.container}&gt;
-      
+<span class="cstat-no" title="statement not covered" >  return (</span>
+    &lt;View style={[styles.container, { paddingTop: insets.top }]}&gt;
       {/* View Switcher */}
         {userRole &amp;&amp; (userRole === 'WAITRESS' || userRole === 'ADMIN' || userRole === 'CHEF') &amp;&amp; (
           &lt;ViewControl
@@ -217,7 +220,7 @@ export default function HomeScreen() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-19T00:31:50.142Z
+                at 2026-04-10T02:15:43.966Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

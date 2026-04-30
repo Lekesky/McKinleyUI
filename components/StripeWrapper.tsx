@@ -1,4 +1,3 @@
-import { useAuth } from '@/context/AuthContext';
 import createAPIClient from '@/services/api';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -7,7 +6,6 @@ import { Toast } from 'toastify-react-native';
 
 
 export default function StripeWrapper({ children }: { children: React.ReactElement | React.ReactElement[] }) {
-  const { accessToken } = useAuth();
   const api = useMemo(() => createAPIClient(), []);
   const [publishableKey, setPublishableKey] = useState<string | null>(null);
 
@@ -29,7 +27,7 @@ export default function StripeWrapper({ children }: { children: React.ReactEleme
       }
     };
     fetchKey();
-  }, [api, accessToken]);
+  }, [api]);
 
   if (!publishableKey) {
     return (

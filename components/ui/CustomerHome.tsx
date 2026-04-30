@@ -1,12 +1,14 @@
 import HorizontalPills from '@/components/HorizontalPills';
 import { MenuItemCard } from "@/components/MenuItemCard";
 import { useAuth } from "@/context/AuthContext";
+import { getAuth0CredentialsArgs } from '@/services/auth0';
 import createAPIClient, { API_URL } from "@/services/api";
+import { createSSEConnection } from "@/services/sse";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Keyboard, Platform, RefreshControl, ScrollView, TextInput, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { Animated, Keyboard, RefreshControl, ScrollView, TextInput, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { useAuth0 } from 'react-native-auth0';
 import { IconButton, Text } from "react-native-paper";
-import RNEventSource from 'react-native-sse';
 import { Toast } from 'toastify-react-native';
 import { getStyles } from '../../styles/CustomerHome.styles';
 
@@ -33,8 +35,10 @@ const CATEGORIES = [
 export default function CustomerHome() {
     const { width: SCREEN_WIDTH } = useWindowDimensions();
     const styles = getStyles(SCREEN_WIDTH);
-    const { uid, accessToken, refreshAccessToken, isAuthenticated } = useAuth();
+    const { uid } = useAuth();
+    const { getCredentials, user } = useAuth0();
     const api = useMemo(() => createAPIClient(), []); 
+    const [accessToken, setAccessToken] = useState<string | null>(null);
     const [firstName, setFirstName] = useState<string>('');
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
     const [refreshing, setRefreshing] = useState(false);
@@ -46,6 +50,22 @@ export default function CustomerHome() {
     const animatedWidth = useRef(new Animated.Value(50)).current;
     const animatedOpacity = useRef(new Animated.Value(0)).current;
     const animatedGreetingOpacity = useRef(new Animated.Value(1)).current;
+
+    const refreshAccessToken = useCallback(async (forceRefresh: boolean = false) => {
+      if (!user) {
+        setAccessToken(null);
+        return null;
+      }
+
+      try {
+        const token = await getCredentials(...getAuth0CredentialsArgs(forceRefresh));
+        setAccessToken(token.accessToken);
+        return token;
+      } catch {
+        setAccessToken(null);
+        return null;
+      }
+    }, [getCredentials, user]);
 
     const greeting = () => {
         const currentHour = new Date().getHours();
@@ -117,101 +137,59 @@ export default function CustomerHome() {
         
         // Update state to track expanded/collapsed state
         setIsSearchExpanded(!isSearchExpanded);
-    }, [isSearchExpanded, animatedWidth, animatedOpacity, animatedGreetingOpacity]);
+    }, [isSearchExpanded, animatedWidth, animatedOpacity, animatedGreetingOpacity, SCREEN_WIDTH]);
 
     useEffect(() => {
-      // Only establish SSE connection if user is authenticated
-      if (!isAuthenticated) {
+      void refreshAccessToken();
+    }, [refreshAccessToken]);
+
+    useEffect(() => {
+      // Only establish SSE connection once we have an access token to authenticate the stream.
+      if (!user || !accessToken) {
         return;
       }
       
-      const url = `${API_URL}/orders/stream?streamMessage=FULFILLMENT_STATUS`;
+      const streamUrl = `${API_URL}/orders/stream?streamMessage=FULFILLMENT_STATUS`;
       
-      if (Platform.OS === 'web') {
-        // Web EventSource
-        const sse = new EventSource(url, { withCredentials: true });
-
-        sse.onopen = () => {
-          console.log('SSE connection opened');
-        };
-
-        sse.onmessage = (event) => {
-          try {
-            if (event.data == null) return;
-            const data = JSON.parse(event.data);
-            if (data.paused === true) {
-              Toast.show({
-                type: 'info',
-                text1: 'Order Fulfillment Paused',
-                text2: 'We have put a pause on accepting new orders for the meantime. Please check back later.',
-                autoHide: false,
-                position: 'bottom',
-                backgroundColor: '#871919ff',
-                iconColor: '#FFFFFF',
-                textColor: '#FFFFFF',
-              });
-            }
-          } catch (parseError) {
-            console.warn('SSE: Failed to parse message', parseError);
+      let closeConnection: (() => void) | null = null;
+      
+      try {
+        closeConnection = createSSEConnection(
+          streamUrl,
+          accessToken,
+          {
+            onOpen: () => {
+              console.log('SSE connection opened');
+            },
+            onMessage: (data) => {
+              if (data.paused === true) {
+                Toast.show({
+                  type: 'info',
+                  text1: 'Order Fulfillment Paused',
+                  text2: 'We have put a pause on accepting new orders for the meantime. Please check back later.',
+                  autoHide: false,
+                  position: 'bottom',
+                  backgroundColor: '#871919ff',
+                  iconColor: '#FFFFFF',
+                  textColor: '#FFFFFF',
+                });
+              }
+            },
+            onError: (error) => {
+              console.error('SSE error:', error);
+            },
           }
-        };
-
-        sse.onerror = (error) => {
-          console.error('SSE error:', error);
-          sse.close();
-        };
-
-        return () => {
-          console.log('Closing SSE connection');
-          sse.close();
-        };
-      } else {
-        // React Native EventSource
-        const sse = new RNEventSource(url, {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
-
-        sse.addEventListener('open', () => {
-          console.log('SSE connection opened');
-        });
-
-        sse.addEventListener('message', (event) => {
-          try {
-            if (event.data == null) return;
-            const data = JSON.parse(event.data);
-            if (data.paused === true) {
-              Toast.show({
-                type: 'info',
-                text1: 'Order Fulfillment Paused',
-                text2: 'We have put a pause on accepting new orders for the meantime. Please check back later.',
-                autoHide: false,
-                position: 'bottom',
-                backgroundColor: '#871919ff',
-                iconColor: '#FFFFFF',
-                textColor: '#FFFFFF',
-              });
-            }
-          } catch (parseError) {
-            console.warn('SSE: Failed to parse message', parseError);
-          }
-        });
-
-        sse.addEventListener('error', (error) => {
-          console.error('SSE error:', error);
-          // Only attempt refresh if still authenticated
-          if(isAuthenticated && JSON.stringify(error).includes('403')){
-            refreshAccessToken();
-          }
-        });
-
-        return () => {
-          console.log('Closing SSE connection');
-          sse.close();
-        };
+        );
+      } catch (error) {
+        console.error('Failed to create SSE connection:', error);
       }
-    }, [isAuthenticated, accessToken, refreshAccessToken]);
+
+      return () => {
+        if (closeConnection) {
+          closeConnection();
+        }
+      };
+    }, [accessToken, user]);
 
     const handleSearch = useCallback((text: string) => {
         setSearchQuery(text);

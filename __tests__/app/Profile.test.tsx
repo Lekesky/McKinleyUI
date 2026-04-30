@@ -43,7 +43,7 @@ describe('Profile Screen', () => {
         lastName: 'Doe',
         email: 'john@example.com',
         timeCreated: new Date('2024-01-01').toISOString(),
-        signInMethod: 'email',
+        signInMethod: 'EMAIL',
       },
     });
   });
@@ -71,8 +71,10 @@ describe('Profile Screen', () => {
     const { getByText } = render(<Profile />);
 
     await waitFor(() => {
-      fireEvent.press(getByText('Logout'));
+      expect(getByText('Logout')).toBeTruthy();
     });
+
+    fireEvent.press(getByText('Logout'));
 
     expect(mockHideTabBar).toHaveBeenCalled();
   });
@@ -81,9 +83,10 @@ describe('Profile Screen', () => {
     const { getByText } = render(<Profile />);
 
     await waitFor(() => {
-      const deleteButton = getByText('Delete Account');
-      fireEvent.press(deleteButton);
+      expect(getByText('Delete Account')).toBeTruthy();
     });
+
+    fireEvent.press(getByText('Delete Account'));
 
     expect(mockHideTabBar).toHaveBeenCalled();
   });

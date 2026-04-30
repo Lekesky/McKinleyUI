@@ -1,12 +1,9 @@
 import { useAuth } from '@/context/AuthContext';
-import { useAuthModal } from '@/context/AuthModalContext';
 import createAPIClient, { PageableResponse } from '@/services/api';
 import { Redirect, router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Dimensions, Image, Linking, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Icon } from 'react-native-paper';
-import LoginModal from '../components/LoginModal';
-import SignupModal from '../components/SignupModal';
 import styles from '../styles/index.styles';
 
 const { width } = Dimensions.get('window');
@@ -28,18 +25,33 @@ interface MenuItem {
 const heroImages = [
   'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200', // Restaurant interior
   'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1200', // Food dish
-  'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200', // Restaurant ambiance
-  'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=1200', // Grilled food
+  'https://mckinleygrillfood.s3.us-east-2.amazonaws.com/MCK_Dinning_Room.jpeg', // Dinning Room 1
+  'https://mckinleygrillfood.s3.us-east-2.amazonaws.com/Mckinleys_Grill_photo.jpg', // Dinning Room 2
 ];
 
+
+// const swiper = new Swiper('.swiper', {
+//   loop: true,
+//   navigation: {
+//     nextEl: ".swiper-button-next",
+//     prevEl: ".swiper-button-prev"
+//   },
+//   pagination: {
+//     el: ".swiper-pagination",
+//     clickable: true,
+//     dynamicBullets: true,
+//     dynamicMainBullets: 3
+//   },
+//   autoplay: true
+// });
 export default function Index() {
   const api = useMemo(() => createAPIClient(), []);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { isAuthenticated } = useAuth();
-  const { showLoginModal, setShowLoginModal, showSignupModal, setShowSignupModal } = useAuthModal();
+  const { uid } = useAuth();
+  const isAuthenticated = uid !== null;
   
   // Featured items pagination state
   const [featuredItems, setFeaturedItems] = useState<MenuItem[]>([]);
@@ -146,8 +158,24 @@ export default function Index() {
 
   // Fetch featured items on mount
   useEffect(() => {
-    handleFetchFeaturedItems(0);
-  }, []);
+    const loadFeaturedItems = (page: number = 0) => {
+      setLoading(true);
+      api.get<PageableResponse<MenuItem>>(`/menu/featured?page=${page}&size=${pageSize}`)
+        .then((response) => {
+          setFeaturedItems(response.data.content);
+          setCurrentPage(response.data.number);
+          setTotalPages(response.data.totalPages);
+        })
+        .catch((error) => {
+          console.error('Error fetching featured items:', error);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    };
+    
+    loadFeaturedItems(0);
+  }, [api, pageSize]);
 
   // Mobile redirects to Intro
   if (Platform.OS !== 'web') {
@@ -192,8 +220,6 @@ export default function Index() {
               onPress={() => {
                 if (isAuthenticated) {
                   router.push('/(tabs)/Home' as any);
-                } else {
-                  setShowLoginModal(true);
                 }
               }}
             >
@@ -204,8 +230,6 @@ export default function Index() {
               onPress={() => {
                 if (isAuthenticated) {
                   router.push('/(tabs)/Order' as any);
-                } else {
-                  setShowLoginModal(true);
                 }
               }}
             >
@@ -389,8 +413,6 @@ export default function Index() {
           onPress={() => {
             if (isAuthenticated) {
               router.push('/(tabs)/Order' as any);
-            } else {
-              setShowLoginModal(true);
             }
           }}
         >
@@ -403,24 +425,6 @@ export default function Index() {
         <Text style={styles.footerText}>&copy; 2026 McKinley&apos;s Grill. All rights reserved.</Text>
       </View>
       </ScrollView>
-
-      {/* Login and Signup Modals */}
-      <LoginModal 
-        visible={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onSwitchToSignup={() => {
-          setShowLoginModal(false);
-          setShowSignupModal(true);
-        }}
-      />
-      <SignupModal 
-        visible={showSignupModal}
-        onClose={() => setShowSignupModal(false)}
-        onSwitchToLogin={() => {
-          setShowSignupModal(false);
-          setShowLoginModal(true);
-        }}
-      />
     </>
   );
 }

@@ -1,154 +1,121 @@
 import { AuthProvider, useAuth } from '@/context/AuthContext';
-import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
+import { useAuth0 } from 'react-native-auth0';
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
 
+jest.mock('react-native-auth0', () => ({
+  useAuth0: jest.fn(),
+}));
 jest.mock('axios');
+
 const mockedAxios = axios as jest.Mocked<typeof axios>;
+const mockedUseAuth0 = useAuth0 as jest.Mock;
 
 describe('AuthContext', () => {
+  const post = jest.fn();
+  const get = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
-    (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(null);
-    (SecureStore.setItemAsync as jest.Mock).mockResolvedValue(undefined);
-    (SecureStore.deleteItemAsync as jest.Mock).mockResolvedValue(undefined);
+
+    mockedUseAuth0.mockReturnValue({
+      getCredentials: jest.fn().mockResolvedValue({
+        accessToken: 'access-token',
+        idToken: 'id-token',
+        expiresAt: Math.floor(Date.now() / 1000) + 3600,
+        tokenType: 'Bearer',
+      }),
+      isLoading: false,
+      user: null,
+    });
+
+    post.mockResolvedValue({
+      data: {
+        uid: 'user-123',
+      },
+    });
+
+    get.mockResolvedValue({
+      data: {
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+        phoneNumber: '555-0100',
+        userRole: 'CUSTOMER',
+      },
+    });
+
+    mockedAxios.create = jest.fn(() => ({
+      get,
+      post,
+      interceptors: {
+        request: { use: jest.fn(), eject: jest.fn() },
+        response: { use: jest.fn(), eject: jest.fn() },
+      },
+    })) as any;
   });
 
   it('should throw error when useAuth is used outside provider', () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation();
-    
+
     expect(() => {
       renderHook(() => useAuth());
     }).toThrow('useAuth must be used within an AuthProvider');
-    
+
     consoleError.mockRestore();
   });
 
-  it('should initialize with null values', () => {
+  it('should initialize with null values when there is no authenticated user', () => {
     const { result } = renderHook(() => useAuth(), {
       wrapper: AuthProvider,
     });
 
     expect(result.current.uid).toBeNull();
-    expect(result.current.accessToken).toBeNull();
-    expect(result.current.refreshToken).toBeNull();
     expect(result.current.userRole).toBeNull();
   });
 
-  it('should login with tokens and store them', async () => {
-    const { result } = renderHook(() => useAuth(), {
-      wrapper: AuthProvider,
-    });
-
-    const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyNDI2MjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
-    const refreshToken = 'refresh-token-123';
-    const uid = 'user-123';
-
-    await act(async () => {
-      await result.current.loginTokens(accessToken, refreshToken, uid);
-    });
-
-    expect(result.current.uid).toBe(uid);
-    expect(result.current.accessToken).toBe(accessToken);
-    expect(result.current.refreshToken).toBe(refreshToken);
-    expect(SecureStore.setItemAsync).toHaveBeenCalledWith('access_token', accessToken);
-    expect(SecureStore.setItemAsync).toHaveBeenCalledWith('refresh_token', refreshToken);
-    expect(SecureStore.setItemAsync).toHaveBeenCalledWith('uid', uid);
-  });
-
-  it('should logout and clear tokens', async () => {
-    const { result } = renderHook(() => useAuth(), {
-      wrapper: AuthProvider,
-    });
-
-    // First login
-    await act(async () => {
-      await result.current.loginTokens('access', 'refresh', 'uid-123');
-    });
-
-    // Then logout
-    await act(async () => {
-      await result.current.logout();
-    });
-
-    expect(result.current.uid).toBeNull();
-    expect(result.current.accessToken).toBeNull();
-    expect(result.current.refreshToken).toBeNull();
-    expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith('access_token');
-    expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith('refresh_token');
-    expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith('uid');
-  });
-
-  it('should load tokens from storage on mount', async () => {
-    const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyNDI2MjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
-    const refreshToken = 'refresh-token';
-    const uid = 'user-456';
-
-    (SecureStore.getItemAsync as jest.Mock).mockImplementation((key: string) => {
-      if (key === 'access_token') return Promise.resolve(accessToken);
-      if (key === 'refresh_token') return Promise.resolve(refreshToken);
-      if (key === 'uid') return Promise.resolve(uid);
-      return Promise.resolve(null);
-    });
-
-    mockedAxios.create = jest.fn(() => ({
-      ...mockedAxios,
-      get: jest.fn().mockResolvedValue({ data: 'CUSTOMER' }),
-      interceptors: {
-        request: { use: jest.fn(), eject: jest.fn() },
-        response: { use: jest.fn(), eject: jest.fn() },
-      },
-    })) as any;
-
-    const { result } = renderHook(() => useAuth(), {
-      wrapper: AuthProvider,
-    });
-
-    await waitFor(() => {
-      expect(result.current.uid).toBe(uid);
-    });
-
-    expect(result.current.accessToken).toBe(accessToken);
-    expect(result.current.refreshToken).toBe(refreshToken);
-  });
-
-  it('should refresh access token', async () => {
-    const newAccessToken = 'new-access-token';
-    const newRefreshToken = 'new-refresh-token';
-
-    mockedAxios.create = jest.fn(() => ({
-      ...mockedAxios,
-      post: jest.fn().mockResolvedValue({
-        data: {
-          accessToken: newAccessToken,
-          refreshToken: newRefreshToken,
-        },
+  it('should sync the authenticated user into the app profile', async () => {
+    mockedUseAuth0.mockReturnValue({
+      getCredentials: jest.fn().mockResolvedValue({
+        accessToken: 'access-token',
+        idToken: 'id-token',
+        expiresAt: Math.floor(Date.now() / 1000) + 3600,
+        tokenType: 'Bearer',
       }),
-      get: jest.fn(),
-      interceptors: {
-        request: { use: jest.fn(), eject: jest.fn() },
-        response: { use: jest.fn(), eject: jest.fn() },
-      },
-    })) as any;
+      isLoading: false,
+      user: { sub: 'auth0|user-123' },
+    });
 
     const { result } = renderHook(() => useAuth(), {
       wrapper: AuthProvider,
     });
 
-    // Set initial refresh token
-    await act(async () => {
-      await result.current.loginTokens('old-access', 'old-refresh', 'uid-123');
-    });
-
-    // Refresh the token
-    await act(async () => {
-      await result.current.refreshAccessToken();
+    await waitFor(() => {
+      expect(post).toHaveBeenCalledWith('/user/login', { userId: 'auth0|user-123' });
     });
 
     await waitFor(() => {
-      expect(result.current.accessToken).toBe(newAccessToken);
+      expect(result.current.uid).toBe('user-123');
+      expect(result.current.userRole).toBe('CUSTOMER');
+    });
+  });
+
+  it('should return true when a profile is complete', async () => {
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: AuthProvider,
     });
 
-    expect(result.current.refreshToken).toBe(newRefreshToken);
+    await expect(result.current.checkProfileComplete('user-123')).resolves.toBe(true);
+    expect(get).toHaveBeenCalledWith('/user/user-123');
+  });
+
+  it('should return false when profile lookup fails', async () => {
+    get.mockRejectedValueOnce(new Error('network error'));
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: AuthProvider,
+    });
+
+    await expect(result.current.checkProfileComplete('user-123')).resolves.toBe(false);
   });
 });

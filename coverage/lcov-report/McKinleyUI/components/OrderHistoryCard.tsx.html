@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">62.5% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>15/24</span>
+                <span class='fraction'>0/24</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -245,7 +245,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -260,7 +260,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -336,7 +336,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -396,7 +396,7 @@ interface OrderHistoryCardProps {
 &nbsp;
 &nbsp;
 &nbsp;
-const OrderHistoryCard: React.FC&lt;OrderHistoryCardProps&gt; = ({
+const OrderHistoryCard: React.FC&lt;OrderHistoryCardProps&gt; = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >({</span></span>
     id,
     customerFirstName,
     customerLastName,
@@ -411,7 +411,7 @@ const OrderHistoryCard: React.FC&lt;OrderHistoryCardProps&gt; = ({
     orderEndTime,
     onPress
 }) =&gt; {
-    return (
+<span class="cstat-no" title="statement not covered" >    return (</span>
         &lt;TouchableOpacity 
             style={styles.orderCard}
             onPress={onPress}
@@ -429,7 +429,7 @@ const OrderHistoryCard: React.FC&lt;OrderHistoryCardProps&gt; = ({
                         &lt;Text style={[
                             styles.orderStatus, 
                             status === 'COMPLETED' ? styles.statusCompleted : 
-<span class="branch-1 cbranch-no" title="branch not covered" >                            status === 'IN-PROGRESS' ? styles.statusInProgress : </span>
+                            status === 'IN-PROGRESS' ? styles.statusInProgress : 
                             status === 'PENDING' ? styles.statusPending : 
                             styles.statusCanceled
                         ]}&gt;
@@ -442,7 +442,7 @@ const OrderHistoryCard: React.FC&lt;OrderHistoryCardProps&gt; = ({
                         &lt;Text style={[
                             styles.paymentStatus, 
                             paymentStatus === 'PAID' ? styles.statusCompleted : 
-<span class="branch-1 cbranch-no" title="branch not covered" >                            styles.statusPending</span>
+                            styles.statusPending
                         ]}&gt;
                             {paymentStatus}
                         &lt;/Text&gt;
@@ -477,7 +477,7 @@ const OrderHistoryCard: React.FC&lt;OrderHistoryCardProps&gt; = ({
                     &lt;Icon source="table-chair" size={18} color="#666" /&gt;
                 &lt;/View&gt;
                 &lt;Text style={styles.infoText}&gt;
-                    {tableNumber !== 0 ? `Table ${tableNumber}` : <span class="branch-1 cbranch-no" title="branch not covered" >'No table'}</span>
+                    {tableNumber !== 0 ? `Table ${tableNumber}` : 'No table'}
                 &lt;/Text&gt;
             &lt;/View&gt;
 &nbsp;
@@ -486,15 +486,15 @@ const OrderHistoryCard: React.FC&lt;OrderHistoryCardProps&gt; = ({
             &lt;Text style={styles.sectionTitle}&gt;Items:&lt;/Text&gt;
             {Array.isArray(orderedItems) &amp;&amp; orderedItems.length &gt; 0 ? (
                 &lt;View style={styles.itemsList}&gt;
-                    {orderedItems.map((item) =&gt; (
-                        &lt;View key={item.id} style={styles.orderItem}&gt;
+                    {orderedItems.map(<span class="fstat-no" title="function not covered" >(i</span>tem) =&gt; (
+<span class="cstat-no" title="statement not covered" >                        &lt;View key={item.id} style={styles.orderItem}&gt;</span>
                             &lt;Text style={styles.itemName}&gt;{item.name}&lt;/Text&gt;
                             &lt;Text style={styles.itemCount}&gt;×{item.quantity}&lt;/Text&gt;
                         &lt;/View&gt;
                     ))}
                 &lt;/View&gt;
             ) : (
-<span class="branch-1 cbranch-no" title="branch not covered" >                &lt;Text style={styles.emptyMessage}&gt;No items&lt;/Text&gt;</span>
+                &lt;Text style={styles.emptyMessage}&gt;No items&lt;/Text&gt;
             )}
             
             &lt;View style={styles.orderTotal}&gt;
@@ -504,7 +504,7 @@ const OrderHistoryCard: React.FC&lt;OrderHistoryCardProps&gt; = ({
             
             &lt;View style={styles.orderTimes}&gt;
                 &lt;Text style={styles.timeInfo}&gt;
-                    Ordered: {orderStartTime ? new Date(orderStartTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : <span class="branch-1 cbranch-no" title="branch not covered" >"N/A"}</span>
+                    Ordered: {orderStartTime ? new Date(orderStartTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "N/A"}
                 &lt;/Text&gt;
                 {orderEndTime &amp;&amp; (
                     &lt;Text style={styles.timeInfo}&gt;
@@ -523,7 +523,7 @@ export default OrderHistoryCard;</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-19T00:31:50.142Z
+                at 2026-04-10T02:15:43.966Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

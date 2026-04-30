@@ -13,7 +13,7 @@ export const TableProvider = ({ children }: { children: React.ReactNode }) => {
   const [tableNum, setTableNumState] = useState<number>(0);
 
   const loadTableNum = useCallback(async () => {
-    const storedTableNum = await AsyncStorage.getItem('tableNum').catch((error) => console.error("Error loading table number: ", error));
+    const storedTableNum = await AsyncStorage.getItem('tableNum').catch(() => null);
     if (storedTableNum) {
       setTableNumState(Number(storedTableNum));
     }
@@ -21,12 +21,12 @@ export const TableProvider = ({ children }: { children: React.ReactNode }) => {
 
   const saveTableNum = async (newTableNum: number) => {
     setTableNumState(newTableNum);
-    await AsyncStorage.setItem('tableNum', String(newTableNum)).catch((error) => console.error("Error saving table number: ", error));
+    await AsyncStorage.setItem('tableNum', String(newTableNum)).catch(() => {});
   };
 
   const clearTableNum = () => {
     setTableNumState(0);
-    AsyncStorage.removeItem('tableNum').catch((error) => console.error("Error clearing table number: ", error));
+    AsyncStorage.removeItem('tableNum').catch(() => {});
   };
 
   useEffect(() => {

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>18/18</span>
+                <span class='fraction'>0/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>7/7</span>
+                <span class='fraction'>0/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>17/17</span>
+                <span class='fraction'>0/17</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -125,30 +125,28 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">17x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">17x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">17x</span>
-<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">17x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -159,14 +157,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">25x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">25x</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React, { createContext, useCallback, useContext, useState } from 'react';
 &nbsp;
 type MobileTabBarContextType = {
@@ -177,28 +177,28 @@ type MobileTabBarContextType = {
   toggleTabBar: () =&gt; void;
 };
 &nbsp;
-const TabBarContext = createContext&lt;MobileTabBarContextType | undefined&gt;(undefined);
+const TabBarContext = <span class="cstat-no" title="statement not covered" >createContext&lt;MobileTabBarContextType | undefined&gt;(undefined);</span>
 &nbsp;
-export const TabBarProvider: React.FC&lt;{ children: React.ReactNode }&gt; = ({ children }) =&gt; {
-  const [isTabBarVisible, setIsTabBarVisible] = useState&lt;boolean&gt;(true);
+export const TabBarProvider: React.FC&lt;{ children: React.ReactNode }&gt; = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >({</span> children }) =&gt; {</span>
+  const [isTabBarVisible, setIsTabBarVisible] = <span class="cstat-no" title="statement not covered" >useState&lt;boolean&gt;(true);</span>
 &nbsp;
-  const setMobileTabBarVisible = useCallback((visible: boolean) =&gt; {
-    setIsTabBarVisible(visible);
+  const setMobileTabBarVisible = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >(v</span>isible: boolean) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    setIsTabBarVisible(visible);</span>
   }, []);
 &nbsp;
-  const hideTabBar = useCallback(() =&gt; {
-    setIsTabBarVisible(false);
+  const hideTabBar = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    setIsTabBarVisible(false);</span>
   }, []);
 &nbsp;
-  const showTabBar = useCallback(() =&gt; {
-    setIsTabBarVisible(true);
+  const showTabBar = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    setIsTabBarVisible(true);</span>
   }, []);
 &nbsp;
-  const toggleTabBar = useCallback(() =&gt; {
-    setIsTabBarVisible(prev =&gt; !prev);
+  const toggleTabBar = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    setIsTabBarVisible(<span class="fstat-no" title="function not covered" >pr</span>ev =&gt; <span class="cstat-no" title="statement not covered" >!prev)</span>;</span>
   }, []);
 &nbsp;
-  return (
+<span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;TabBarContext.Provider value={{ 
       isTabBarVisible, 
       setMobileTabBarVisible,
@@ -211,14 +211,14 @@ export const TabBarProvider: React.FC&lt;{ children: React.ReactNode }&gt; = ({ 
   );
 };
 &nbsp;
-export const useMobileTabBar = (): MobileTabBarContextType =&gt; {
-  const context = useContext(TabBarContext);
+export const useMobileTabBar = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span>: MobileTabBarContextType =&gt; {</span>
+  const context = <span class="cstat-no" title="statement not covered" >useContext(TabBarContext);</span>
   
-  if (context === undefined) {
-    throw new Error('useMobileTabBar must be used within a TabBarProvider');
+<span class="cstat-no" title="statement not covered" >  if (context === undefined) {</span>
+<span class="cstat-no" title="statement not covered" >    throw new Error('useMobileTabBar must be used within a TabBarProvider');</span>
   }
   
-  return context;
+<span class="cstat-no" title="statement not covered" >  return context;</span>
 };</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -226,7 +226,7 @@ export const useMobileTabBar = (): MobileTabBarContextType =&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-19T00:31:50.142Z
+                at 2026-04-10T02:15:43.966Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

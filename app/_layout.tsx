@@ -1,17 +1,18 @@
 import NavBar from '@/components/NavBar.web';
 import StripeWrapper from '@/components/StripeWrapper';
-import { AuthProvider, useAuth } from '@/context/AuthContext';
-import { AuthModalProvider } from '@/context/AuthModalContext';
+import { AuthProvider } from '@/context/AuthContext';
 import { TabBarProvider } from '@/context/TabBarContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { getAuth0ProviderProps } from '@/services/auth0';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
-import { router, Stack, useSegments } from 'expo-router';
+import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect } from 'react';
-import { AppState, AppStateStatus, Platform } from 'react-native';
+import { useEffect } from 'react';
+import { Platform } from 'react-native';
+import { Auth0Provider } from 'react-native-auth0';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
 import 'react-native-reanimated';
@@ -36,65 +37,20 @@ if (Platform.OS !== 'web') {
   });
 }
 
-// Create a component to handle authenticated routing
-function AuthenticatedLayout() {
-  const segments = useSegments();
-  const { refreshToken, refreshAccessToken, accessTokenTTL, isAuthLoading, isAuthenticated } = useAuth();
-
-  // Handle app state changes (mobile only - web doesn't have AppState)
-  const handleAppStateChange = useCallback((nextAppState: AppStateStatus) => {
-    if (!isAuthLoading && nextAppState === 'active' && isAuthenticated && refreshToken) {
-      refreshAccessToken();
-    }
-  }, [refreshToken, refreshAccessToken, isAuthLoading, isAuthenticated]);
-
-  // Setup app state listener for mobile platforms
-  useEffect(() => {
-    if (Platform.OS !== 'web') {
-      const subscription = AppState.addEventListener('change', handleAppStateChange);
-      return () => { subscription.remove() };
-    }
-  }, [handleAppStateChange]);
-
-  // Handle navigation based on auth state
-  useEffect(() => {
-    if (isAuthLoading) return;
-
-    const inPublicRoute = segments[0] === 'Intro' || segments[0] === 'Login' || segments[0] === 'Signup' || segments.length === 0;
-
-    // Redirect logic - only redirect if user explicitly needs to be in a different place
-    // Don't redirect if already on index (landing page)
-    if (!isAuthenticated && !inPublicRoute && segments[0] !== 'index') {
-      // User is not authenticated and trying to access protected route
-      console.log('Redirecting to landing page (not authenticated)');
-      if (Platform.OS !== 'web') {
-        router.replace('/Intro');
-      } else {
-        router.replace('/');
-      }
-    } else if (isAuthenticated && (segments[0] === 'Login' || segments[0] === 'Signup')) {
-      // User is authenticated but on login/signup page - send to home
-      // Use a small delay to ensure state has propagated
-      console.log('Redirecting to Home (already authenticated)');
-      setTimeout(() => {
-        router.replace('/(tabs)/Home');
-      }, 50);
-    }
-  }, [isAuthLoading, isAuthenticated, segments]);
-
-  // Auto-refresh access token based on TTL
-  useEffect(() => {
-    if (isAuthLoading || !isAuthenticated || !refreshToken) return;
-    
-    const ttl = accessTokenTTL || 5 * 60 * 1000; // Default to 5 minutes if TTL not available
-    const interval = setInterval(() => {
-      refreshAccessToken();
-    }, ttl * 0.9); // Refresh at 90% of TTL
-    
-    return () => clearInterval(interval);
-  }, [accessTokenTTL, refreshToken, refreshAccessToken, isAuthLoading, isAuthenticated]);
-
-  return null;
+// Render all screens - let them handle redirects via auth state
+function RootNavigator() {
+  return (
+    <TableProvider>
+      <CartProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="+not-found" />
+          <Stack.Screen name="Intro" />
+        </Stack>
+      </CartProvider>
+    </TableProvider>
+  );
 }
 
 export default function RootLayout() {
@@ -102,6 +58,7 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+  const auth0ProviderProps = getAuth0ProviderProps();
 
   // Only hide splash screen after fonts are loaded
   // Auth state will be evaluated separately
@@ -149,41 +106,31 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <AuthModalProvider>
+      {/* The SDK supports web-specific provider props, but its exported TS type only includes the base options. */}
+      <Auth0Provider {...(auth0ProviderProps as any)}>
+        <AuthProvider>
           <ThemeProvider value={colorScheme === 'dark' ? DefaultTheme : DarkTheme}>
             <GestureHandlerRootView>
               <PaperProvider>
                 <StripeWrapper>
                   <TabBarProvider>
                     {(Platform.OS === 'web' ? <NavBar /> : null) as any}
-                    <TableProvider>
-                    <CartProvider>
-                      <Stack screenOptions={{ headerShown: false }}>
-                        <Stack.Screen name="(tabs)" />
-                        <Stack.Screen name="+not-found" />
-                        <Stack.Screen name="Intro" />
-                        <Stack.Screen name="Login" />
-                        <Stack.Screen name="Signup" />
-                      </Stack>
-                      <AuthenticatedLayout />
-                    </CartProvider>
-                  </TableProvider>
-                </TabBarProvider>
-                <StatusBar style="auto" />
-                <ToastManager 
-                  position='bottom'
-                  bottomOffset={Platform.OS === 'web' ? 0 : 100}
-                  showProgressBar={false}
-                  animationStyle="fade"
-                  useModal={false}
-                />
-              </StripeWrapper>
-            </PaperProvider>
-          </GestureHandlerRootView>
-        </ThemeProvider>
-        </AuthModalProvider>
-      </AuthProvider>
+                    <RootNavigator />
+                  </TabBarProvider>
+                  <StatusBar style="auto" />
+                  <ToastManager 
+                    position='bottom'
+                    bottomOffset={Platform.OS === 'web' ? 0 : 100}
+                    showProgressBar={false}
+                    animationStyle="fade"
+                    useModal={false}
+                  />
+                </StripeWrapper>
+              </PaperProvider>
+            </GestureHandlerRootView>
+          </ThemeProvider>
+        </AuthProvider>
+      </Auth0Provider>
     </SafeAreaProvider>
   );
 }

@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">25% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>1/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/2</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">25% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>1/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
@@ -81,12 +81,23 @@
 <a name='L16'></a><a href='#L16'>16</a>
 <a name='L17'></a><a href='#L17'>17</a>
 <a name='L18'></a><a href='#L18'>18</a>
-<a name='L19'></a><a href='#L19'>19</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -95,6 +106,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -102,19 +114,25 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 import { PlatformPressable } from '@react-navigation/elements';
 import * as Haptics from 'expo-haptics';
+import { View } from 'react-native';
 &nbsp;
-export function HapticTab(props: BottomTabBarButtonProps) {
-  return (
-    &lt;PlatformPressable
-      {...props}
-      onPressIn={<span class="fstat-no" title="function not covered" >(e</span>v) =&gt; {
-<span class="cstat-no" title="statement not covered" >        if (process.env.EXPO_OS === 'ios') {</span>
-          // Add a soft haptic feedback when pressing down on the tabs.
-<span class="cstat-no" title="statement not covered" >          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);</span>
-        }
-<span class="cstat-no" title="statement not covered" >        props.onPressIn?.(ev);</span>
-      }}
-    /&gt;
+export function <span class="fstat-no" title="function not covered" >HapticTab(</span>props: BottomTabBarButtonProps) {
+<span class="cstat-no" title="statement not covered" >  return (</span>
+    &lt;View style={{ overflow: 'hidden', borderRadius: 30 }}&gt;
+      &lt;PlatformPressable
+        {...props}
+        android_ripple={{ color: 'transparent' }}
+        pressColor="transparent"
+        style={[props.style, { overflow: 'hidden' }]}
+        onPressIn={<span class="fstat-no" title="function not covered" >(e</span>v) =&gt; {
+<span class="cstat-no" title="statement not covered" >          if (process.env.EXPO_OS === 'ios') {</span>
+            // Add a soft haptic feedback when pressing down on the tabs.
+<span class="cstat-no" title="statement not covered" >            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);</span>
+          }
+<span class="cstat-no" title="statement not covered" >          props.onPressIn?.(ev);</span>
+        }}
+      /&gt;
+    &lt;/View&gt;
   );
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -124,7 +142,7 @@ export function HapticTab(props: BottomTabBarButtonProps) {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-19T00:31:50.142Z
+                at 2026-04-10T02:15:43.966Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

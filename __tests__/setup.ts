@@ -65,6 +65,23 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   },
 }));
 
+// Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require('react');
+
+  return {
+    SafeAreaProvider: ({ children }: any) => children,
+    SafeAreaView: ({ children, ...props }: any) => React.createElement('View', props, children),
+    useSafeAreaInsets: jest.fn(() => ({
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    })),
+  };
+});
+
 // Mock axios
 jest.mock('axios', () => ({
   __esModule: true,
@@ -84,14 +101,50 @@ jest.mock('axios', () => ({
   },
 }));
 
+// Mock react-native-auth0
+jest.mock('react-native-auth0', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require('react');
+
+  return {
+    Auth0Provider: ({ children }: any) => React.createElement(React.Fragment, null, children),
+    useAuth0: jest.fn(() => ({
+      authorize: jest.fn(() => Promise.resolve(null)),
+      clearSession: jest.fn(() => Promise.resolve()),
+      getCredentials: jest.fn(() => Promise.resolve({
+        accessToken: 'test-access-token',
+        idToken: 'test-id-token',
+        expiresAt: Math.floor(Date.now() / 1000) + 3600,
+        tokenType: 'Bearer',
+      })),
+      hasValidCredentials: jest.fn(() => Promise.resolve(false)),
+      isLoading: false,
+      user: null,
+      error: null,
+    })),
+  };
+});
+
 // Mock react-native-paper
 jest.mock('react-native-paper', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require('react');
+  function MockDialog({ children, visible }: any) {
+    return visible ? children : null;
+  }
+  MockDialog.Title = function MockDialogTitle({ children, ...props }: any) {
+    return React.createElement('Text', props, children);
+  };
+  MockDialog.Content = function MockDialogContent({ children, ...props }: any) {
+    return React.createElement('View', props, children);
+  };
+  MockDialog.Actions = function MockDialogActions({ children, ...props }: any) {
+    return React.createElement('View', props, children);
+  };
   
   return {
     Button: ({ children, onPress, ...props }: any) => 
-      React.createElement('View', { accessible: true, onPress, ...props }, 
+      React.createElement('Button', { accessible: true, onPress, ...props }, 
         React.createElement('Text', null, children)
       ),
     Text: ({ children, style, ...props }: any) => 
@@ -105,7 +158,7 @@ jest.mock('react-native-paper', () => {
       React.createElement('View', { ...props }, source),
     IconButton: 'IconButton',
     Portal: ({ children }: any) => children,
-    Dialog: ({ children, visible }: any) => visible ? children : null,
+    Dialog: MockDialog,
     Menu: 'Menu',
     Provider: ({ children }: any) => children,
     Snackbar: ({ children, visible, ...props }: any) => 

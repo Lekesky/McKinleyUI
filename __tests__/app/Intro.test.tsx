@@ -10,10 +10,10 @@ describe('Intro Screen', () => {
   });
 
   it('should display continue button', () => {
-    const { UNSAFE_getByType } = render(<Intro />);
+    const { getByText } = render(<Intro />);
 
-    const button = UNSAFE_getByType('Button');
-    expect(button).toBeTruthy();
+    expect(getByText('Continue')).toBeTruthy();
+    expect(getByText('Already have an account? Sign In')).toBeTruthy();
   });
 
   it('should render app description', () => {

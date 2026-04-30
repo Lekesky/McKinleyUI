@@ -1,9 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
-import { Platform } from "react-native";
-import RNEventSource from 'react-native-sse';
+import { useAuth0 } from "react-native-auth0";
+import { getAuth0CredentialsArgs } from "@/services/auth0";
 import { API_URL } from "../services/api";
-import { useAuth } from "./AuthContext";
+import { createSSEConnection } from "../services/sse";
 
 type MenuItem = {
   id: string;
@@ -36,8 +36,25 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     CUSTOMER: [],
     WAITRESS: []
   });
-  const { accessToken, refreshAccessToken, isAuthenticated } = useAuth();
+  const { getCredentials, user } = useAuth0();
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isCartPaused, setIsCartPaused] = useState<boolean>(false);
+
+  const refreshAccessToken = useCallback(async (forceRefresh: boolean = false) => {
+    if (!user) {
+      setAccessToken(null);
+      return null;
+    }
+
+    try {
+      const token = await getCredentials(...getAuth0CredentialsArgs(forceRefresh));
+      setAccessToken(token.accessToken);
+      return token;
+    } catch {
+      setAccessToken(null);
+      return null;
+    }
+  }, [getCredentials, user]);
 
   const loadCart = useCallback(() => {
     return Promise.all([
@@ -60,6 +77,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     loadCart();
   }, [loadCart]);
 
+  useEffect(() => {
+    void refreshAccessToken();
+  }, [refreshAccessToken]);
+
 
   // Get the active cart based on type (defaults to customer)
   const getActiveCart = (type: CartType = 'CUSTOMER') => {
@@ -67,76 +88,42 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-      // Only establish SSE connection if user is authenticated
-      if (!isAuthenticated) {
+      // Only establish SSE connection once we have an access token to authenticate the stream.
+      if (!user || !accessToken) {
         return;
       }
       
-      const url = `${API_URL}/orders/stream?streamMessage=FULFILLMENT_STATUS`;
+      const streamUrl = `${API_URL}/orders/stream?streamMessage=FULFILLMENT_STATUS`;
       
-      if (Platform.OS === 'web') {
-        // Web EventSource
-        const sse = new EventSource(url, { withCredentials: true });
-
-        sse.onopen = () => {
-          console.log('SSE connection opened');
-        };
-
-        sse.onmessage = (event) => {
-          try {
-            if (event.data == null) return;
-            const data = JSON.parse(event.data);
-            if(data?.paused === undefined) return;
-            setIsCartPaused(data.paused);
-          } catch (parseError) {
-            console.warn('SSE: Failed to parse message', parseError);
+      let closeConnection: (() => void) | null = null;
+      
+      try {
+        closeConnection = createSSEConnection(
+          streamUrl,
+          accessToken,
+          {
+            onOpen: () => {
+              console.log('SSE connection opened');
+            },
+            onMessage: (data) => {
+              if(data?.paused === undefined) return;
+              setIsCartPaused(data.paused);
+            },
+            onError: (error) => {
+              console.error('SSE error:', error);
+            },
           }
-        };
-
-        sse.onerror = (error) => {
-          console.error('SSE error:', error);
-          sse.close();
-        };
-
-        return () => {
-          console.log('Closing SSE connection');
-          sse.close();
-        };
-      } else {
-        // React Native EventSource
-        const sse = new RNEventSource(url, {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
-
-        sse.addEventListener('open', () => {
-          console.log('SSE connection opened');
-        });
-
-        sse.addEventListener('message', (event) => {
-          try {
-            if (event.data == null) return;
-            const data = JSON.parse(event.data);
-            if(data?.paused === undefined) return;
-            setIsCartPaused(data.paused);
-          } catch (parseError) {
-            console.warn('SSE: Failed to parse message', parseError);
-          }
-        });
-
-        sse.addEventListener('error', (error) => {
-          // Only attempt refresh if still authenticated
-          if(isAuthenticated && JSON.stringify(error).includes('403')){
-            refreshAccessToken();
-          }
-        });
-
-        return () => {
-          sse.close();
-        };
+        );
+      } catch (error) {
+        console.error('Failed to create SSE connection:', error);
       }
-  },[isAuthenticated, accessToken, refreshAccessToken]);
+
+      return () => {
+        if (closeConnection) {
+          closeConnection();
+        }
+      };
+  }, [accessToken, user]);
 
 
   const addToCart = useCallback((item: MenuItem, quantity: number, selectedSideIds: string[] = [], type: CartType = 'CUSTOMER') => {

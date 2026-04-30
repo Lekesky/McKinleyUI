@@ -57,7 +57,7 @@ export default function MenuItemScreen() {
         try {
             const res = await api.get(`/menu/sides?pageNumber=0&pageSize=200`);
             setSides(res.data.content || []);
-            console.log('Fetched sides:', sides);
+
         } catch (error) {
             console.error('Failed to fetch sides:', error);
         }

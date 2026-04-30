@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>9/10</span>
+                <span class='fraction'>0/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">68.42% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>13/19</span>
+                <span class='fraction'>0/19</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/2</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>9/9</span>
+                <span class='fraction'>0/10</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -149,7 +149,13 @@
 <a name='L84'></a><a href='#L84'>84</a>
 <a name='L85'></a><a href='#L85'>85</a>
 <a name='L86'></a><a href='#L86'>86</a>
-<a name='L87'></a><a href='#L87'>87</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -160,23 +166,29 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -243,27 +255,29 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCart } from '../../context/CartContext';
 import styles from '../../styles/Cart.styles';
 &nbsp;
-const VIEWS = ["Customer Cart", "Waitress Cart"];
+const VIEWS = <span class="cstat-no" title="statement not covered" >["Customer Cart", "Waitress Cart"];</span>
 &nbsp;
-export default function Cart() {
-    const { userRole } = useAuth();
-    const { defaultView } = useLocalSearchParams&lt;{ defaultView: string }&gt;();
-    const { getActiveCart } = useCart();
-    const customerCart = getActiveCart("CUSTOMER");
-    const waitressCart = getActiveCart("WAITRESS");
+export default function <span class="fstat-no" title="function not covered" >Cart(</span>) {
+    const { userRole } = <span class="cstat-no" title="statement not covered" >useAuth();</span>
+    const { defaultView } = <span class="cstat-no" title="statement not covered" >useLocalSearchParams&lt;{ defaultView: string }&gt;();</span>
+    const { getActiveCart } = <span class="cstat-no" title="statement not covered" >useCart();</span>
+    const customerCart = <span class="cstat-no" title="statement not covered" >getActiveCart("CUSTOMER");</span>
+    const waitressCart = <span class="cstat-no" title="statement not covered" >getActiveCart("WAITRESS");</span>
+    const insets = <span class="cstat-no" title="statement not covered" >useSafeAreaInsets();</span>
     
-    const [selectedIndex, setSelectedIndex] = useState&lt;number&gt;(
-      defaultView === 'waitress' ? <span class="branch-0 cbranch-no" title="branch not covered" >1 </span>: 
-      userRole === 'CUSTOMER' ? 0 : <span class="branch-1 cbranch-no" title="branch not covered" >1</span>
+    const [selectedIndex, setSelectedIndex] = <span class="cstat-no" title="statement not covered" >useState&lt;number&gt;(</span>
+      defaultView === 'waitress' ? 1 : 
+      userRole === 'CUSTOMER' ? 0 : 1
     );
 &nbsp;
-    const goBackHandler = <span class="fstat-no" title="function not covered" >()</span> =&gt; { <span class="cstat-no" title="statement not covered" >router.back() </span>}
+    const goBackHandler = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; { <span class="cstat-no" title="statement not covered" >router.back() </span>}</span>
 &nbsp;
-    return (
-      &lt;View style={styles.container}&gt;
+<span class="cstat-no" title="statement not covered" >    return (</span>
+      &lt;View style={[styles.container, { paddingTop: insets.top }]}&gt;
 &nbsp;
         {Platform.OS !== 'web' &amp;&amp; (
           &lt;&gt;
@@ -279,7 +293,7 @@ export default function Cart() {
 &nbsp;
         {/* View Switcher */}
         {userRole &amp;&amp; (userRole === 'WAITRESS' || userRole === 'ADMIN' || userRole === 'CHEF') &amp;&amp; (
-<span class="branch-4 cbranch-no" title="branch not covered" >          &lt;ViewControl</span>
+          &lt;ViewControl
               values={VIEWS}
               selectedIndex={selectedIndex}
               onChange={setSelectedIndex}
@@ -297,8 +311,10 @@ export default function Cart() {
         {/* Customer View*/}
         {selectedIndex === 0 &amp;&amp; (
           customerCart.length === 0 ? (
-            &lt;View&gt;
-              &lt;Text&gt;Your cart is empty.&lt;/Text&gt;
+            &lt;View style={styles.emptyCartContainer}&gt;
+              &lt;Icon source="cart-outline" size={120} color="#d0d0d0" /&gt;
+              &lt;Text style={{ fontSize: 18, color: '#666', marginTop: 20, fontFamily: 'Helvetica' }}&gt;Your cart is empty&lt;/Text&gt;
+              &lt;Text style={{ fontSize: 14, color: '#999', marginTop: 8, fontFamily: 'Helvetica' }}&gt;Start adding items to get started!&lt;/Text&gt;
             &lt;/View&gt;
           ) : (
             &lt;CustomerCart customerCart={customerCart} /&gt;
@@ -307,9 +323,11 @@ export default function Cart() {
 &nbsp;
         {/* Waitress View */}
         { selectedIndex === 1 &amp;&amp; (
-<span class="branch-1 cbranch-no" title="branch not covered" >          waitressCart.length === 0 ? (</span>
-            &lt;View&gt;
-              &lt;Text&gt;Your cart is empty.&lt;/Text&gt;
+          waitressCart.length === 0 ? (
+            &lt;View style={styles.emptyCartContainer}&gt;
+              &lt;Icon source="cart-outline" size={120} color="#d0d0d0" /&gt;
+              &lt;Text style={{ fontSize: 18, color: '#666', marginTop: 20, fontFamily: 'Helvetica' }}&gt;Your cart is empty&lt;/Text&gt;
+              &lt;Text style={{ fontSize: 14, color: '#999', marginTop: 8, fontFamily: 'Helvetica' }}&gt;Start adding items to get started!&lt;/Text&gt;
             &lt;/View&gt;
           ) : (
             &lt;WaitressCart waitressCart={waitressCart} /&gt;
@@ -328,7 +346,7 @@ export default function Cart() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-19T00:31:50.142Z
+                at 2026-04-10T02:15:43.966Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

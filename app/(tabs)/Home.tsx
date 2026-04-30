@@ -16,7 +16,6 @@ export default function HomeScreen() {
   
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      
       {/* View Switcher */}
         {userRole && (userRole === 'WAITRESS' || userRole === 'ADMIN' || userRole === 'CHEF') && (
           <ViewControl

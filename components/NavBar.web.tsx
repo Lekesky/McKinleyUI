@@ -1,43 +1,41 @@
 import { Tabs } from '@/constants/Tabs';
-import { useAuth } from '@/context/AuthContext';
-import { useAuthModal } from '@/context/AuthModalContext';
 import { useMobileTabBar } from '@/context/TabBarContext';
 import { useResponsive } from '@/hooks/useResponsive';
+import {
+    clearAuthRedirectAction,
+    storeAuthRedirectAction,
+} from '@/services/authRedirect';
+import {
+    getAuth0AuthorizeOptions,
+    getAuth0AuthorizeParameters,
+} from '@/services/auth0';
 import { router, useSegments } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Image, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useAuth0 } from 'react-native-auth0';
 import { Icon } from 'react-native-paper';
+import { Toast } from 'toastify-react-native';
 import styles from '../styles/NavBar.web.styles';
 
 export default function NavBar() {
-    const { setShowLoginModal, setShowSignupModal } = useAuthModal();
+    const { authorize, isLoading, user } = useAuth0();
     const { hideTabBar } = useMobileTabBar();
-    const { isAuthenticated } = useAuth();
     const segments = useSegments() as string[];
     const { isMobile } = useResponsive();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    
-    // Check if we're on the landing page
+
     const isLandingPage = segments.length === 0 || segments[0] === 'index';
-    
+
     useEffect(() => {
-        // Only hide tab bar on mobile (shouldn't be needed on web as it's hidden by Platform check)
-        if (Platform.OS !== 'web') {
-            hideTabBar();
-        }
+        if (Platform.OS !== 'web') hideTabBar();
     }, [hideTabBar]);
 
-    // Close mobile menu when screen size changes to desktop
     useEffect(() => {
-        if (!isMobile) {
-            setMobileMenuOpen(false);
-        }
+        if (!isMobile) setMobileMenuOpen(false);
     }, [isMobile]);
 
     const isActive = (path: string) => {
-        // Extract the tab name from the path like '/(tabs)/Home' -> 'Home'
         const tabName = path.split('/').pop();
-        // Check if current segment matches
         return segments.includes(tabName || '');
     };
 
@@ -46,17 +44,43 @@ export default function NavBar() {
         setMobileMenuOpen(false);
     };
 
-    const filteredTabs = Tabs.filter(item => {
-        // Always exclude Profile from main nav (shown in actions section)
-        if (item.path === '/(tabs)/Profile') {
-            return false;
+    const handleAuth = async (action: 'login' | 'signup') => {
+        try {
+            setMobileMenuOpen(false);
+            storeAuthRedirectAction(action);
+            await authorize(
+                getAuth0AuthorizeParameters(),
+                getAuth0AuthorizeOptions()
+            );
+        } catch {
+            clearAuthRedirectAction();
+            Toast.show({
+                type: 'error',
+                text1: `${action === 'login' ? 'Login' : 'Signup'} Failed`,
+                text2: 'An error occurred. Please try again.',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
         }
-        // Hide Order, Cart, Notification if not authenticated
-        if (!isAuthenticated && (item.name === 'Order' || item.name === 'Cart' || item.name === 'Notification')) {
-            return false;
-        }
-        return true;
-    });
+    };
+
+    const filteredTabs = Tabs.filter(({ path, name }) =>
+        path !== '/(tabs)/Profile' &&
+        (user || !['Order', 'Cart', 'Notification'].includes(name))
+    );
+
+    const navLinks = (user || !isLandingPage) && filteredTabs.map((item) => (
+        <TouchableOpacity
+            key={item.title}
+            onPress={() => handleNavigation(item.path)}
+            style={[styles.linkButton, isActive(item.path) && styles.linkButtonActive]}
+        >
+            <Text style={[styles.linkText, isActive(item.path) && styles.linkTextActive]}>
+                {item.title}
+            </Text>
+        </TouchableOpacity>
+    ));
 
     return (
         <View style={styles.container}>
@@ -65,46 +89,24 @@ export default function NavBar() {
                     <Image source={require("@/assets/images/McKinleysGrill.png")} style={styles.logo} />
                 </TouchableOpacity>
             </View>
-            
+
             {/* Desktop Navigation */}
             {!isMobile && (
                 <>
-                    <View style={styles.links}>
-                        {(isAuthenticated || !isLandingPage) && 
-                            filteredTabs.map((item) => (
-                                <TouchableOpacity
-                                    key={item.title}
-                                    onPress={() => handleNavigation(item.path)}
-                                    style={[
-                                        styles.linkButton,
-                                        isActive(item.path) && styles.linkButtonActive
-                                    ]}
-                                >
-                                    <Text style={[
-                                        styles.linkText,
-                                        isActive(item.path) && styles.linkTextActive
-                                    ]}>{item.title}</Text>
-                                </TouchableOpacity>
-                            ))
-                        }
-                    </View>
+                    <View style={styles.links}>{navLinks}</View>
                     <View style={styles.actions}>
-                        {isAuthenticated ? (
+                        {isLoading ? null : user ? (
                             <View style={styles.profileLink}>
-                                <TouchableOpacity
-                                    key='Profile'
-                                    onPress={() => handleNavigation('/(tabs)/Profile')}
-                                    style={styles.linkButton}
-                                >
+                                <TouchableOpacity onPress={() => handleNavigation('/(tabs)/Profile')} style={styles.linkButton}>
                                     <Text style={styles.linkText}>Profile</Text>
                                 </TouchableOpacity>
                             </View>
                         ) : (
                             <>
-                                <TouchableOpacity onPress={() => setShowLoginModal(true)} style={styles.actionButton}>
+                                <TouchableOpacity onPress={() => handleAuth('login')} style={styles.actionButton}>
                                     <Text style={styles.actionText}>Login</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={() => setShowSignupModal(true)} style={styles.actionButtonPrimary}>
+                                <TouchableOpacity onPress={() => handleAuth('signup')} style={styles.actionButtonPrimary}>
                                     <Text style={styles.actionTextPrimary}>Sign up</Text>
                                 </TouchableOpacity>
                             </>
@@ -113,12 +115,9 @@ export default function NavBar() {
                 </>
             )}
 
-            {/* Mobile Hamburger Menu */}
+            {/* Mobile Hamburger */}
             {isMobile && (
-                <TouchableOpacity 
-                    style={styles.hamburger}
-                    onPress={() => setMobileMenuOpen(!mobileMenuOpen)}
-                >
+                <TouchableOpacity style={styles.hamburger} onPress={() => setMobileMenuOpen(!mobileMenuOpen)}>
                     <Icon source={mobileMenuOpen ? "close" : "menu"} size={28} color="#871919" />
                 </TouchableOpacity>
             )}
@@ -132,62 +131,34 @@ export default function NavBar() {
             >
                 <View style={styles.mobileMenuOverlay}>
                     <View style={styles.mobileMenuContainer}>
-                        {/* Close Button Header */}
                         <View style={styles.mobileMenuHeader}>
-                            <TouchableOpacity 
-                                style={styles.closeButton}
-                                onPress={() => setMobileMenuOpen(false)}
-                            >
+                            <TouchableOpacity style={styles.closeButton} onPress={() => setMobileMenuOpen(false)}>
                                 <Icon source="close" size={24} color="#871919" />
                             </TouchableOpacity>
                         </View>
                         <ScrollView style={styles.mobileMenuContent}>
-                            {/* Mobile Navigation Links */}
-                            {(isAuthenticated || !isLandingPage) && 
-                                filteredTabs.map((item) => (
-                                    <TouchableOpacity
-                                        key={item.title}
-                                        onPress={() => handleNavigation(item.path)}
-                                        style={[
-                                            styles.mobileMenuItem,
-                                            isActive(item.path) && styles.mobileMenuItemActive
-                                        ]}
-                                    >
-                                        <Text style={[
-                                            styles.mobileMenuText,
-                                            isActive(item.path) && styles.mobileMenuTextActive
-                                        ]}>{item.title}</Text>
-                                    </TouchableOpacity>
-                                ))
-                            }
-
-                            {/* Mobile Auth Actions */}
+                            {(user || !isLandingPage) && filteredTabs.map((item) => (
+                                <TouchableOpacity
+                                    key={item.title}
+                                    onPress={() => handleNavigation(item.path)}
+                                    style={[styles.mobileMenuItem, isActive(item.path) && styles.mobileMenuItemActive]}
+                                >
+                                    <Text style={[styles.mobileMenuText, isActive(item.path) && styles.mobileMenuTextActive]}>
+                                        {item.title}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
                             <View style={styles.mobileMenuActions}>
-                                {isAuthenticated ? (
-                                    <TouchableOpacity
-                                        onPress={() => handleNavigation('/(tabs)/Profile')}
-                                        style={styles.mobileActionButton}
-                                    >
+                                {isLoading ? null : user ? (
+                                    <TouchableOpacity onPress={() => handleNavigation('/(tabs)/Profile')} style={styles.mobileActionButton}>
                                         <Text style={styles.mobileActionText}>Profile</Text>
                                     </TouchableOpacity>
                                 ) : (
                                     <>
-                                        <TouchableOpacity 
-                                            onPress={() => {
-                                                setMobileMenuOpen(false);
-                                                setShowLoginModal(true);
-                                            }} 
-                                            style={styles.mobileActionButton}
-                                        >
+                                        <TouchableOpacity onPress={() => handleAuth('login')} style={styles.mobileActionButton}>
                                             <Text style={styles.mobileActionText}>Login</Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity 
-                                            onPress={() => {
-                                                setMobileMenuOpen(false);
-                                                setShowSignupModal(true);
-                                            }} 
-                                            style={styles.mobileActionButtonPrimary}
-                                        >
+                                        <TouchableOpacity onPress={() => handleAuth('signup')} style={styles.mobileActionButtonPrimary}>
                                             <Text style={styles.mobileActionTextPrimary}>Sign up</Text>
                                         </TouchableOpacity>
                                     </>

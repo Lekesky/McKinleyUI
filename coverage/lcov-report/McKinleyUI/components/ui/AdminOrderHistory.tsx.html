@@ -32,7 +32,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/46</span>
+                <span class='fraction'>0/54</span>
             </div>
         
             
@@ -280,7 +280,27 @@
 <a name='L215'></a><a href='#L215'>215</a>
 <a name='L216'></a><a href='#L216'>216</a>
 <a name='L217'></a><a href='#L217'>217</a>
-<a name='L218'></a><a href='#L218'>218</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a>
+<a name='L226'></a><a href='#L226'>226</a>
+<a name='L227'></a><a href='#L227'>227</a>
+<a name='L228'></a><a href='#L228'>228</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -520,21 +540,31 @@ interface OrderedItem {
     quantity: number;
 }
 &nbsp;
+interface User {
+    uid: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    userRole: string;
+    signInMethod: string;
+    timeCreated: string;
+    registerPushToken: string | null;
+}
+&nbsp;
 type OrderHistory = {
     id: string;
-    customerId: string;
-    customerFirstName: string;
-    customerLastName: string;
-    waitressFirstName: string;
-    waitressLastName: string;
+    orderNumber: string;
+    customer: User;
+    waitress: User | null;
     tableNumber: number;
-    menuItemIds: string[];
+    menuItemIds?: string[];
     orderedItems?: OrderedItem[];
     status: string;
     paymentStatus: string;
     totalPrice: number;
     orderStartTime: string;
-    orderEndTime: string;
+    orderEndTime: string | null;
 }
 interface OrderSearchProps {
     readonly orderSearch: string;
@@ -646,8 +676,8 @@ export default function <span class="fstat-no" title="function not covered" >Adm
 <span class="cstat-no" title="statement not covered" >    return (</span>
         &lt;FlatList
             data={orderHistory.filter(<span class="fstat-no" title="function not covered" >or</span>der =&gt;
-<span class="cstat-no" title="statement not covered" >                (order.customerFirstName + " " + order.customerLastName).toLowerCase().includes(orderSearch.toLowerCase()) ||</span>
-                (order.waitressFirstName + " " + order.waitressLastName).toLowerCase().includes(orderSearch.toLowerCase()) ||
+<span class="cstat-no" title="statement not covered" >                (order.customer?.firstName + " " + order.customer?.lastName).toLowerCase().includes(orderSearch.toLowerCase()) ||</span>
+                (order.waitress?.firstName + " " + order.waitress?.lastName).toLowerCase().includes(orderSearch.toLowerCase()) ||
                 order.id.toLowerCase().includes(orderSearch.toLowerCase())
             )}
             contentContainerStyle={styles.orderList}
@@ -698,10 +728,10 @@ export default function <span class="fstat-no" title="function not covered" >Adm
                     &lt;OrderHistoryCard
                         key={order.id}
                         id={order.id}
-                        customerFirstName={order.customerFirstName}
-                        customerLastName={order.customerLastName}
-                        waitressFirstName={order.waitressFirstName}
-                        waitressLastName={order.waitressLastName}
+                        customerFirstName={order.customer?.firstName || ''}
+                        customerLastName={order.customer?.lastName || ''}
+                        waitressFirstName={order.waitress?.firstName || null}
+                        waitressLastName={order.waitress?.lastName || null}
                         tableNumber={order.tableNumber}
                         orderedItems={orderedItems}
                         status={order.status}
@@ -721,7 +751,7 @@ export default function <span class="fstat-no" title="function not covered" >Adm
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-19T00:31:50.142Z
+                at 2026-04-10T02:15:43.966Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

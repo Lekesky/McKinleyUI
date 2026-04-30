@@ -1,18 +1,24 @@
 import { useAuth } from "@/context/AuthContext";
 import { useMobileTabBar } from "@/context/TabBarContext";
 import createAPIClient from "@/services/api";
+import {
+    getAuth0ClearSessionOptions,
+    getAuth0ClearSessionParameters,
+} from '@/services/auth0';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Modal, Platform, TouchableOpacity, View } from "react-native";
+import { useAuth0 } from "react-native-auth0";
 import { Button, Dialog, Icon, Portal, Text } from "react-native-paper";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
 import styles from "../../styles/Profile.styles";
 
 export default function Profile() {
-    const { accessToken, logout, deleteAccount, uid, userRole } = useAuth();
+    const { uid, userRole } = useAuth();
+    const { clearSession } = useAuth0();
     const { hideTabBar, showTabBar } = useMobileTabBar();
     const api = useMemo(() => createAPIClient(), []);
     const insets = useSafeAreaInsets();
@@ -49,7 +55,7 @@ export default function Profile() {
                     textColor: '#FFFFFF',
                 });
             });
-    },[api, uid, accessToken]);
+    },[api, uid]);
     
     // Ensure tab bar is shown when component unmounts
     useEffect(() => {
@@ -83,20 +89,40 @@ export default function Profile() {
     const handleOrderHistory = () => { router.push('/OrderHistory')}
     const handleAdminView = () => { router.push('/Admin')}
 
-    const handlePaymentMethods = () => {
-        // Payment methods logic
-    }
-
     const handleDeleteAccount = async () => {
-        //Need to add password confirmation before allowing deletion
         hideDeleteDialog();
-        await deleteAccount();
+        if (!uid) {
+            return;
+        }
+
+        try {
+            await api.delete(`/user/${uid}`);
+            await clearSession(
+                getAuth0ClearSessionParameters(),
+                getAuth0ClearSessionOptions()
+            );
+            router.replace(Platform.OS === 'web' ? '/' : '/Intro');
+        } catch (error: any) {
+            const errorMessage = error.response?.data || error.message || 'Failed to delete account';
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: typeof errorMessage === 'string' ? errorMessage : 'Failed to delete account',
+                position: 'top',
+                backgroundColor: '#871919ff',
+                textColor: '#FFFFFF',
+            });
+        }
     }
 
 
     const handleLogout = async () => {
         hideLogoutDialog();
-        await logout();
+        await clearSession(
+            getAuth0ClearSessionParameters(),
+            getAuth0ClearSessionOptions()
+        );
+        router.replace(Platform.OS === 'web' ? '/' : '/Intro');
     }
 
     return (

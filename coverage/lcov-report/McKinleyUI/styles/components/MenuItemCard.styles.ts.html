@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/8</span>
+                <span class='fraction'>0/30</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -124,11 +124,23 @@
 <a name='L59'></a><a href='#L59'>59</a>
 <a name='L60'></a><a href='#L60'>60</a>
 <a name='L61'></a><a href='#L61'>61</a>
-<a name='L62'></a><a href='#L62'>62</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -187,17 +199,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Platform, StyleSheet } from 'react-native';
 &nbsp;
-const isWeb = Platform.OS === 'web';
+const isWeb = <span class="cstat-no" title="statement not covered" >Platform.OS === 'web';</span>
 &nbsp;
-const styles = StyleSheet.create({
+export const getStyles = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(w</span>indowWidth: number) =&gt; {</span>
+  const isMobile = <span class="cstat-no" title="statement not covered" >windowWidth &lt;= 768;</span>
+  
+<span class="cstat-no" title="statement not covered" >  return StyleSheet.create({</span>
     cardContainer: {
-    // Use flex-basis and maxWidth for predictable wrapping on web; full-width on mobile
-    flexBasis: isWeb ? <span class="branch-0 cbranch-no" title="branch not covered" >'30%' </span>: '100%',
-    maxWidth: isWeb ? <span class="branch-0 cbranch-no" title="branch not covered" >'30%' </span>: '100%',
-    flexGrow: 0,
-    marginVertical: isWeb ? <span class="branch-0 cbranch-no" title="branch not covered" >10 </span>: 6,
-    marginHorizontal: isWeb ? <span class="branch-0 cbranch-no" title="branch not covered" >12 </span>: 0,
-  },
+      width: isMobile || !isWeb ? '100%' : undefined,
+      flexBasis: isMobile || !isWeb ? '100%' : '30%',
+      maxWidth: isMobile || !isWeb ? '100%' : '30%',
+      flexGrow: 0,
+      flexShrink: 0,
+      marginVertical: isWeb ? 10 : 6,
+      marginHorizontal: isMobile || !isWeb ? 0 : 12,
+    },
   card: {
     borderRadius: 12,
     elevation: 2,
@@ -211,49 +227,51 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 12,
   },
-  name: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  description: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 8,
-    lineHeight: 16,
-  },
-  price: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#871919ff',
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 8,
-  },
-  tag: {
-    backgroundColor: '#e0e0e0',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginRight: 4,
-    marginBottom: 4,
-  },
-  tagText: {
-    fontSize: 10,
-    color: '#333',
-  },
-});
+    name: {
+      fontSize: isMobile &amp;&amp; isWeb ? 14 : 16,
+      fontWeight: 'bold',
+      marginBottom: 4,
+      color: '#000',
+    },
+    description: {
+      fontSize: isMobile &amp;&amp; isWeb ? 11 : 12,
+      color: '#666',
+      marginBottom: 8,
+      lineHeight: isMobile &amp;&amp; isWeb ? 14 : 16,
+    },
+    price: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#871919ff',
+    },
+    tagsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginTop: 8,
+    },
+    tag: {
+      backgroundColor: '#e0e0e0',
+      borderRadius: 12,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      marginRight: 4,
+      marginBottom: 4,
+    },
+    tagText: {
+      fontSize: 10,
+      color: '#333',
+    },
+  });
+};
 &nbsp;
-export default styles;</pre></td></tr></table></pre>
+export default getStyles;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-19T00:31:50.142Z
+                at 2026-04-10T02:15:43.966Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

@@ -6,16 +6,20 @@ import { useMobileTabBar } from '@/context/TabBarContext';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 
 
 export default function TabLayout() {
-  // const [role, setRole] = useState<string | null>(null);
   const { userRole } = useAuth();
   const { isTabBarVisible } = useMobileTabBar();
 
+  // Show loading state while userRole is being fetched, don't block rendering
   if (userRole === null) {
-    return null; // Or a loading spinner if desired
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#871919ff" />
+      </View>
+    );
   }
 
   return (

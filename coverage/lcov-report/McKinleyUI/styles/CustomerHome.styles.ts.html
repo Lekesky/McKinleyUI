@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>8/16</span>
+                <span class='fraction'>0/196</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/5</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -269,9 +269,41 @@
 <a name='L204'></a><a href='#L204'>204</a>
 <a name='L205'></a><a href='#L205'>205</a>
 <a name='L206'></a><a href='#L206'>206</a>
-<a name='L207'></a><a href='#L207'>207</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -476,9 +508,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Dimensions, Platform, StyleSheet } from 'react-native';
-const isWeb = Platform.OS === 'web';
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffffff', paddingHorizontal: isWeb ? <span class="branch-0 cbranch-no" title="branch not covered" >80 </span>: 40, alignItems: isWeb ? <span class="branch-0 cbranch-no" title="branch not covered" >'center' </span>: 'stretch' },
+const isWeb = <span class="cstat-no" title="statement not covered" >Platform.OS === 'web';</span>
+&nbsp;
+export const getStyles = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(w</span>indowWidth: number) =&gt; {</span>
+  const isMobile = <span class="cstat-no" title="statement not covered" >windowWidth &lt;= 768;</span>
+  const isSmallMobile = <span class="cstat-no" title="statement not covered" >windowWidth &lt;= 480;</span>
+  
+<span class="cstat-no" title="statement not covered" >  return StyleSheet.create({</span>
+  container: { 
+    flex: 1, 
+    backgroundColor: '#ffffffff', 
+    paddingHorizontal: (isWeb &amp;&amp; isMobile) ? 16 : (isWeb ? 80 : 40), 
+    alignItems: isWeb ? 'center' : 'stretch',
+  },
   disabledInput: {
     // This ensures the input is visually disabled
     color: 'transparent',
@@ -491,77 +533,82 @@ const styles = StyleSheet.create({
   },
   header: { 
     width: '100%',
-    maxWidth: isWeb ? <span class="branch-0 cbranch-no" title="branch not covered" >1800 </span>: 1200,
+    maxWidth: isWeb ? 1800 : 1200,
     marginHorizontal: 0, 
-    marginTop: 20,
-    height: 100,
+    marginTop: (isWeb &amp;&amp; isMobile) ? 10 : 20,
+    height: (isWeb &amp;&amp; isMobile) ? 80 : 100,
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'center',
-    paddingHorizontal: 20,
-    alignSelf: isWeb ? <span class="branch-0 cbranch-no" title="branch not covered" >'center' </span>: 'auto',
+    paddingHorizontal: (isWeb &amp;&amp; isMobile) ? 10 : 20,
+    alignSelf: isWeb ? 'center' : 'auto',
   },
   searchButton: {
     backgroundColor: '#e8e8e8ff', 
-    width: 50, 
-    height: 50, 
-    borderRadius: 25, 
+    width: (isWeb &amp;&amp; isMobile) ? 40 : 50, 
+    height: (isWeb &amp;&amp; isMobile) ? 40 : 50, 
+    borderRadius: (isWeb &amp;&amp; isMobile) ? 20 : 25, 
     justifyContent: 'center', 
-    alignItems: 'center' 
+    alignItems: 'center',
   },
   greetingText: { 
-    fontSize: 32, 
+    fontSize: (isWeb &amp;&amp; isSmallMobile) ? 20 : (isWeb &amp;&amp; isMobile) ? 24 : 32, 
     fontWeight: '700', 
     color: '#871919ff', 
     fontFamily: 'Helvetica',
   },
   buttonSegment: { 
     marginHorizontal: 5,
-    marginVertical: 20, 
-    backgroundColor: '#871919ff' 
+    backgroundColor: '#871919ff',
+  },
+  pillsWrapper: {
+    marginTop: 10,
+    marginBottom: 10,
   },
   pillContainer: { 
     flexDirection: 'row',
-    alignSelf: isWeb ? <span class="branch-0 cbranch-no" title="branch not covered" >'center' </span>: 'auto',
+    alignSelf: isWeb ? 'center' : 'auto',
+    flexWrap: (isWeb &amp;&amp; isMobile) ? 'wrap' : undefined,
+    justifyContent: (isWeb &amp;&amp; isMobile) ? 'center' : undefined,
   },
   selectedButton: {
     backgroundColor: '#600e0eff',
     elevation: 4,
   },
   menuContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 40,
+    paddingHorizontal: (isWeb &amp;&amp; isMobile) ? 10 : 20,
+    marginBottom: (isWeb &amp;&amp; isMobile) ? 20 : 40,
     width: '100%',
-    maxWidth: isWeb ? <span class="branch-0 cbranch-no" title="branch not covered" >1800 </span>: "auto",
+    maxWidth: isWeb ? 1800 : "auto",
     alignSelf: 'center',
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: (isWeb &amp;&amp; isMobile) ? 20 : 24,
     fontWeight: 'bold',
     marginVertical: 10,
     color: '#333',
   },
   menuItemsGrid: {
-    flexDirection: 'row',
+    flexDirection: (isWeb &amp;&amp; isMobile) ? 'column' : 'row',
     flexWrap: 'wrap',
     // Better utilize horizontal space on web
-    justifyContent: isWeb ? <span class="branch-0 cbranch-no" title="branch not covered" >'flex-start' </span>: 'center',
-    alignItems: 'flex-start',
-    gap: isWeb ? <span class="branch-0 cbranch-no" title="branch not covered" >25 </span>: 0,
+    justifyContent: isWeb ? 'flex-start' : 'center',
+    alignItems: (isWeb &amp;&amp; isMobile) ? 'stretch' : 'flex-start',
+    gap: (isWeb &amp;&amp; isMobile) ? 15 : (isWeb ? 25 : 0),
   },
   searchContainer: {
-    height: 56,
+    height: (isWeb &amp;&amp; isMobile) ? 48 : 56,
     backgroundColor: '#f4f4f4',
-    borderRadius: 12,
+    borderRadius: (isWeb &amp;&amp; isMobile) ? 10 : 12,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 20,
+    paddingLeft: (isWeb &amp;&amp; isMobile) ? 15 : 20,
     justifyContent: 'flex-end',
-    overflow: 'hidden'
+    overflow: 'hidden',
   },
   searchIcon: {
-    width: 50,
-    height: 50,
+    width: (isWeb &amp;&amp; isMobile) ? 40 : 50,
+    height: (isWeb &amp;&amp; isMobile) ? 40 : 50,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 0, 
@@ -575,18 +622,18 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: (isWeb &amp;&amp; isMobile) ? 14 : 16,
     color: '#333',
     paddingVertical: 0,
     textAlignVertical: 'center',
   },
   emptyState: {
-    padding: 40,
+    padding: (isWeb &amp;&amp; isMobile) ? 20 : 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyStateText: {
-    fontSize: 16,
+    fontSize: (isWeb &amp;&amp; isMobile) ? 14 : 16,
     color: '#666',
     textAlign: 'center',
   },
@@ -595,40 +642,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     height: Dimensions.get('window').height - 190,
-    paddingVertical: 20,
+    paddingVertical: (isWeb &amp;&amp; isMobile) ? 10 : 20,
   },
   waitressContainer: {
-    width: '90%',
-    paddingVertical: 30,
-    paddingHorizontal: 15,
+    width: (isWeb &amp;&amp; isMobile) ? '95%' : '90%',
+    paddingVertical: (isWeb &amp;&amp; isMobile) ? 20 : 30,
+    paddingHorizontal: (isWeb &amp;&amp; isMobile) ? 10 : 15,
     backgroundColor: '#ffffff',
     alignItems: 'center',
   },
   waitressTitle: {
-    fontSize: 28,
+    fontSize: (isWeb &amp;&amp; isMobile) ? 22 : 28,
     fontWeight: 'bold',
     color: '#871919ff',
-    marginBottom: 30,
+    marginBottom: (isWeb &amp;&amp; isMobile) ? 20 : 30,
     fontFamily: 'Helvetica',
   },
   tableLayout: {
     width: '100%',
-    marginVertical: 20,
+    marginVertical: (isWeb &amp;&amp; isMobile) ? 10 : 20,
     alignItems: 'center',
   },
   tableRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 15,
+    marginBottom: (isWeb &amp;&amp; isMobile) ? 10 : 15,
   },
   tableButton: {
-    width: 70,
-    height: 70,
+    width: (isWeb &amp;&amp; isSmallMobile) ? 50 : (isWeb &amp;&amp; isMobile) ? 60 : 70,
+    height: (isWeb &amp;&amp; isSmallMobile) ? 50 : (isWeb &amp;&amp; isMobile) ? 60 : 70,
     borderRadius: 10,
     backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 10,
+    marginHorizontal: (isWeb &amp;&amp; isSmallMobile) ? 4 : (isWeb &amp;&amp; isMobile) ? 6 : 10,
     borderWidth: 1,
     borderColor: '#d0d0d0',
     shadowColor: '#000',
@@ -645,7 +692,7 @@ const styles = StyleSheet.create({
     borderColor: '#700000',
   },
   tableButtonText: {
-    fontSize: 24,
+    fontSize: (isWeb &amp;&amp; isSmallMobile) ? 18 : (isWeb &amp;&amp; isMobile) ? 20 : 24,
     fontWeight: 'bold',
     color: '#333',
   },
@@ -663,10 +710,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 60,
-    width: 220,
+    height: (isWeb &amp;&amp; isMobile) ? 50 : 60,
+    width: (isWeb &amp;&amp; isMobile) ? 180 : 220,
     borderRadius: 30,
-    marginTop: 20,
+    marginTop: (isWeb &amp;&amp; isMobile) ? 15 : 20,
   },
   disabledButton: {
     backgroundColor: '#cccccc',
@@ -677,18 +724,19 @@ const styles = StyleSheet.create({
   takeOrderButtonText: {
     color: '#ffffff',
     fontWeight: 'bold',
-    fontSize: 18,
+    fontSize: (isWeb &amp;&amp; isMobile) ? 16 : 18,
   },
 });
+};
 &nbsp;
-export default styles;</pre></td></tr></table></pre>
+export default getStyles;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-19T00:31:50.142Z
+                at 2026-04-10T02:15:43.966Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

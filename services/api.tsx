@@ -1,63 +1,9 @@
 import axios, { AxiosInstance } from "axios";
-import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
 export const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-const ACCESS_TOKEN_KEY = "access_token";
-const REFRESH_TOKEN_KEY = "refresh_token";
 const API_TIMEOUT = 95000;
-
-// Cookie helper for web
-const getCookie = (name: string): string | null => {
-  if (Platform.OS !== 'web') return null;
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-  return null;
-};
-
-const setCookie = (name: string, value: string, days: number = 365) => {
-  if (Platform.OS !== 'web') return;
-  const expires = new Date();
-  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-  // SameSite=None is required for cross-origin requests, Secure flag is required when using SameSite=None
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=None;Secure`;
-};
-
-const deleteCookie = (name: string) => {
-  if (Platform.OS !== 'web') return;
-  // Must match the SameSite and Secure attributes used when setting the cookie
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=None;Secure`;
-};
-
-// Storage abstraction
-const getStoredItem = async (key: string): Promise<string | null> => {
-  if (Platform.OS === 'web') {
-    return getCookie(key);
-  } else {
-    return await SecureStore.getItemAsync(key);
-  }
-};
-
-const setStoredItem = async (key: string, value: string) => {
-  if (Platform.OS === 'web') {
-    setCookie(key, value);
-  } else {
-    await SecureStore.setItemAsync(key, value);
-  }
-};
-
-const deleteStoredItem = async (key: string) => {
-  if (Platform.OS === 'web') {
-    deleteCookie(key);
-  } else {
-    await SecureStore.deleteItemAsync(key);
-  }
-};
-
-// Export storage utilities for use in other modules
-export { deleteStoredItem, getStoredItem, setStoredItem };
 
 // Pagination interfaces
 export interface Sort {
@@ -91,29 +37,22 @@ export interface PageableResponse<T> {
 
 // Token refresh state to prevent multiple simultaneous refresh attempts
 let isRefreshing = false;
-let isLoggingOut = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
+let refreshSubscribers: ((token: string | null) => void)[] = [];
+let accessTokenProvider: ((forceRefresh?: boolean) => Promise<string | null>) | null = null;
 
-// Helper to set logout state from AuthContext
-export const setLoggingOut = (value: boolean) => {
-  isLoggingOut = value;
+export const setAccessTokenProvider = (
+  provider: ((forceRefresh?: boolean) => Promise<string | null>) | null
+) => {
+  accessTokenProvider = provider;
 };
 
-const subscribeTokenRefresh = (callback: (token: string) => void) => {
+const subscribeTokenRefresh = (callback: (token: string | null) => void) => {
   refreshSubscribers.push(callback);
 };
 
-const onTokenRefreshed = (newToken: string) => {
+const onTokenRefreshed = (newToken: string | null) => {
   refreshSubscribers.forEach(callback => callback(newToken));
   refreshSubscribers = [];
-};
-
-const clearTokensAndLogout = async () => {
-  await Promise.all([
-    deleteStoredItem(ACCESS_TOKEN_KEY),
-    deleteStoredItem(REFRESH_TOKEN_KEY),
-    deleteStoredItem('uid')
-  ]);
 };
 
 export default function createAPIClient(): AxiosInstance {
@@ -126,11 +65,13 @@ export default function createAPIClient(): AxiosInstance {
   // Request interceptor - Add token to headers if exists
   apiClient.interceptors.request.use(
     async (config: any) => {
-      const accessToken = await getStoredItem(ACCESS_TOKEN_KEY);
+      const accessToken = accessTokenProvider
+        ? await accessTokenProvider()
+        : null;
 
       if (accessToken) {
+        console.log("Attaching access token to request");
         config.headers.Authorization = `Bearer ${accessToken}`;
-        console.log(accessToken);
       }
       config.headers['X-Client-Type'] = Platform.OS === 'web' ? 'WEB' : 'MOBILE';
       
@@ -155,12 +96,12 @@ export default function createAPIClient(): AxiosInstance {
       // Don't attempt refresh if:
       // 1. Not an auth error (401/403)
       // 2. Already retrying
-      // 3. Currently logging out
+      // 3. No Auth0 access token provider registered
       // 4. Request is to logout or refresh-token endpoints
       const isAuthError = error.response?.status === 401 || error.response?.status === 403;
       const isLogoutEndpoint = originalRequest.url?.includes('/logout') || originalRequest.url?.includes('/refresh-token');
       
-      if (!isAuthError || originalRequest._retry || isLoggingOut || isLogoutEndpoint) {
+      if (!isAuthError || originalRequest._retry || !accessTokenProvider || isLogoutEndpoint) {
         return Promise.reject(error);
       }
 
@@ -169,9 +110,11 @@ export default function createAPIClient(): AxiosInstance {
 
       // If already refreshing, wait for the new token
       if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          subscribeTokenRefresh((newToken: string) => {
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return new Promise((resolve) => {
+          subscribeTokenRefresh((newToken: string | null) => {
+            if (newToken) {
+              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            }
             resolve(apiClient(originalRequest));
           });
         });
@@ -180,47 +123,23 @@ export default function createAPIClient(): AxiosInstance {
       isRefreshing = true;
 
       try {
-        // For web, cookies are sent automatically with withCredentials
-        // For mobile, we need to send the refresh token in the body
-        const refreshToken = Platform.OS === 'web' ? null : await getStoredItem(REFRESH_TOKEN_KEY);
-        
-        if (Platform.OS !== 'web' && !refreshToken) {
-          throw new Error('No refresh token available');
-        }
-        
-        // Use a fresh axios instance for refresh to avoid interceptor loops
-        const response = await axios.post(
-          `${API_URL}/user/refresh-token`,
-          Platform.OS === 'web' ? {} : { refreshToken },
-          { 
-            headers: { 'X-Client-Type': Platform.OS === 'web' ? 'WEB' : 'MOBILE' },
-            withCredentials: true, // Important for web to send cookies
-            timeout: API_TIMEOUT
-          }
-        );
-        
-        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
-        
-        // For mobile, save new tokens. For web, tokens are in HTTP-only cookies
-        if (Platform.OS !== 'web' && newAccessToken && newRefreshToken) {
-          await Promise.all([
-            setStoredItem(ACCESS_TOKEN_KEY, newAccessToken),
-            setStoredItem(REFRESH_TOKEN_KEY, newRefreshToken)
-          ]);
+        const newAccessToken = await accessTokenProvider(true);
+
+        if (!newAccessToken) {
+          throw new Error('No refreshed Auth0 access token available');
         }
         
         // Notify all waiting requests
-        onTokenRefreshed(newAccessToken || 'cookie-auth');
+        onTokenRefreshed(newAccessToken);
         
-        // Retry original request with new token (for mobile) or cookies (for web)
-        if (Platform.OS !== 'web' && newAccessToken) {
+        // Retry original request with refreshed token
+        if (newAccessToken) {
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         }
         return apiClient(originalRequest);
         
       } catch (refreshError) {
-        // Clear tokens and logout on refresh failure
-        await clearTokensAndLogout();
+        onTokenRefreshed(null);
         return Promise.reject(refreshError);
         
       } finally {

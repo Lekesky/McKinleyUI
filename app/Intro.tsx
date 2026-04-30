@@ -1,14 +1,48 @@
+import {
+    clearAuthRedirectAction,
+    storeAuthRedirectAction,
+} from '@/services/authRedirect';
+import {
+    getAuth0AuthorizeOptions,
+    getAuth0AuthorizeParameters,
+} from '@/services/auth0';
 import { Image, View } from 'react-native';
+import { useAuth0 } from 'react-native-auth0';
 import { Button, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuthModal } from '@/context/AuthModalContext';
-import LoginModal from '../components/LoginModal';
-import SignupModal from '../components/SignupModal';
 import styles from '../styles/Intro.styles';
 
 export default function Intro(){
     const insets = useSafeAreaInsets();
-    const { showLoginModal, setShowLoginModal, showSignupModal, setShowSignupModal } = useAuthModal();
+    const { authorize } = useAuth0();
+    
+    const handleContinue = async () => {
+        storeAuthRedirectAction('signup');
+
+        try {
+            await authorize(
+                getAuth0AuthorizeParameters(),
+                getAuth0AuthorizeOptions()
+            );
+        } catch (error) {
+            clearAuthRedirectAction();
+            console.error('Signup redirect failed:', error);
+        }
+    };
+
+    const handleSignIn = async () => {
+        storeAuthRedirectAction('login');
+
+        try {
+            await authorize(
+                getAuth0AuthorizeParameters(),
+                getAuth0AuthorizeOptions()
+            );
+        } catch (error) {
+            clearAuthRedirectAction();
+            console.error('Login redirect failed:', error);
+        }
+    };
     
     return(
         <View style={[styles.container1, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
@@ -20,28 +54,24 @@ export default function Intro(){
                 <Text style={styles.subheading}>Order breakfast, lunch, and dinner with just a few taps away!</Text>
             </View>
             <View style={styles.buttonContainer}>
-                <Button mode="contained" style={styles.continue} textColor='#871919ff' onPress={() => setShowSignupModal(true)} >Continue</Button>
+                <Button 
+                    mode="contained" 
+                    style={styles.continue} 
+                    textColor='#871919ff' 
+                    onPress={handleContinue}
+                >
+                    Continue
+                </Button>
+                <Button 
+                    mode="text" 
+                    style={{ marginTop: 12 }}
+                    textColor='#FFFFFF'
+                    onPress={handleSignIn}
+                >
+                    Already have an account? Sign In
+                </Button>
             </View>
-            
-            {/* Login and Signup Modals */}
-            <LoginModal 
-                visible={showLoginModal}
-                onClose={() => setShowLoginModal(false)}
-                onSwitchToSignup={() => {
-                    setShowLoginModal(false);
-                    setShowSignupModal(true);
-                }}
-            />
-            <SignupModal 
-                visible={showSignupModal}
-                onClose={() => setShowSignupModal(false)}
-                onSwitchToLogin={() => {
-                    setShowSignupModal(false);
-                    setShowLoginModal(true);
-                }}
-            />
         </View>
     );
 }
-
 

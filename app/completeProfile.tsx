@@ -159,7 +159,7 @@ export default function CompleteProfile() {
                     textColor: '#FFFFFF',
                 });
                 // Navigate to home page
-                router.replace('/Home');
+                router.replace('/(tabs)/Home');
             })
             .catch((error) => {
                 console.error("Error completing profile:", error);

@@ -31,6 +31,13 @@
       "favicon": "./assets/images/McKinleysGrill.png"
     },
     "plugins": [
+      [
+        "react-native-auth0",
+        {
+          "domain": "dev-japh4s2lm51gcj48.us.auth0.com",
+          "customScheme": "mckinleygrill"
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",

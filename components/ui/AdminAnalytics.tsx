@@ -141,8 +141,6 @@ export default function AdminAnalytics() {
     // orderFulfillment UI removed; keep state placeholder removed to avoid unused variable
     const [timeSalesData, setTimeSalesData] = useState<TimeSalesData | null>(null);
     const [reports] = useState<ReportsList | null>(null);
-    const [orderHistory, setOrderHistory] = useState<OrderHistory[]>([]);
-    const [refreshing, setRefreshing] = useState(false);
     
     // Analytics API functions
     const getSummary = useCallback((period: 'daily' | 'weekly' | 'monthly', date?: string) => {
@@ -150,6 +148,7 @@ export default function AdminAnalytics() {
             uid,
             period
          };
+        console.log("Fetching summary with params uid:", params.uid);
         if (date) params.date = date;
         
         return api.get('/analytics/summary', { params })
@@ -202,7 +201,6 @@ export default function AdminAnalytics() {
     const getMenuPerformance = useCallback((period: 'daily' | 'weekly' | 'monthly', date?: string, limit: number = 5) => {
         const params: any = { uid, period, limit };
         if (date) params.date = date;
-
         return api.get('/analytics/menu-performance', { params })
             .then((response) => {
                 // backend may return the payload directly or wrapped in { summary: { ... } }

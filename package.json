@@ -67,6 +67,7 @@
     "react-dom": "19.0.0",
     "react-native": "0.79.5",
     "react-native-animated-searchbox": "^0.0.1",
+    "react-native-auth0": "^5.4.1",
     "react-native-dialog": "^9.3.0",
     "react-native-dotenv": "^3.4.11",
     "react-native-elements": "^3.4.3",

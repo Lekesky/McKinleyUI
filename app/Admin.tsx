@@ -3,7 +3,6 @@ import AdminMembers from '@/components/ui/AdminMembers';
 import AdminMenu from '@/components/ui/AdminMenu';
 import AdminOrderHistory from '@/components/ui/AdminOrderHistory';
 import ViewControl from '@/components/ViewSwitcher';
-import { useAuth } from '@/context/AuthContext';
 import { useMobileTabBar } from '@/context/TabBarContext';
 import createAPIClient from '@/services/api';
 import { router } from 'expo-router';
@@ -18,7 +17,6 @@ import styles from '../styles/Admin.styles';
 
 export default function Admin() {
   const api = useMemo(() => createAPIClient(), []);
-  const { accessToken, refreshAccessToken } = useAuth();
   const { hideTabBar, showTabBar } = useMobileTabBar();
   const insets = useSafeAreaInsets();
   const [selectedIndex, setSelectedIndex] = useState<number>(0);

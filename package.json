@@ -16,7 +16,6 @@
     "lint": "expo lint"
   },
   "dependencies": {
-    "@expo/cli": "^53",
     "@expo/vector-icons": "^14.1.0",
     "@gorhom/bottom-sheet": "^5.2.6",
     "@ocean28799/react-native-animated-searchbox": "^1.0.2",

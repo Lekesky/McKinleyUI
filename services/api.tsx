@@ -65,6 +65,8 @@ export default function createAPIClient(): AxiosInstance {
   // Request interceptor - Add token to headers if exists
   apiClient.interceptors.request.use(
     async (config: any) => {
+      // Always get a fresh token proactively to avoid stale tokens
+      // This ensures we check expiry before each request
       const accessToken = accessTokenProvider
         ? await accessTokenProvider()
         : null;
@@ -108,6 +110,8 @@ export default function createAPIClient(): AxiosInstance {
       // Mark request as retrying to prevent infinite loops
       originalRequest._retry = true;
 
+      console.warn(`Received ${error.response?.status} error, attempting token refresh...`);
+
       // If already refreshing, wait for the new token
       if (isRefreshing) {
         return new Promise((resolve) => {
@@ -123,11 +127,15 @@ export default function createAPIClient(): AxiosInstance {
       isRefreshing = true;
 
       try {
+        // Force refresh the token since the server rejected the previous one
         const newAccessToken = await accessTokenProvider(true);
 
         if (!newAccessToken) {
+          console.error('No refreshed Auth0 access token available');
           throw new Error('No refreshed Auth0 access token available');
         }
+        
+        console.log('Token refreshed successfully after 401/403 error');
         
         // Notify all waiting requests
         onTokenRefreshed(newAccessToken);
@@ -139,6 +147,7 @@ export default function createAPIClient(): AxiosInstance {
         return apiClient(originalRequest);
         
       } catch (refreshError) {
+        console.error('Failed to refresh token:', refreshError);
         onTokenRefreshed(null);
         return Promise.reject(refreshError);
         

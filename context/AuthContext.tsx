@@ -29,7 +29,9 @@ type AuthContextType = {
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-const ACCESS_TOKEN_EXPIRY_BUFFER_SECONDS = 30;
+// Increased buffer to 60 seconds to prevent stale tokens
+// This ensures we refresh tokens well before they expire
+const ACCESS_TOKEN_EXPIRY_BUFFER_SECONDS = 60;
 
 const isTokenExpired = (
     token: string,
@@ -65,16 +67,31 @@ export const AuthProvider = ({
         }
 
         try {
+            // Get current credentials from Auth0
             let token = await getCredentials(...getAuth0CredentialsArgs(forceRefresh));
 
-            if (!forceRefresh && isTokenExpired(token.accessToken)) {
+            // Check if token is expired or close to expiry
+            const isExpired = isTokenExpired(token.accessToken);
+            if (isExpired) {
+                console.warn("Token is expired or close to expiry, refreshing...");
+                // Force refresh if token is stale
                 token = await getCredentials(...getAuth0CredentialsArgs(true));
             }
 
+            // Verify the new token is still valid after refresh
             const validToken = isTokenExpired(token.accessToken) ? null : token.accessToken;
+            
+            if (validToken) {
+                console.log("Valid access token obtained");
+            } else {
+                console.warn("Access token is expired even after refresh attempt");
+            }
+            
             return validToken;
         } catch (error) {
+            console.error("Error getting valid access token:", error);
             if (isMissingRefreshTokenError(error)) {
+                console.warn("Missing refresh token - user may need to re-authenticate");
                 return null;
             }
 
